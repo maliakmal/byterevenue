@@ -41,6 +41,11 @@
               @endforelse
             </tbody>
           </table>
+          <br/>
+          <div class="pagination">
+            {{ $contacts->links() }}
+          </div>
+
         </div>
       </div>
     </div>

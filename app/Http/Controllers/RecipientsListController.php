@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\RecipientsList;
 use App\Models\Contact;
 use Illuminate\Http\Request;

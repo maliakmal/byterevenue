@@ -20,5 +20,6 @@ Route::middleware([
     Route::resource('contacts', ContactController::class);
     Route::resource('simcards', SimcardController::class);
     Route::resource('clients', ClientController::class);
+    Route::resource('recipient_lists', RecipientsListController::class);
 });
 

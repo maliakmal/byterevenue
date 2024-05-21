@@ -18,6 +18,9 @@
                     <x-nav-link href="{{ route('contacts.index') }}" :active="request()->routeIs('contacts.index')">
                         {{ __('Contacts') }}
                     </x-nav-link>
+                    <x-nav-link href="{{ route('recipient_lists.index') }}" :active="request()->routeIs('recipient_lists.index')">
+                        {{ __('Recipient Lists') }}
+                    </x-nav-link>
                 </div>
             </div>
 
