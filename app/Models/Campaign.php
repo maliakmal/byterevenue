@@ -17,7 +17,11 @@ class Campaign extends Model
 
     public function client()
     {
-        return $this->hasOne(Client::class);
+        return $this->belongsTo(Client::class);
+    }
+
+    public function broadcast_batches(){
+        return $this->hasMany(BroadcastBatch::class);
     }
 
 

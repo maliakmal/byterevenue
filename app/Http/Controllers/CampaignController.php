@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Campaign;
 
 class CampaignController extends Controller
 {
@@ -11,7 +12,7 @@ class CampaignController extends Controller
          */
         public function index()
         {
-            $clients = auth()->user()->campaigns()->latest()->paginate(5);
+            $campaigns = auth()->user()->campaigns()->latest()->paginate(5);
     
             return view('campaigns.index', compact('campaigns'));
         }
@@ -21,7 +22,7 @@ class CampaignController extends Controller
          */
         public function create()
         {
-            $clients = auth()->user()->clients()->all();
+            $clients = auth()->user()->clients->all();
             return view('campaigns.create', compact('clients'));
         }
     
@@ -30,6 +31,7 @@ class CampaignController extends Controller
          */
         public function store(Request $request)
         {
+
             $request->validate([
                 'title' => 'required|string|max:255',
                 'client_id' => 'required',

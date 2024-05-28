@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->hasMany(Client::class);
     }
 
+    public function campaigns()
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
     public function recipientLists()
     {
         return $this->hasMany(RecipientsList::class);

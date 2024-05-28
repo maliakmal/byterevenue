@@ -15,7 +15,7 @@ class RecipientsListController extends Controller
      */
     public function index()
     {
-        $recipient_lists = auth()->user()->recipientLists()->latest()->paginate(5);
+        $recipient_lists = auth()->user()->recipientLists()->latest()->paginate(10);
 
         return view('recipient_lists.index', compact('recipient_lists'));
     }
@@ -58,8 +58,9 @@ class RecipientsListController extends Controller
         try {
             foreach ($data as $row) {
                 if(is_array($row)):
-                    $contact = Contact::firstOrCreate([
+                    $contact = Contact::firstOrNew([
                         'phone' => $row['phone'],
+                        'user_id'=>auth()->id()
                     ], [
                         'name' => $row['name'],
                         'email' => $row['email'],
@@ -67,21 +68,23 @@ class RecipientsListController extends Controller
 
                 else:
 
-                    $contact = Contact::firstOrCreate([
+                    $contact = Contact::firstOrNew([
                         'phone' => $row,
+                        'user_id'=>auth()->id()
                     ], ['name' => $row]);
                     
                 endif;
+                $contact->save();
 
-                $recipientsList->contacts()->attach($contact->id);
+                $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
             }
 
             DB::commit();
-
             return redirect()->back()->with('success', 'Contacts imported successfully.');
         } catch (\Exception $e) {
             DB::rollback();
-
+            var_dump($e);
+            exit();
             return redirect()->back()->withErrors(['error' => 'An error occurred while importing contacts.']);
         }
 
@@ -93,9 +96,13 @@ class RecipientsListController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(RecipientsList $recipientsList)
+    public function show($id)
     {
-        return view('recipient_lists.show', compact('recipientsList'));
+
+        $recipientsList = RecipientsList::findOrFail($id);
+        $contacts = $recipientsList->contacts()->paginate(10);
+
+        return view('recipient_lists.show', compact('recipientsList', 'contacts'));
     }
 
     /**
@@ -121,16 +128,17 @@ class RecipientsListController extends Controller
             'email' => $request->email,
         ]);
 
-        return redirect()->route('recipient_lists.index')->with('success', 'Client updated successfully.');
+        return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RecipientsList $recipientsList)
+    public function destroy($id)
     {
-        $recipientsList->delete();
+        $item = RecipientsList::findOrFail($id);
+        $item->delete();
 
-        return redirect()->route('recipient_lists.index')->with('success', 'Client deleted successfully.');
+        return redirect()->route('recipient_lists.index')->with('success', 'List deleted successfully.');
     }
 }
