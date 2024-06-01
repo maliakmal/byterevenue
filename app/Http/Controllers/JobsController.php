@@ -21,19 +21,23 @@ class JobsController extends Controller
             $url_shortener = $request->url_shortener;
 
             $logs = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get();
-            $filename = 'byterevenue-messages-'.time().'.csv';
-            $filePath = storage_path('app/csv/'.$filename);
 
-            $file = fopen($filePath, 'w');
-            fputcsv($file, ['Phone', 'Subject', 'Text']);
+            if(count($logs)>0):
 
-            foreach($logs as $log){
-                fputcsv($file, [$log->recipient_phone, '', $log->message_body]);
-            }
-            fclose($file);
-            $download_me = $filename;
-            BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
-            ->update(['is_downloaded_as_csv' => 1]);
+                $filename = 'byterevenue-messages-'.time().'.csv';
+                $filePath = storage_path('app/csv/'.$filename);
+
+                $file = fopen($filePath, 'w');
+                fputcsv($file, ['Phone', 'Subject', 'Text']);
+
+                foreach($logs as $log){
+                    fputcsv($file, [$log->recipient_phone, '', $log->message_body]);
+                }
+                fclose($file);
+                $download_me = $filename;
+                BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
+                ->update(['is_downloaded_as_csv' => 1]);
+            endif;
 
         }
         $directory = storage_path('app/csv/');
