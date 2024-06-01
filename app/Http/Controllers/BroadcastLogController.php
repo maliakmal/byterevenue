@@ -12,8 +12,11 @@ class BroadcastLogController extends Controller
      */
     public function index()
     {
-        //
+        
+        $logs = BroadcastLog::select()->orderby('id', 'DESC')->paginate(30);
     }
+
+
 
     /**
      * Show the form for creating a new resource.

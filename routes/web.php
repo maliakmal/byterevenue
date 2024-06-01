@@ -9,6 +9,7 @@ use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\BroadcastBatchController;
+use App\Http\Controllers\JobsController;
 
 
 Route::get('/', function () {
@@ -29,5 +30,11 @@ Route::middleware([
     Route::resource('campaigns', CampaignController::class);
     Route::resource('recipient_lists', RecipientsListController::class);
     Route::resource('broadcast_batches', BroadcastBatchController::class);
+    Route::get('/mark-processed/{id}', [BroadcastBatchController::class, 'markAsProcessed'])->name('broadcast_batches.markProcessed');
+    Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
+    Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
+    Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
+
+    
 });
 

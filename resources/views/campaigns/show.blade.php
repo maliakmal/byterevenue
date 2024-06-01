@@ -58,7 +58,7 @@
               <div class="flex gap-3 bg-white border border-gray-300 rounded-xl overflow-hidden items-center justify-start">
                 <div class="flex flex-col p-2">
 
-                  <p class="text-xl font-bold">{{ $broadcast_batch->message->getParsedMessage() }}</p>
+                  <p class="text-xl font-bold"><a href="/broadcast_batches/{{ $broadcast_batch->id }}">{{ $broadcast_batch->message->getParsedMessage() }}</a></p>
 
                   <p class="text-gray-500">
                   {{  $broadcast_batch->recipient_list->contacts->count() }} contacts

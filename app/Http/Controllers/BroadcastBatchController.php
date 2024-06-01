@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\BroadcastBatch;
+use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Message;
 use App\Models\RecipientsList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BroadcastBatchController extends Controller
 {
@@ -68,7 +70,61 @@ class BroadcastBatchController extends Controller
      */
     public function show(BroadcastBatch $broadcastBatch)
     {
-        //
+        $campaign = $broadcastBatch->campaign;
+        $message = $broadcastBatch->message;
+
+        $recipient_lists = $broadcastBatch->recipient_list;
+        $broadcast_batch = $broadcastBatch;
+
+        if($broadcast_batch->isDraft()){
+            $contacts = $recipient_lists->contacts()->paginate(10);
+            $logs = [];
+
+        }else{
+            $contacts = [];
+            $logs = BroadcastLog::select()->where('broadcast_batch_id', '=', $broadcast_batch->id)->paginate(10);
+        }
+        return view('broadcast_batch.show', compact('campaign', 'contacts', 'logs', 'broadcast_batch', 'message', 'recipient_lists'));
+
+    }
+
+    public function markAsProcessed($id){
+        // create message logs against each contact and generate the message acordingly
+
+        DB::beginTransaction();
+
+        try {
+            $broadcast_batch = BroadcastBatch::findOrFail($id);
+
+            $message = $broadcast_batch->message->getParsedMessage();
+            $data = [
+                'user_id'=>auth()->id(),
+                'recipients_list_id'=>$broadcast_batch->recipient_list->id,
+                'message_id'=>$broadcast_batch->message_id,
+                'message_body'=>$message,
+                'recipient_phone'=>'',
+                'contact_id'=>0,
+                'is_downloaded_as_csv'=>0,
+                'broadcast_batch_id'=>$broadcast_batch->id
+            ];
+
+            $contacts = $broadcast_batch->recipient_list->contacts->all();
+
+            foreach($contacts as $contact){
+                $data['recipient_phone'] = $contact->phone;
+                $data['contact_id'] = $contact->id;
+                BroadcastLog::create($data);
+            }
+
+            $broadcast_batch->markAsProcessed();
+            $broadcast_batch->save();
+            DB::commit();
+            return redirect()->back()->with('success', 'Job is being processed.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
+        }
+
     }
 
     /**

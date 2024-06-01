@@ -44,13 +44,14 @@
         <div class="mt-5 flex xl:mt-0 xl:ml-4">
         <span class="ml-3 hidden sm:block">
             @if($broadcast_batch->canBeProcessed())
-                <a href="{{ route('broadcast_batches.markProcessed') }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
+                <a href="{{ route('broadcast_batches.markProcessed', ['id'=>$broadcast_batch->id]) }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
                     <svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
                     <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
                     </svg>
                     Process
                     </a>
                 </span>
+                @endif
 
 
 
@@ -62,6 +63,73 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
+        @include('partials.alerts')
+
+      @if($broadcast_batch->isDispatched())
+      <div>
+        <table class="w-full table-fixed">
+            <thead>
+              <tr class="bg-gray-100">
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Phone</th>
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Message</th>
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Processed At</th>
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Status</th>
+              </tr>
+
+            </thead>
+            <tbody>
+              @forelse ($logs  as $log)
+                <tr>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->recipient_phone }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->message_body }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->created_at }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">UNDER PROCESS</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No logs found') }}</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+
+
+          </div><br/>
+          {{$logs->links()}}
+
+          @else
+          <div>
+        <table class="w-full table-fixed">
+            <thead>
+              <tr class="bg-gray-100">
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Contact</th>
+                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Message</th>
+              </tr>
+
+            </thead>
+            <tbody>
+              @forelse ($contacts as $contact)
+                <tr>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ $contact->phone }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ $message->getParsedMessage() }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200"></td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No contacts found') }}</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+
+
+          </div>
+          <br/>
+          {{$contacts->links()}}
+
+          @endif
+
+
           @foreach($campaign->broadcast_batches as $broadcast_batch)
           <div class="max-w-4xl mx-auto mt-24">
               <div class="flex gap-3 bg-white border border-gray-300 rounded-xl overflow-hidden items-center justify-start">
