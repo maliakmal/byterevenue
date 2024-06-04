@@ -5,6 +5,8 @@ use Carbon\Carbon;
 
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
+use App\Models\BatchFile;
+use App\Models\UrlShortener;
 use Illuminate\Support\Facades\Storage;
 use File;
 
@@ -15,6 +17,7 @@ class JobsController extends Controller
     public function index(Request $request){
 
         $download_me = null;
+        $urlShorteners = UrlShortener::all();
         if ($request->isMethod('post')) {
             
             $limit = $request->number_messages;
@@ -24,40 +27,39 @@ class JobsController extends Controller
 
             if(count($logs)>0):
 
-                $filename = 'byterevenue-messages-'.time().'.csv';
-                $filePath = storage_path('app/csv/'.$filename);
+                $filename = '/csv/byterevenue-messages-'.time().'.csv';
 
-                $file = fopen($filePath, 'w');
-                fputcsv($file, ['Phone', 'Subject', 'Text']);
-
+                $csvContent = '';
+                
+                $csvContent .= implode(',', ['Phone', 'Subject', 'Text']) . "\n";
                 foreach($logs as $log){
-                    fputcsv($file, [$log->recipient_phone, '', $log->message_body]);
+                    $csvContent .= implode(',', [$log->recipient_phone, '', $log->message_body]) . "\n";
                 }
-                fclose($file);
-                $download_me = $filename;
+                $download_me = env('DO_SPACES_ENDPOINT').$filename;
+                Storage::disk('spaces')->put($filename, $csvContent);
+
+                BatchFile::create(['filename' => $filename,
+                    'path' =>env('DO_SPACES_ENDPOINT').$filename,
+                    'number_of_entries'=>count($logs),
+                    'broadcast_batch_id'=>$log->broadcast_batch_id]);
+                
                 BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
                 ->update(['is_downloaded_as_csv' => 1]);
+
+
             endif;
 
         }
+
+
         $directory = storage_path('app/csv/');
-        $all_files = Storage::disk('csv')->files();
-
-        $files = [];
-        foreach ($all_files as $file) {
-
-
-            $lastModifiedTime = Carbon::createFromTimestamp(Storage::disk('csv')->lastModified($file));
-            $files[] = [
-                'name' => basename($file),
-                'created_at' => $lastModifiedTime->diffForHumans()
-            ];
-        }
+        $files = BatchFile::select()->orderby('id', 'asc')->paginate(10);
 
         // get count of all messages in the queue
         $params['total_in_queue'] = BroadcastLog::select()->count();
         $params['files'] = $files;
         $params['download_me'] = $download_me;
+        $params['urlShorteners'] = $urlShorteners;
         $params['total_not_downloaded_in_queue'] = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
         return view('jobs.index', compact('params'));
     }

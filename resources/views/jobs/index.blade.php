@@ -64,8 +64,9 @@
             <div class="mb-4 mt-4">
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Url Shortener</label>
               <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                <option value="ow.ly">Ow.ly</option>
-                <option value="new.ly">New.ly</option>
+              @foreach($params['urlShorteners'] as $vv)  
+              <option value="{{ $vv->name }}">{{ $vv->name }}</option>
+                @endforeach
               </select>
             </div>
             <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Download</button>
@@ -75,7 +76,7 @@
     <ul>
         @foreach ($params['files'] as $file)
             <li>
-                <a href="{{ route('download.file', $file['name']) }}">{{ $file['name'] }}</a> - <i>{{ $file['created_at'] }}</i>
+                <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['filename'] }}</a> - <i>{{ $file['created_at'] }}</i>
             </li>
         @endforeach
     </ul>
@@ -94,11 +95,12 @@ function downloadURI(uri, name) {
   var link = document.createElement("a");
   link.download = name; // <- name instead of 'name'
   link.href = uri;
+
   link.click();
   link.remove();
 }
 
-downloadURI('{{ route('download.file', $params['download_me']) }}', '{{ $params['download_me'] }}');
+downloadURI('{{ $params['download_me'] }}', '{{ $params['download_me'] }}');
 
 
     @endif

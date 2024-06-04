@@ -10,6 +10,10 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\JobsController;
+use App\Http\Controllers\UrlShortenerController;
+use App\Http\Controllers\AccountsController;
+
+use Filament\Http\Middleware\Authenticate;
 
 
 Route::get('/', function () {
@@ -30,6 +34,8 @@ Route::middleware([
     Route::resource('campaigns', CampaignController::class);
     Route::resource('recipient_lists', RecipientsListController::class);
     Route::resource('broadcast_batches', BroadcastBatchController::class);
+    Route::resource('accounts', AccountsController::class);
+    Route::resource('url_shorteners', UrlShortenerController::class);
     Route::get('/mark-processed/{id}', [BroadcastBatchController::class, 'markAsProcessed'])->name('broadcast_batches.markProcessed');
     Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
     Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
