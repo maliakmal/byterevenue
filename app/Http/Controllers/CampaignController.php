@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Campaign;
+use App\Models\Message;
+use App\Models\BroadcastLog;
+use App\Models\RecipientsList;
+use Illuminate\Support\Facades\DB;
 
 class CampaignController extends Controller
 {
@@ -23,7 +27,8 @@ class CampaignController extends Controller
         public function create()
         {
             $clients = auth()->user()->clients->all();
-            return view('campaigns.create', compact('clients'));
+            $recipient_lists = auth()->user()->recipientLists()->get()->all();
+            return view('campaigns.create', compact('clients', 'recipient_lists'));
         }
     
         /**
@@ -37,13 +42,26 @@ class CampaignController extends Controller
                 'client_id' => 'required',
             ]);
     
+
             $campaign = auth()->user()->campaigns()->create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'client_id' => $request->client_id,
+                'recipients_list_id' => $request->recipients_list_id, 
             ]);
+            $message_data = [
+                'subject'=>$request->message_subject,
+                'body'=>$request->message_body,
+                'target_url'=>$request->message_target_url,
+                "user_id"=>auth()->user()->id,
+                'campaign_id'=>$campaign->id
+            ];
     
-            return redirect()->route('campaigns.show', $campaign)->with('success', 'Client created successfully.');
+            $message = Message::create($message_data);
+    
+    
+
+            return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign created successfully.');
         }
     
         /**
@@ -51,16 +69,68 @@ class CampaignController extends Controller
          */
         public function show(Campaign $campaign)
         {
-            return view('campaigns.show', compact('campaign'));
+            $message = $campaign->message;
+    
+            $recipient_lists = $campaign->recipient_list;
+    
+            if($campaign->isDraft()){
+                $contacts = $recipient_lists->contacts()->paginate(10);
+                $logs = [];
+    
+            }else{
+                $contacts = [];
+                $logs = BroadcastLog::select()->where('campaign_id', '=', $campaign->id)->paginate(10);
+            }
+            return view('campaigns.show', compact('campaign', 'contacts', 'logs', 'message', 'recipient_lists'));
+    
         }
 
         public function createBroadcastBatch(Campaign $campaign)
         {
-            $recipient_lists = auth()->user()->recipients_lists()->all();
             return view('campaigns.broadcast-batch.create', compact('campaign', 'recipient_lists'));
         }
 
+        public function markAsProcessed($id){
+            // create message logs against each contact and generate the message acordingly
+    
+            DB::beginTransaction();
+    
+            try {
+                $campaign = Campaign::findOrFail($id);
+    
+                $message = $campaign->message->getParsedMessage();
 
+                $data = [
+                    'user_id'=>auth()->id(),
+                    'recipients_list_id'=>$campaign->recipient_list->id,
+                    'message_id'=>$campaign->message->id,
+                    'message_body'=>$message,
+                    'recipient_phone'=>'',
+                    'contact_id'=>0,
+                    'is_downloaded_as_csv'=>0,
+                    'campaign_id'=>$campaign->id,
+                ];
+    
+                $contacts = $campaign->recipient_list->contacts->all();
+    
+                foreach($contacts as $contact){
+                    $data['recipient_phone'] = $contact->phone;
+                    $data['contact_id'] = $contact->id;
+                    BroadcastLog::create($data);
+                }
+    
+                $campaign->markAsProcessed();
+                $campaign->save();
+                DB::commit();
+                return redirect()->back()->with('success', 'Job is being processed.');
+            } catch (\Exception $e) {
+                DB::rollback();
+                var_dump($e);die();
+                return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
+            }
+    
+        }
+    
         /**
          * Show the form for editing the specified resource.
          */

@@ -18,4 +18,8 @@ class Message extends Model
         $text = str_replace('[link]', $target_url, $this->body);
         return $text;
     }
+
+    public function campaign(){
+        return $this->belongsTo(Campaign::class);
+    }
 }

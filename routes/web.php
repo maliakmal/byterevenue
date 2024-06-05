@@ -36,7 +36,7 @@ Route::middleware([
     Route::resource('broadcast_batches', BroadcastBatchController::class);
     Route::resource('accounts', AccountsController::class);
     Route::resource('url_shorteners', UrlShortenerController::class);
-    Route::get('/mark-processed/{id}', [BroadcastBatchController::class, 'markAsProcessed'])->name('broadcast_batches.markProcessed');
+    Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
     Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
     Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
     Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');

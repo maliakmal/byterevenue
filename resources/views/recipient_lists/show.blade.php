@@ -46,7 +46,6 @@
         <div class="p-6 bg-white border-b 200">
           <div class="bg-white  rounded px-8 pt-6 pb-8 mb-4">
             <h2 class="text-2xl font-semibold text-gray-800 mb-4"></h2>
-            <p class="text-gray-700 mb-2">Attached Contacts</p>
             <table class="w-full table-fixed">
             <thead>
               <tr class="bg-gray-100">
@@ -72,10 +71,10 @@
               @endforelse
             </tbody>
           </table>
-
+<br/>
+          {{$contacts->links()}}
 
           </div>
-          {{$contacts->links()}}
         </div>
       </div>
     </div>

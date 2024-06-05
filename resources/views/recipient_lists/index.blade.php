@@ -44,52 +44,83 @@
 
   <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-          @forelse ($recipient_lists as $recipient_list)
-            <div class="max-w-4xl mx-auto mt-24">
-              <div class="flex gap-3 bg-white border border-gray-300 rounded-xl overflow-hidden items-center justify-start">
-                <div class="relative w-32 h-32 flex-shrink-0">
-                    <img class="absolute left-0 top-0 w-full h-full object-cover object-center transition duration-50" loading="lazy" src="https://via.placeholder.com/150">
-                </div>
+      <div class=" sm:rounded-lg">
 
-                <div class="flex flex-col p-2">
 
-                  <p class="text-xl font-bold"><a href="/recipient_lists/{{$recipient_list->id}}">{{ $recipient_list->name }}</a></p>
 
-                  <p class="text-gray-500">
-                  {{ $recipient_list->contacts->count() }} contacts
-                  </p>
-                  <span class="flex items-center justify-start text-gray-500">
-                    <form action="{{ route('recipient_lists.destroy', $recipient_list->id) }}" method="post">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" onclick="return confirm('Are you sure')" class="inline-flex items-center px-2 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
-                        <span>
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                          </svg>
-                        </span>
-                        <span class="hidden md:inline-block">Delete</span>
-                      </button>
-                    </form>
-                  </span>
-                </div>
-              </div>
+
+      @if(count($recipient_lists)>0)
+      <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+      @forelse ($recipient_lists as $recipient_list)
+      <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+        <div class="flex w-full items-center justify-between space-x-6 p-6">
+          <div class="flex-1 truncate">
+            <div class="flex items-center space-x-3">
+              <h3 class="truncate text-sm font-medium text-gray-900">{{ $recipient_list->name }}</h3>
+              
             </div>
-            <div class="p-4 pagination">
-              {{ $recipient_lists->links() }}
-            </div>
-
-
-              @empty
-                <div>
-                  <div class="border border-gray-200 px-4 py-2 text-center">{{ __('No recipient lists found') }}</div>
-</div>
-              @endforelse
-
-
+            <p class="mt-1 truncate text-sm text-gray-500">{{ $recipient_list->contacts->count() }} contacts</p>
+          </div>
+          <span class="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-blue-600 ring-1 hidden ring-inset ring-green-600/20">Creator</span>      
         </div>
+    <div>
+    <div class="-mt-px flex divide-x divide-gray-200">
+    <div class="flex w-0 flex-1">
+          <a href="{{ route('recipient_lists.show', $recipient_list->id) }}" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+  <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clip-rule="evenodd" />
+</svg>
+            
+          </a>
+        </div>
+        <div class="flex w-0 flex-1">
+          <a href="{{ route('recipient_lists.edit', $recipient_list->id) }}" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+  <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+</svg>
+            
+          </a>
+        </div>
+        <div class="flex w-0 flex-1">
+        <form action="{{ route('recipient_lists.destroy', $recipient_list->id) }}" method="post" class="relative -ml-px inline-flex w-0 flex-1 items-center justify-center">
+          @csrf
+          @method('DELETE')
+          <button type="submit"  class="w-full flex items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-4 text-sm font-semibold text-gray-900">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+              <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+            </svg>
+          
+          Delete
+          </button>
+        </form>          
+        </div>
+      </div>
+    </div>
+  </li>
+
+
+          @endforeach
+</ul>
+<br/>
+{{ $recipient_lists->links()}}
+@else
+<div class="flex w-full items-center  space-x-6 p-6">
+  <div class="flex-1 truncate">
+    <div class="flex items-center space-x-3">
+      <h3 class="truncate text-sm font-medium text-gray-900">No Recipient List found</h3>
+      
+    </div>
+  </div>
+  <span class="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-blue-600 ring-1 hidden ring-inset ring-green-600/20">Creator</span>      
+</div>
+
+@endif
+
+
+
+
       </div>
     </div>
   </div>
