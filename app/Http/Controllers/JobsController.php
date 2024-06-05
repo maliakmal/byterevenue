@@ -41,7 +41,7 @@ class JobsController extends Controller
                 BatchFile::create(['filename' => $filename,
                     'path' =>env('DO_SPACES_ENDPOINT').$filename,
                     'number_of_entries'=>count($logs),
-                    'broadcast_batch_id'=>$log->broadcast_batch_id]);
+                    'campaign_id'=>$log->campaign_id]);
                 
                 BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
                 ->update(['is_downloaded_as_csv' => 1]);
