@@ -54,7 +54,7 @@
             <tbody>
               @forelse ($accounts as $account)
                 <tr>
-                  <td class="border border-gray-200 px-4 py-2"><a href="javascript:void('work in progress');">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
+                  <td class="border border-gray-200 px-4 py-2"><a href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
                   <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
                   <td class="border border-gray-200 px-4 py-2">
                   </td>

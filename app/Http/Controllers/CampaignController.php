@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Campaign;
 use App\Models\Message;
+use App\Models\User;
 use App\Models\BroadcastLog;
 use App\Models\RecipientsList;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
 class CampaignController extends Controller
@@ -16,7 +18,11 @@ class CampaignController extends Controller
          */
         public function index()
         {
-            $campaigns = auth()->user()->campaigns()->latest()->paginate(5);
+            if(auth()->user()->hasRole('admin')):
+                $campaigns = Campaign::select()->orderby('id', 'desc')->paginate(5);
+            else:
+                $campaigns = auth()->user()->campaigns()->latest()->paginate(5);
+            endif;
     
             return view('campaigns.index', compact('campaigns'));
         }
@@ -39,14 +45,12 @@ class CampaignController extends Controller
 
             $request->validate([
                 'title' => 'required|string|max:255',
-                'client_id' => 'required',
             ]);
     
 
             $campaign = auth()->user()->campaigns()->create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'client_id' => $request->client_id,
                 'recipients_list_id' => $request->recipients_list_id, 
             ]);
             $message_data = [
@@ -92,7 +96,13 @@ class CampaignController extends Controller
 
         public function markAsProcessed($id){
             // create message logs against each contact and generate the message acordingly
-    
+            $campaign = Campaign::findOrFail($id);
+            $contacts = $campaign->recipient_list->contacts->all();
+            $account = User::find(auth()->user()->id);
+            $amount = count($contacts);
+            if($account->tokens < $amount){
+                return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);
+            }
             DB::beginTransaction();
     
             try {
@@ -121,11 +131,23 @@ class CampaignController extends Controller
     
                 $campaign->markAsProcessed();
                 $campaign->save();
+
+                $account = User::find(auth()->user()->id);
+                $amount = count($contacts);
+                Transaction::create([
+                    'user_id'=>$account->id,
+                    'amount'=>$amount,
+                    'type'=>'usage',
+                ]);
+                $account->deductTokens($amount);
+                $account->save();
+        
+
+
                 DB::commit();
                 return redirect()->back()->with('success', 'Job is being processed.');
             } catch (\Exception $e) {
                 DB::rollback();
-                var_dump($e);die();
                 return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
             }
     

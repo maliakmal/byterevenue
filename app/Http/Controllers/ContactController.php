@@ -12,8 +12,12 @@ class ContactController extends Controller
     }
 
     public function index()
-    {
-        $contacts = auth()->user()->contacts()->latest()->paginate(50);
+    {   
+        if(auth()->user()->hasRole('admin')):
+            $contacts = Contact::select()->orderby('id', 'desc')->paginate(50);    
+        else:
+            $contacts = auth()->user()->contacts()->latest()->paginate(50);
+        endif;
 
         return view('contacts.index', compact('contacts'));
     }

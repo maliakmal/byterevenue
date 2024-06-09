@@ -57,15 +57,6 @@
               <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" ></textarea>
             </div>
             <div class="mb-4">
-              <label for="phone" class="block text-gray-700 text-sm font-bold mb-2">Client</label>
-              <select id="client_id" name="client_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                <option value="">Select an option</option>
-                @foreach ($clients as $client)
-                    <option value="{{ $client->id }}">{{ $client->name }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="mb-4">
               <label for="phone" class="block text-gray-700 text-sm font-bold mb-2">Recipient List</label>
               <select id="recipients_list_id" name="recipients_list_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
                 <option value="">Select an option</option>

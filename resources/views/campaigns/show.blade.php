@@ -42,8 +42,8 @@
           <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
             {{ $campaign->description }}
           </div>
-          <p class="text-gray-700"><b>Client:</b> {{ $campaign->client->name }}</p>
           <p class="text-gray-700"><b>Recipient List:</b> {{ $campaign->recipient_list->name }}({{  $campaign->recipient_list->contacts->count() }} contacts)</p>
+          <p class="{{ auth()->user()->tokens >= $campaign->recipient_list->contacts->count() ? 'text-gray-700' : 'text-red-700'}}"><b>Available Tokens:<b>{{ auth()->user()->tokens}}</p>
         </div>
         <div class="mt-5 flex xl:mt-0 xl:ml-4">
 

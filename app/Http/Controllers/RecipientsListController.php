@@ -15,7 +15,12 @@ class RecipientsListController extends Controller
      */
     public function index()
     {
-        $recipient_lists = auth()->user()->recipientLists()->latest()->paginate(10);
+        if(auth()->user()->hasRole('admin')):
+            $recipient_lists = RecipientsList::select()->orderby('id', 'desc')->paginate(10);
+        else:
+            $recipient_lists = auth()->user()->recipientLists()->latest()->paginate(10);
+        endif;
+
 
         return view('recipient_lists.index', compact('recipient_lists'));
     }

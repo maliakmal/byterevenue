@@ -40,6 +40,9 @@ Route::middleware([
     Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
     Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
     Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
+    Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
+
+    
 
     
 });

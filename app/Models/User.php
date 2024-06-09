@@ -84,4 +84,21 @@ class User extends Authenticatable
         return $this->hasMany(RecipientsList::class);
     }
 
+    public function transactions(){
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function hasEnoughTokens($required_tokens){
+        return $this->tokens >= $required_tokens ? true : false;
+    }
+
+    public function deductTokens($amount){
+        $this->tokens = $amount > $this->tokens ? 0 : ($this->tokens - $amount);
+    }
+
+    public function addTokens($amount){
+        $this->tokens += $amount;
+    }
+
+
 }
