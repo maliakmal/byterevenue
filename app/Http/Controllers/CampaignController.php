@@ -167,8 +167,6 @@ class CampaignController extends Controller
                 $account->deductTokens($amount);
                 $account->save();
         
-
-
                 DB::commit();
                 return redirect()->back()->with('success', 'Job is being processed.');
             } catch (\Exception $e) {
@@ -183,7 +181,9 @@ class CampaignController extends Controller
          */
         public function edit(Campaign $campaign)
         {
-            return view('campaigns.edit', compact('campaign'));
+            $user = $campaign->user;
+            $recipient_lists = $user->recipientLists()->get()->all();
+            return view('campaigns.edit', compact('campaign', 'recipient_lists'));
         }
     
         /**
@@ -193,14 +193,19 @@ class CampaignController extends Controller
         {
             $request->validate([
                 'title' => 'required|string|max:255',
-                'client_id' => 'required',
             ]);
     
-            $campaign->update([
-                'title' => $request->title,
-                'description' => $request->description,
-                'client_id' => $request->client_id,
-            ]);
+            $campaign->title = $request->title;
+            $campaign->description = $request->description;
+            $campaign->recipients_list_id = $request->recipients_list_id;
+            $campaign->save();
+
+            $message = $campaign->message;
+            $message->subject = $request->message_subject;
+            $message->body = $request->message_body;
+            $message->target_url = $request->message_target_url;
+            $message->save();
+    
     
             return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign updated successfully.');
         }
