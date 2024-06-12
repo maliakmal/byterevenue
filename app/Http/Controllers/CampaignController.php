@@ -18,13 +18,37 @@ class CampaignController extends Controller
          */
         public function index()
         {
-            if(auth()->user()->hasRole('admin')):
-                $campaigns = Campaign::select()->orderby('id', 'desc')->paginate(5);
-            else:
-                $campaigns = auth()->user()->campaigns()->latest()->paginate(5);
-            endif;
+            $campaigns = Campaign::query();
+            $filter = array(
+                'status'=> request('status')?request('status'):null,
+                'user_id'=> request('user_id')?request('user_id'):null,
+                'sortby'=> request('sortby')?request('sortby'):'id_desc',
+                'count'=> request('count')?request('count'):5,
+            );
+
+            if(!empty($filter['status'])){
+                $campaigns->where('status', $filter['status']);
+            }
+            if(!empty($filter['user_id'])){
+                $campaigns->where('user_id', $filter['user_id']);
+            }
+
+            if(!empty($filter['sortby'])){
+                switch($filter['sortby']){
+                    case 'id_desc':
+                        $campaigns->orderby('id', 'desc');
+                        break;
+                    case 'id_asc':
+                        $campaigns->orderby('id', 'asc');
+                        break;
+                    case 'title':
+                        $campaigns->orderby('title', 'asc');
+                        break;
+                }
+            }
+            $campaigns = $campaigns->paginate($filter['count']);
     
-            return view('campaigns.index', compact('campaigns'));
+            return view('campaigns.index', compact('campaigns', 'filter'));
         }
     
         /**

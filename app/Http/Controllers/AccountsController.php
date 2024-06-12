@@ -18,7 +18,58 @@ class AccountsController extends Controller
 
     public function show($id){
         $account = User::find($id);
-        return view('accounts.show', compact('account'));
+        $transactions = Transaction::query();
+        $filter = array(
+            'type'=> request('type')?request('type'):null,
+            'sortby'=> request('sortby')?request('sortby'):'id_desc',
+            'count'=> request('count')?request('count'):5,
+        );
+            if(!empty($filter['type'])){
+                $transactions->where('type', $filter['type']);
+            }
+
+            if(!empty($filter['sortby'])){
+                switch($filter['sortby']){
+                    case 'id_desc':
+                        $transactions->orderby('id', 'desc');
+                        break;
+                    case 'id_asc':
+                        $transactions->orderby('id', 'asc');
+                        break;
+                }
+            }
+            $transactions = $transactions->get()->all();
+
+        return view('accounts.show', compact('account','filter','transactions'));
+    }
+
+    public function tokens(){
+
+        $account = User::find(auth()->user()->id);
+        $transactions = Transaction::query();
+
+        $filter = array(
+            'type'=> request('type')?request('type'):null,
+            'sortby'=> request('sortby')?request('sortby'):'id_desc',
+            'count'=> request('count')?request('count'):5,
+        );
+            if(!empty($filter['type'])){
+                $transactions->where('type', $filter['type']);
+            }
+
+            if(!empty($filter['sortby'])){
+                switch($filter['sortby']){
+                    case 'id_desc':
+                        $transactions->orderby('id', 'desc');
+                        break;
+                    case 'id_asc':
+                        $transactions->orderby('id', 'asc');
+                        break;
+                }
+            }
+            $transactions = $transactions->get()->all();
+
+        return view('accounts.tokens', compact('account','filter','transactions'));
     }
 
     public function storeTokens(Request $request){

@@ -86,13 +86,25 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
 
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
+    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+        <div class="p-6 bg-white border-b border-gray-200">
+        <form method="get" id="filter-form">
+  <select id="type" name="type">
+  <option value="">All Types</option>
+  <option {{ $filter['type']=='purchase'?'selected' :'' }} value="purchase">Purchase</option>
+  <option {{ $filter['type']=='deduct'?'selected' :'' }} value="deduct">Deduct</option>
+</select>
+<select id="sortby" name="sortby">
+  <option value="">Sort By</option>
+  <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
+  <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
+</select>
+</form>
 
 
-        @if($account->transactions->count() > 0)
-      <div>
-        <table class="w-full table-fixed">
+@if(count($transactions) > 0)
+<div>
+        <table class="mt-5 w-full table-fixed">
             <thead>
               <tr class="bg-gray-100">
                   <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Transaction ID</th>
@@ -102,7 +114,7 @@
               </tr>
             </thead>
             <tbody>
-              @foreach ($account->transactions  as $transaction)
+              @foreach ($transactions  as $transaction)
                 <tr>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $transaction->id }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $transaction->amount }}</td>
@@ -152,3 +164,21 @@ var closeModal = function (name) {
 @endpush
 </x-app-layout>
 
+@push('scripts')
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+  var selectElements = document.querySelectorAll('#filter-form select');
+  var form = document.getElementById('filter-form');
+
+  selectElements.forEach(function(selectElement) {
+    selectElement.addEventListener('change', function() {
+      if (form) {
+        form.submit();
+      }
+    });
+  });
+});
+
+
+</script>
