@@ -65,7 +65,7 @@
   <select id="type" name="type">
   <option value="">All Types</option>
   <option {{ $filter['type']=='purchase'?'selected' :'' }} value="purchase">Purchase</option>
-  <option {{ $filter['type']=='deduct'?'selected' :'' }} value="deduct">Deduct</option>
+  <option {{ $filter['type']=='usage'?'selected' :'' }} value="usage">Deduct</option>
 </select>
 <select id="sortby" name="sortby">
   <option value="">Sort By</option>

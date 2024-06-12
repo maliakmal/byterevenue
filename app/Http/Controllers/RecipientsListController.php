@@ -67,11 +67,11 @@ class RecipientsListController extends Controller
             $now = now()->toDateTimeString();
             foreach ($data as $row) {
                 if(is_array($row)):
-                    $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->id()])->pluck('phone')->toArray();
+                    $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone')->toArray();
                     if(!in_array($row['phone'], $existing_phones_for_user)):
                         $insertables[] =[
                             'phone' => $row['phone'],
-                            'user_id'=>auth()->id(),
+                            'user_id'=>auth()->user()->id,
                             'name' => $row['name'],
                             'email' => $row['email'],
                             'created_at'=>$now,
@@ -83,7 +83,7 @@ class RecipientsListController extends Controller
 
                     $insertables[] =[
                         'phone' => $row,
-                        'user_id'=>auth()->id(),
+                        'user_id'=>auth()->user()->id,
                         'name' => $row,
                         'email' => '',
                         'created_at'=>$now,
@@ -91,13 +91,16 @@ class RecipientsListController extends Controller
                     ];
                     
                 endif;
-                Contact::insert($insertables);
+                foreach($insertables as $insertable){
+                    $contact = Contact::create($insertable);
 
-                $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
+                    $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
+    
+                }
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'Contacts imported successfully.');
+            return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
         } catch (\Exception $e) {
             DB::rollback();
             var_dump($e);

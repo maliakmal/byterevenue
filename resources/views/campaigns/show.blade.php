@@ -43,7 +43,7 @@
             {{ $campaign->description }}
           </div>
           <p class="text-gray-700"><b>Recipient List:</b> {{ $campaign->recipient_list->name }}({{  $campaign->recipient_list->contacts->count() }} contacts)</p>
-          <p class="{{ auth()->user()->tokens >= $campaign->recipient_list->contacts->count() ? 'text-gray-700' : 'text-red-700'}}"><b>Available Tokens:<b>{{ auth()->user()->tokens}}</p>
+          <p class="{{ $campaign->user->tokens >= $campaign->recipient_list->contacts->count() ? 'text-green-700' : 'text-red-700'}}"><b>Available Tokens:<b>{{ $campaign->user->tokens}}</p>
         </div>
         <div class="mt-5 flex xl:mt-0 xl:ml-4">
 
@@ -93,7 +93,7 @@
     </header>
   <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
+  @include('partials.alerts')
                   <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
 

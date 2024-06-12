@@ -20,13 +20,14 @@ class CampaignController extends Controller
         {
             $campaigns = Campaign::query();
             $filter = array(
-                'status'=> request('status')?request('status'):null,
+                'status'=> request('status')!=''?request('status'):null,
                 'user_id'=> request('user_id')?request('user_id'):null,
                 'sortby'=> request('sortby')?request('sortby'):'id_desc',
                 'count'=> request('count')?request('count'):5,
             );
 
-            if(!empty($filter['status'])){
+
+            if(!is_null($filter['status'])){
                 $campaigns->where('status', $filter['status']);
             }
             if(!empty($filter['user_id'])){
@@ -122,7 +123,7 @@ class CampaignController extends Controller
             // create message logs against each contact and generate the message acordingly
             $campaign = Campaign::findOrFail($id);
             $contacts = $campaign->recipient_list->contacts->all();
-            $account = User::find(auth()->user()->id);
+            $account = User::find($campaign->user_id);
             $amount = count($contacts);
             if($account->tokens < $amount){
                 return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);

@@ -36,7 +36,8 @@
         </div>
         <ul>
             <li>
-            <div class=" text-slate-500 dark:text-slate-400  flex items-center py-1 px-3">Tokens: {{ auth()->user()->tokens }}</div>
+            <a class="font-medium text-sm text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center py-1 px-3" href="{{ route('accounts.tokens') }}" @click="open = false" @focus="open = true" @focusout="open = false">Tokens: {{ auth()->user()->tokens }}</a>
+   
 
             </li>
             <li>

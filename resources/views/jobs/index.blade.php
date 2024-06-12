@@ -62,7 +62,7 @@
               </select>
             </div>
             <div class="mb-4 mt-4">
-              <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Url Shortener</label>
+              <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
               <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
               @foreach($params['urlShorteners'] as $vv)  
               <option value="{{ $vv->name }}">{{ $vv->name }}</option>
