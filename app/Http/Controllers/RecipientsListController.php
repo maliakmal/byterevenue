@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ContactsImport;
 
 class RecipientsListController extends Controller
 {
@@ -43,16 +44,17 @@ class RecipientsListController extends Controller
         ]);
 
         if($request->entry_type =='file'){
-
-            $file = $request->file('csv_file');
-            $data = Excel::toArray(function ($row) {
-                $row = array_map('trim', $row);
-                return [
-                    'name' => $row[0],
+            $data = [];
+            $file = fopen($request->csv_file->getRealPath(), mode:'r');
+            while($row = fgetcsv($file)){
+                $data[] = [
+                    'name' => empty($row[0]) ? $row[2] : $row[0],
                     'phone' => $row[1],
                     'email' => $row[2],
                 ];
-            }, $file);
+            }
+
+            fclose($file);
 
         }else{
             $data = explode(',', $request->numbers);
@@ -61,25 +63,35 @@ class RecipientsListController extends Controller
         DB::beginTransaction();
 
         try {
+            $insertables = [];
+            $now = now()->toDateTimeString();
             foreach ($data as $row) {
                 if(is_array($row)):
-                    $contact = Contact::firstOrNew([
-                        'phone' => $row['phone'],
-                        'user_id'=>auth()->id()
-                    ], [
-                        'name' => $row['name'],
-                        'email' => $row['email'],
-                    ]);
+                    $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->id()])->pluck('phone')->toArray();
+                    if(!in_array($row['phone'], $existing_phones_for_user)):
+                        $insertables[] =[
+                            'phone' => $row['phone'],
+                            'user_id'=>auth()->id(),
+                            'name' => $row['name'],
+                            'email' => $row['email'],
+                            'created_at'=>$now,
+                            'updated_at'=>$now,
+                            ];
+                    endif;
 
                 else:
 
-                    $contact = Contact::firstOrNew([
+                    $insertables[] =[
                         'phone' => $row,
-                        'user_id'=>auth()->id()
-                    ], ['name' => $row]);
+                        'user_id'=>auth()->id(),
+                        'name' => $row,
+                        'email' => '',
+                        'created_at'=>$now,
+                        'updated_at'=>$now,
+                    ];
                     
                 endif;
-                $contact->save();
+                Contact::insert($insertables);
 
                 $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
             }

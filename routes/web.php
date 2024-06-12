@@ -12,6 +12,7 @@ use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\UrlShortenerController;
 use App\Http\Controllers\AccountsController;
+use App\Http\Middleware\CheckAdminRole;
 
 use Filament\Http\Middleware\Authenticate;
 
@@ -35,15 +36,21 @@ Route::middleware([
     Route::resource('recipient_lists', RecipientsListController::class);
     Route::resource('broadcast_batches', BroadcastBatchController::class);
     Route::resource('accounts', AccountsController::class);
-    Route::resource('url_shorteners', UrlShortenerController::class);
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
-    Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
-    Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
-    Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
-    Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
 
     
 
     
 });
+Route::middleware([CheckAdminRole::class])->group(function () {
 
+    Route::get('/jobs', [JobsController::class, 'index'])->name('jobs.index');
+    Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
+    Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
+    Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
+    Route::resource('url_shorteners', UrlShortenerController::class);
+});
+
+Route::get('/forbidden', function () {
+    return view('404');
+})->name('forbidden');
