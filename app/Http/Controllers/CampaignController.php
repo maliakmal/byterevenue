@@ -30,8 +30,15 @@ class CampaignController extends Controller
             if(!is_null($filter['status'])){
                 $campaigns->where('status', $filter['status']);
             }
-            if(!empty($filter['user_id'])){
-                $campaigns->where('user_id', $filter['user_id']);
+
+            if(auth()->user()->hasRole('admin')){
+
+                if(!empty($filter['user_id'])){
+                    $campaigns->where('user_id', $filter['user_id']);
+                }
+
+            }else{
+                $campaigns->where('user_id', auth()->user()->id);
             }
 
             if(!empty($filter['sortby'])){
