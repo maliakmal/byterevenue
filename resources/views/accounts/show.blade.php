@@ -92,7 +92,7 @@
   <select id="type" name="type">
   <option value="">All Types</option>
   <option {{ $filter['type']=='purchase'?'selected' :'' }} value="purchase">Purchase</option>
-  <option {{ $filter['type']=='usage'?'selected' :'' }} value="v">Deduct</option>
+  <option {{ $filter['type']=='usage'?'selected' :'' }} value="usage">Deduct</option>
 </select>
 <select id="sortby" name="sortby">
   <option value="">Sort By</option>
@@ -117,7 +117,7 @@
               @foreach ($transactions  as $transaction)
                 <tr>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $transaction->id }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $transaction->amount }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">{{ Number::format($transaction->amount) }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">
                     @if($transaction->type=='purchase')
                     <span class="py-1 px-2.5 border-none rounded bg-green-100 text-xl text-green-800 ">PURCHASE</span>
@@ -125,7 +125,7 @@
                     <span class="py-1 px-2.5 border-none rounded bg-red-100 text-xl text-red-800 ">DEDUCT</span>
                     @endif
                 </td>
-                <td class="py-4 px-6 border-b border-gray-200">{{ $transaction->created_at }}</td>
+                <td class="py-4 px-6 border-b border-gray-200" title="{{ $transaction->created_at }}">{{ $transaction->created_at->diffForHumans() }}</td>
                 </tr>
               @endforeach
             </tbody>

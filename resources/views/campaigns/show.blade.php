@@ -114,7 +114,14 @@
               @forelse ($logs  as $log)
                 <tr>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $log->recipient_phone }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->message_body }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">
+                  
+                    <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-white flex flex-col relative speech-bubble-left">
+                      <p>{{ $log->message_body }}</p>
+                    </div>
+                  
+                  
+                  </td>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $log->created_at }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">UNDER PROCESS</td>
                 </tr>
@@ -144,7 +151,12 @@
               @forelse ($contacts as $contact)
                 <tr>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $contact->phone }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $message->getParsedMessage() }}</td>
+                  <td class="py-4 px-6 border-b border-gray-200">
+                  <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-blue-100 flex flex-col relative speech-bubble-left">
+                      <p>{{ $message->getParsedMessage() }}</p>
+                    </div>
+ 
+                  </td>
                   <td class="py-4 px-6 border-b border-gray-200"></td>
                 </tr>
               @empty

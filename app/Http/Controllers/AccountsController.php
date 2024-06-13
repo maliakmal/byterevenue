@@ -11,9 +11,34 @@ class AccountsController extends Controller
 {
     public function index()
     {
-        $accounts = User::select()->orderby('name', 'asc')->paginate(5);
+        $filter = array(
+            'sortby'=> request('sortby')?request('sortby'):'id_desc',
+            'count'=> request('count')?request('count'):5,
+        );
+        $accounts = User::query();
+        if(!empty($filter['sortby'])){
+            switch($filter['sortby']){
+                case 'id_desc':
+                    $accounts->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $accounts->orderby('id', 'asc');
+                    break;
+                case 'name':
+                    $accounts->orderby('name', 'asc');
+                    break;
+                case 'tokens_desc':
+                    $accounts->orderby('tokens', 'desc');
+                    break;
+                case 'tokens_asc':
+                    $accounts->orderby('tokens', 'asc');
+                    break;
+                }
+        }
+        $accounts = $accounts->paginate($filter['count']);
 
-        return view('accounts.index', compact('accounts'));
+
+        return view('accounts.index', compact('accounts', 'filter'));
     }
 
     public function show($id){

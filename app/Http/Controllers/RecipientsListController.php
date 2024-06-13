@@ -49,8 +49,8 @@ class RecipientsListController extends Controller
             while($row = fgetcsv($file)){
                 $data[] = [
                     'name' => empty($row[0]) ? $row[2] : $row[0],
-                    'phone' => $row[1],
-                    'email' => $row[2],
+                    'phone' => $row[2],
+                    'email' => $row[1],
                 ];
             }
 
@@ -65,9 +65,10 @@ class RecipientsListController extends Controller
         try {
             $insertables = [];
             $now = now()->toDateTimeString();
+            $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone')->unique()->toArray();
             foreach ($data as $row) {
                 if(is_array($row)):
-                    $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone')->toArray();
+
                     if(!in_array($row['phone'], $existing_phones_for_user)):
                         $insertables[] =[
                             'phone' => $row['phone'],
@@ -91,12 +92,11 @@ class RecipientsListController extends Controller
                     ];
                     
                 endif;
-                foreach($insertables as $insertable){
-                    $contact = Contact::create($insertable);
+            }
 
-                    $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
-    
-                }
+            foreach($insertables as $insertable){
+                $contact = Contact::create($insertable);
+                $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
             }
 
             DB::commit();
@@ -157,6 +157,10 @@ class RecipientsListController extends Controller
     public function destroy($id)
     {
         $item = RecipientsList::findOrFail($id);
+        if($item->campaigns->count()>0){
+            return redirect()->back()->withErrors(['error' => 'List is associated with a campaign - this cannot be deleted.']);
+        }
+
         $item->delete();
 
         return redirect()->route('recipient_lists.index')->with('success', 'List deleted successfully.');

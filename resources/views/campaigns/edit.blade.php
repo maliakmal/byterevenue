@@ -47,6 +47,8 @@
         @include('partials.alerts')
         <form action="{{ route('campaigns.update', $campaign->id) }}" method="post">
             @csrf
+            @method('PUT')
+
             <div class="mb-4">
               <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Title</label>
               <input type="text" value="{{ $campaign->title }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" name="title" >

@@ -20,5 +20,9 @@ class RecipientsList extends Model
         return $this->belongsToMany(Contact::class, 'contact_recipient_list', 'recipients_list_id', 'contact_id');
     }
 
+    public function campaigns(){
+        return $this->hasMany(Campaign::class);
+    }
+
 
 }

@@ -16,16 +16,16 @@
                 <!-- Filter button 
                 <x-dropdown-filter align="right" />-->
 
-                <!-- Datepicker built with flatpickr -->
-                <x-datepicker />
+                <!-- Datepicker built with flatpickr 
+                <x-datepicker />-->
 
-                <!-- Add view button -->
+                <!-- Add view button 
                 <button class="btn bg-indigo-500 hover:bg-indigo-600 text-white">
                     <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                         <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
                     </svg>
                     <span class="hidden xs:block ml-2">Filter</span>
-                </button>
+                </button>-->
                 
             </div>
 
@@ -83,6 +83,59 @@
 @endif
 </div>
       </div>
+      @if(auth()->user()->hasRole('admin'))
+      <br/>
+      <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <li class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
+
+  <div class="mt-5">
+      <div class="  p-6 sm:rounded-lg">
+        <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Active Accounts</h1>
+
+      <table  class="mt-5 table-auto ">
+        <tr class="bg-gray-100">
+        <tr class="bg-gray-100">
+                <th class="px-4 py-2">Name</th>
+                <th class="px-4 py-2">Email</th>
+                <th class="px-4 py-2">Tokens</th>
+              </tr>
+            </thead>
+            <tbody>
+            @forelse ($accounts as $account)
+                <tr>
+                  <td class="border border-gray-200 px-4 py-2"><a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
+                  <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
+                  <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No accounts found') }}</td>
+                </tr>
+              @endforelse
+
+
+            </tbody></table>
+
+      </div>
+      </div>
+</li>
+<li class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
+<div class="p-6 m-6">
+<div class="p-6 m-6">
+<div class="p-6 m-6">
+
+                    <div class="text-3xl font-bold text-slate-800 dark:text-slate-100 mr-2">
+                      <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/jobs">{{$params['total_not_downloaded_in_queue']}} / {{$params['total_in_queue']}}</a>
+                    </div>
+                <small>Messages in Queue</small>
+                </div>
+                </div>
+                </div>
+
+</li>
+</ul>
+      @endif
+
     </div>
         <!-- Cards -->
 
