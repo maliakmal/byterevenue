@@ -31,7 +31,6 @@ class ContactController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|max:255',
             'phone' => 'required|string|max:255',
         ]);
 
@@ -58,7 +57,6 @@ class ContactController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|max:255'.$contact->id,
             'phone' => 'required|string|max:255',
         ]);
 
