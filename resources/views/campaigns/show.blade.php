@@ -42,6 +42,10 @@
           <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
             {{ $campaign->description }}
           </div>
+          @if(auth()->user()->hasRole('admin'))
+          <p class="text-gray-700"><b>Unique Folder:</b> {{ $campaign->getUniqueFolder() }}</p>
+          @endif
+
           <p class="text-gray-700"><b>Recipient List:</b> {{ $campaign->recipient_list->name }}({{  $campaign->recipient_list->contacts->count() }} contacts)</p>
           <p class="{{ $campaign->user->tokens >= $campaign->recipient_list->contacts->count() ? 'text-green-700' : 'text-red-700'}}"><b>Available Tokens:<b>{{ $campaign->user->tokens}}</p>
         </div>

@@ -9,4 +9,12 @@ class BroadcastLog extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function campaign(){
+        return $this->belongsTo(Campaign::class);
+    }
+    public function message(){
+        return $this->belongsTo(Message::class);
+    }
+
 }

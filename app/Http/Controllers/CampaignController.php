@@ -85,6 +85,10 @@ class CampaignController extends Controller
                 'description' => $request->description,
                 'recipients_list_id' => $request->recipients_list_id, 
             ]);
+
+            $campaign->generateUniqueFolder();
+            $campaign->save();
+
             $message_data = [
                 'subject'=>$request->message_subject,
                 'body'=>$request->message_body,
@@ -140,13 +144,13 @@ class CampaignController extends Controller
             try {
                 $campaign = Campaign::findOrFail($id);
     
-                $message = $campaign->message->getParsedMessage();
+                //$message = $campaign->message->getParsedMessage();
 
                 $data = [
                     'user_id'=>auth()->id(),
                     'recipients_list_id'=>$campaign->recipient_list->id,
                     'message_id'=>$campaign->message->id,
-                    'message_body'=>$message,
+                    'message_body'=>'',
                     'recipient_phone'=>'',
                     'contact_id'=>0,
                     'is_downloaded_as_csv'=>0,
@@ -205,6 +209,9 @@ class CampaignController extends Controller
             $campaign->title = $request->title;
             $campaign->description = $request->description;
             $campaign->recipients_list_id = $request->recipients_list_id;
+            $campaign->save();
+
+            $campaign->generateUniqueFolder();
             $campaign->save();
 
             $message = $campaign->message;

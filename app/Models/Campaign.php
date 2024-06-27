@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Tuupola\Base62;
 
 class Campaign extends Model
 {
@@ -18,6 +19,34 @@ class Campaign extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function generateTrackableUrl($short_url = null, $params = null){
+
+        $params = is_array($params)?$params:[];
+
+        if($short_url == null){
+            $url = UrlShortener::select()->inRandomOrder()->first();
+            $short_url = $url->name;
+        }
+
+        return $short_url.'/'.($this->getUniqueFolder()).(count($params)>0?'/'.(join('/', $params)):'');
+    }
+
+    public function getUniqueFolder(){
+
+        if($this->code == ''){
+            $this->generateUniqueFolder();
+            $this->save();
+        }
+
+        return $this->code;
+    }
+
+    public function generateUniqueFolder(){
+        $base62 = new \Tuupola\Base62;
+        $res = $base62->encode($this->id);
+        $this->code = $res;
+    }
+
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -30,7 +59,7 @@ class Campaign extends Model
         return $this->belongsTo(RecipientsList::class, 'recipients_list_id');
      }
      
-     public function message(){
+    public function message(){
         return $this->hasOne(Message::class);
     }
     public function isDispatched(){

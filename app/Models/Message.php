@@ -4,19 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use bjoernffm\Spintax\Parser;
 
 class Message extends Model
 {
     use HasFactory;
     protected $guarded = [];
 
-    public function getParsedMessage($url_shortener = null){
+    public function getParsedMessage($url = null){
         $target_url = $this->target_url;
-        if($url_shortener){
-            // generate target url here
-        }
-        $text = str_replace('[link]', $target_url, $this->body);
-        return $text;
+        $text = str_replace('[link]', $url, $this->body);
+        $spintax = Parser::parse($text);
+        return $spintax->generate();
     }
 
     public function campaign(){

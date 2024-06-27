@@ -31,55 +31,88 @@
 
 
   <div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+  <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+    @if($params['download_me']!= null)
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-3" role="alert">
+              <span class="block sm:inline">Export file successfully generated - <a href="{{ $params['download_me'] }}" target="_blank">click here</a> to download</span>
+              <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                  <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onclick="this.parentElement.parentElement.style.display='none';"><title>Close</title><path d="M14.348 14.849a1 1 0 001.415-1.414l-4.829-4.829 4.829-4.829A1 1 0 0014.348 2.93l-4.829 4.829-4.829-4.829A1 1 0 102.93 4.606l4.829 4.829-4.829 4.829a1 1 0 101.414 1.414l4.829-4.829 4.829 4.829z"/></svg>
+              </span>
+          </div>
+    @endif
+  </div>
+
+  <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+      <div class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
+        <div class="p-6 m-6">
+          <div class="p-6 m-6">
+            <div class="p-6 m-6">
+              <div class="text-3xl font-bold text-slate-800 dark:text-slate-100 mr-2">{{$params['total_not_downloaded_in_queue']}} / {{$params['total_in_queue']}}</div>                
+              <small>Messages in Queue</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg">
+        <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
+          <form action="{{ route('jobs.postIndex') }}" enctype="multipart/form-data" method="post">
+              @csrf
+              <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
+              <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
+              <div class="mb-4 mt-4">
+                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
+                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
+                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 3000] as $num)
+                  <option value="{{$num}}">{{$num}} messages</option>
+                @endforeach
+                </select>
+              </div>
+              <div class="mb-4 mt-4">
+                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
+                <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
+                @foreach($params['urlShorteners'] as $vv)  
+                <option value="{{ $vv->name }}">{{ $vv->name }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Download</button>
+            </form>
+          <br/>
+          </div>
+          </div>
+      
+      <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
 
-        <div class="col-span-full xl:col-span-6 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700">
-            <header class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
-            </header>
-            <div class="px-5 py-3">
-                <div class="flex items-start">
-                    <div class="text-3xl font-bold text-slate-800 dark:text-slate-100 mr-2">{{$params['total_not_downloaded_in_queue']}} / {{$params['total_in_queue']}}</div>
-                </div>
-                <small>Messages in Queue</small>
-            </div>
-            <div class="grow">
-                <div class="grow flex flex-col justify-center">
-                    <div>
-                        <canvas id="dashboard-card-11" width="595" height="48"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <form action="{{ route('jobs.postIndex') }}" enctype="multipart/form-data" method="post">
-            @csrf
-            <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Download Message Queues as csv</div>
-            <div class="mb-4 mt-4">
-              <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-              <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                <option value="50">50</option>
-              </select>
-            </div>
-            <div class="mb-4 mt-4">
-              <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
-              <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-              @foreach($params['urlShorteners'] as $vv)  
-              <option value="{{ $vv->name }}">{{ $vv->name }}</option>
-                @endforeach
-              </select>
-            </div>
-            <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Download</button>
-          </form>
-    <br/>
-    <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Downloadable files</div>
-    <ul>
-        @foreach ($params['files'] as $file)
-            <li>
-                <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['filename'] }}</a> - <i>{{ $file['created_at'] }}</i>
-            </li>
-        @endforeach
-    </ul>
+          <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Downloadable files</div>
+      <table  class="mt-5 downloadables table-auto w-full">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="px-4 py-2">Filename</th>
+            <th class="px-4 py-2">No. Entries</th>
+            <th class="px-4 py-2">Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+            @foreach ($params['files'] as $file)
+              <tr>
+                <td class="border-b border-gray-200 px-4 py-2">
+                  <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['filename'] }}</a> 
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                {{ $file['number_of_entries'] }}
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                  <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['created_at']->diffForHumans() }}</a> 
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+        <br/>
+        {{ $params['files']->links() }}
 
         </div>
       </div>
@@ -90,17 +123,17 @@
 @push('scripts')
 <script>
     @if($params['download_me']!= null)
+    $('.downloadables:first li:first-child').toggle( "highlight" );
+// function downloadURI(uri, name) {
+//   var link = document.createElement("a");
+//   link.download = name; // <- name instead of 'name'
+//   link.href = uri;
 
-function downloadURI(uri, name) {
-  var link = document.createElement("a");
-  link.download = name; // <- name instead of 'name'
-  link.href = uri;
+//   link.click();
+//   link.remove();
+// }
 
-  link.click();
-  link.remove();
-}
-
-downloadURI('{{ $params['download_me'] }}', '{{ $params['download_me'] }}');
+// downloadURI('{{ $params['download_me'] }}', '{{ $params['download_me'] }}');
 
 
     @endif
