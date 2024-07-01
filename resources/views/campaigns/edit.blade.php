@@ -71,6 +71,16 @@
             <div class="mb-4">
               <label for="message_body" class="block text-gray-700 text-sm font-bold mb-2">Message Body</label>
               <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" >{{ $campaign->message->body }}</textarea>
+              <small>Enter content as spintax. <a href="javascript:void(0)" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-1 px-1  font-medium text-gray-700 shadow-sm hover:bg-gray-50 " id="lnk-spintax-preview">Preview</a></small>
+            </div>
+            <div class="mb-4 hidden" id="spintax-holder">
+              <div id="spintax-preview" class="bg-gray-100 border border-gray-300 rounded-lg p-4 shadow-md">
+
+                <a href="javascript:void(0)" id="lnk-clear-spintax-preview">[x]<a>
+                  <div>
+
+                  </div>
+              </div>
             </div>
             <div class="mb-4">
               <label for="message_target_url" class="block text-gray-700 text-sm font-bold mb-2">Message Target Url</label>
@@ -85,3 +95,25 @@
     </div>
   </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+document.getElementById('lnk-clear-spintax-preview').addEventListener('click', function() {
+  document.getElementById('spintax-holder').classList.add('hidden');
+  document.querySelector('#spintax-preview div').innerHTML = '';
+});
+
+document.getElementById('lnk-spintax-preview').addEventListener('click', function() {
+  var matches, options, random;
+
+  var regEx = new RegExp(/{([^{}]+?)}/);
+  var text = document.getElementById('message_body').value;
+  while ((matches = regEx.exec(text)) !== null) {
+    options = matches[1].split('|');
+    random = Math.floor(Math.random() * options.length);
+    text = text.replace(matches[0], options[random]);
+  }
+  document.getElementById('spintax-holder').classList.remove('hidden');
+  document.querySelector('#spintax-preview div').innerHTML = text;
+});
+</script>
