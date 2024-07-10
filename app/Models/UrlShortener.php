@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class UrlShortener extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'endpoint'];
+    protected $fillable = ['name', 'endpoint', 'asset_id', 'response'];
 }

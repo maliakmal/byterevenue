@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'keitaro' => [
+        'token' => env('KEITARO_TOKEN', 'db20ad69d80eb6e235d02cf043a793ab'),
+        'host' => env('KEITARO_HOST', 'http://3.84.28.36'),
+    ]
+
 ];

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 use App\Models\UrlShortener;
 
+use App\Services\Keitaro\KeitaroCaller;
+use App\Services\Keitaro\Requests\Domains\CreateShortDomainRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 
 class UrlShortenerController extends Controller
@@ -21,11 +24,26 @@ class UrlShortenerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'endpoint' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:url_shorteners,name',
+            'endpoint' => 'required|string|max:2048',
         ]);
-
-        UrlShortener::create($request->all());
+        $inputs = $request->all();
+        $request = new CreateShortDomainRequest($inputs['name']);
+        $caller = new KeitaroCaller();
+        $response = null;
+        try{
+            $response = $caller->call($request)[0];
+            $inputs['asset_id'] = $response['id'];
+            $inputs['response'] = json_encode($response);
+        }
+        catch (RequestException $exception){
+            return redirect()->route('url_shorteners.index')->with('error', $exception->getMessage());
+        }
+        catch (\Exception $exception){
+            report($exception);
+            return redirect()->route('url_shorteners.index')->with('error', 'Error Sync URL Shortener');
+        }
+        UrlShortener::create($inputs);
         return redirect()->route('url_shorteners.index')->with('success', 'URL Shortener created successfully.');
     }
 
