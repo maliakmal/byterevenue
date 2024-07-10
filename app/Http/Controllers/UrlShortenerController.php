@@ -5,6 +5,7 @@ use App\Models\UrlShortener;
 
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\CreateShortDomainRequest;
+use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 
@@ -28,11 +29,12 @@ class UrlShortenerController extends Controller
             'endpoint' => 'required|string|max:2048',
         ]);
         $inputs = $request->all();
-        $request = new CreateShortDomainRequest($inputs['name']);
+        $request = new RegisterShortDomainRequest($inputs['name']);
         $caller = new KeitaroCaller();
         $response = null;
         try{
             $response = $caller->call($request)[0];
+            $inputs['is_registered'] = true;
             $inputs['asset_id'] = $response['id'];
             $inputs['response'] = json_encode($response);
         }
