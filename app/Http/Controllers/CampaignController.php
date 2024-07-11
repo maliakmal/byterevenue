@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Keitaro\KeitaroCaller;
+use App\Services\Keitaro\Requests\Campaign\CreateCampaignRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\Campaign;
 use App\Models\Message;
@@ -55,10 +58,10 @@ class CampaignController extends Controller
                 }
             }
             $campaigns = $campaigns->paginate($filter['count']);
-    
+
             return view('campaigns.index', compact('campaigns', 'filter'));
         }
-    
+
         /**
          * Show the form for creating a new resource.
          */
@@ -68,7 +71,7 @@ class CampaignController extends Controller
             $recipient_lists = auth()->user()->recipientLists()->get()->all();
             return view('campaigns.create', compact('clients', 'recipient_lists'));
         }
-    
+
         /**
          * Store a newly created resource in storage.
          */
@@ -78,17 +81,35 @@ class CampaignController extends Controller
             $request->validate([
                 'title' => 'required|string|max:255',
             ]);
-    
-
-            $campaign = auth()->user()->campaigns()->create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'recipients_list_id' => $request->recipients_list_id, 
-            ]);
-
-            $campaign->generateUniqueFolder();
-            $campaign->save();
-
+            $inputs = $request->all();
+            try{
+                DB::beginTransaction();
+                $campaign = auth()->user()->campaigns()->create([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'recipients_list_id' => $request->recipients_list_id,
+                ]);
+                $campaign->generateUniqueFolder();
+                $campaign->save();
+                $caller = new KeitaroCaller();
+                $keitaro_token = uniqid();
+                $create_campaign_request = new CreateCampaignRequest($campaign->code, $inputs['title'], $keitaro_token);
+                $response = $caller->call($create_campaign_request);
+                $campaign->asset_id = $response['id'];
+                $campaign->keitaro_token = $keitaro_token;
+                $campaign->response = @json_encode($response);
+                $campaign->save();
+                DB::commit();
+            }
+            catch (RequestException $exception){
+                DB::rollBack();
+                return redirect()->route('campaigns.index')->with('error', $exception->getMessage());
+            }
+            catch (\Exception $exception){
+                DB::rollBack();
+                report($exception);
+                return redirect()->route('campaigns.index')->with('error', 'Error Create Campaign');
+            }
             $message_data = [
                 'subject'=>$request->message_subject,
                 'body'=>$request->message_body,
@@ -96,33 +117,29 @@ class CampaignController extends Controller
                 "user_id"=>auth()->user()->id,
                 'campaign_id'=>$campaign->id
             ];
-    
             $message = Message::create($message_data);
-    
-    
-
             return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign created successfully.');
         }
-    
+
         /**
          * Display the specified resource.
          */
         public function show(Campaign $campaign)
         {
             $message = $campaign->message;
-    
+
             $recipient_lists = $campaign->recipient_list;
-    
+
             if($campaign->isDraft()){
                 $contacts = $recipient_lists->contacts()->paginate(10);
                 $logs = [];
-    
+
             }else{
                 $contacts = [];
                 $logs = BroadcastLog::select()->where('campaign_id', '=', $campaign->id)->paginate(10);
             }
             return view('campaigns.show', compact('campaign', 'contacts', 'logs', 'message', 'recipient_lists'));
-    
+
         }
 
         public function createBroadcastBatch(Campaign $campaign)
@@ -140,10 +157,10 @@ class CampaignController extends Controller
                 return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);
             }
             DB::beginTransaction();
-    
+
             try {
                 $campaign = Campaign::findOrFail($id);
-    
+
                 //$message = $campaign->message->getParsedMessage();
 
                 $data = [
@@ -156,15 +173,15 @@ class CampaignController extends Controller
                     'is_downloaded_as_csv'=>0,
                     'campaign_id'=>$campaign->id,
                 ];
-    
+
                 $contacts = $campaign->recipient_list->contacts->all();
-    
+
                 foreach($contacts as $contact){
                     $data['recipient_phone'] = $contact->phone;
                     $data['contact_id'] = $contact->id;
                     BroadcastLog::create($data);
                 }
-    
+
                 $campaign->markAsProcessed();
                 $campaign->save();
 
@@ -177,16 +194,16 @@ class CampaignController extends Controller
                 ]);
                 $account->deductTokens($amount);
                 $account->save();
-        
+
                 DB::commit();
                 return redirect()->back()->with('success', 'Job is being processed.');
             } catch (\Exception $e) {
                 DB::rollback();
                 return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
             }
-    
+
         }
-    
+
         /**
          * Show the form for editing the specified resource.
          */
@@ -196,7 +213,7 @@ class CampaignController extends Controller
             $recipient_lists = $user->recipientLists()->get()->all();
             return view('campaigns.edit', compact('campaign', 'recipient_lists'));
         }
-    
+
         /**
          * Update the specified resource in storage.
          */
@@ -205,7 +222,7 @@ class CampaignController extends Controller
             $request->validate([
                 'title' => 'required|string|max:255',
             ]);
-    
+
             $campaign->title = $request->title;
             $campaign->description = $request->description;
             $campaign->recipients_list_id = $request->recipients_list_id;
@@ -219,19 +236,18 @@ class CampaignController extends Controller
             $message->body = $request->message_body;
             $message->target_url = $request->message_target_url;
             $message->save();
-    
-    
+
+
             return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign updated successfully.');
         }
-    
+
         /**
          * Remove the specified resource from storage.
          */
         public function destroy(Campaign $campaign)
         {
             $client->delete();
-    
+
             return redirect()->route('campaigns.index')->with('success', 'Campaign deleted successfully.');
         }
     }
-    
