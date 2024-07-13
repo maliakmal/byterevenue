@@ -1,25 +1,37 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
+use App\Services\Keitaro\KeitaroCaller;
+use App\Services\Keitaro\Requests\Flows\CreateFlowRequest;
 use Carbon\Carbon;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use File;
+use Illuminate\Support\Str;
 
 class JobsController extends Controller
 {
-    //
+    public function __construct(
+        protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository
+    )
+    {
+    }
 
     public function index(Request $request){
 
         $download_me = null;
         $urlShorteners = UrlShortener::all();
         if ($request->isMethod('post')) {
-            
+            $unique_campaigns = collect();
+            $unique_campaign_map = [];
+
             $limit = $request->number_messages;
             $url_shortener = $request->url_shortener;
 
@@ -27,54 +39,97 @@ class JobsController extends Controller
             $logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->take($limit)->get();
 
             if(count($logs)>0):
+                try {
+                    DB::beginTransaction();
 
-                $batch_no = preg_replace("/[^A-Za-z0-9]/", '', microtime());
+                    $batch_no = preg_replace("/[^A-Za-z0-9]/", '', microtime());
 
-                $filename = '/csv/byterevenue-messages-'.$batch_no.'.csv';
+                    $filename = '/csv/byterevenue-messages-' . $batch_no . '.csv';
 
-                $csvContent = '';
-                
-                $csvContent .= implode(',', ['Phone', 'Subject', 'Text']) . "\n";
+                    $csvContent = '';
 
-                $current_campaign_id = 0;
-                $message = null;
-                foreach($logs as $log){
+                    $csvContent .= implode(',', ['Phone', 'Subject', 'Text']) . "\n";
 
-                    if($log->campaign_id!=$current_campaign_id){
-                        if($log->campaign_id == 0){
-                            $message = $log->message;
-                            $campaign = $message->campaign;
-    
-                        }else{
-                            $campaign = $log->campaign;
-                            $current_campaign_id = $log->campaign->id;
-                            $message = $log->message;
+                    $current_campaign_id = 0;
+                    $message = null;
+                    foreach ($logs as $log) {
+
+                        if ($log->campaign_id != $current_campaign_id) {
+                            if ($log->campaign_id == 0) {
+                                $message = $log->message;
+                                $campaign = $message->campaign;
+
+                            } else {
+                                $campaign = $log->campaign;
+                                $current_campaign_id = $log->campaign->id;
+                                $message = $log->message;
+                            }
                         }
-                    }
-                    if($message){
-                        $log->message_body = $message->getParsedMessage($campaign->generateTrackableUrl($url_shortener, [$log->id]));
-                    }
-                    $log->save();
-                // generate message for each log from the message spintax
-                // replace with a url - use the provided short url
-                // save the log and generate a batch for the log based upon the current microtime and mark all logs processed 
-                // with that batch number
-                // name the csv using the same batch number
+                        if ($message) {
+                            $generated_url = $campaign->generateTrackableUrl($url_shortener, [$log->id]);
+                            $log->message_body = $message->getParsedMessage($generated_url);
 
-                    $csvContent .= implode(',', [$log->recipient_phone, '', $log->message_body]) . "\n";
+                            $campaign_key = $campaign->id . '';
+                            if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
+                                $unique_campaigns->add($campaign);
+                                $unique_campaign_map[$campaign_key] = [
+                                    'url' => $generated_url
+                                ];
+                            }
+                        }
+                        $log->save();
+                        // generate message for each log from the message spintax
+                        // replace with a url - use the provided short url
+                        // save the log and generate a batch for the log based upon the current microtime and mark all logs processed
+                        // with that batch number
+                        // name the csv using the same batch number
+
+                        $csvContent .= implode(',', [$log->recipient_phone, '', $log->message_body]) . "\n";
+                    }
+                    $download_me = env('DO_SPACES_ENDPOINT') . $filename;
+                    Storage::disk('spaces')->put($filename, $csvContent);
+
+                    BatchFile::create(['filename' => $filename,
+                        'path' => env('DO_SPACES_ENDPOINT') . $filename,
+                        'number_of_entries' => count($logs),
+                        'campaign_id' => $log->campaign_id]);
+
+
+                    BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
+                        ->update(['is_downloaded_as_csv' => 1, 'batch' => $batch_no]);
+
+                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map) {
+                        $url_for_campaign = $unique_campaign_map[$item->id]['url'];
+                        if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_campaign)
+                            && empty($item->asset_id) == false
+                        ) {
+                            $action_options = new \stdClass();
+                            $action_options->url = $url_for_campaign;
+                            $create_flow_request = new CreateFlowRequest(
+                                $item->asset_id, 'redirect', 'regular',
+                                Str::slug($item->title), 'http', null, null, $action_options);
+                            $caller = new KeitaroCaller();
+
+                            $response = $caller->call($create_flow_request);
+                            $this->campaignShortUrlRepository->create([
+                                'campaign_id' => $item->id,
+                                'url_shortener' => $url_for_campaign,
+                                'flow_id' => $response['id'],
+                                'response' => @json_encode($response),
+                            ]);
+
+                        }
+                    });
+                    DB::commit();
                 }
-                $download_me = env('DO_SPACES_ENDPOINT').$filename;
-                Storage::disk('spaces')->put($filename, $csvContent);
-
-                BatchFile::create(['filename' => $filename,
-                    'path' =>env('DO_SPACES_ENDPOINT').$filename,
-                    'number_of_entries'=>count($logs),
-                    'campaign_id'=>$log->campaign_id]);
-                
-
-                BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
-                ->update(['is_downloaded_as_csv' => 1, 'batch'=>$batch_no]);
-
+                catch (RequestException $exception) {
+                    DB::rollBack();
+                    return redirect()->route('jobs.index')->with('error', $exception->getMessage());
+                } catch (\Exception $exception) {
+                    DB::rollBack();
+                    report($exception);
+                    return redirect()->route('jobs.index')->with('error', 'Error Call Keitaro');
+                }
 
             endif;
 
@@ -119,5 +174,5 @@ class JobsController extends Controller
     }
 
 
-    
+
 }
