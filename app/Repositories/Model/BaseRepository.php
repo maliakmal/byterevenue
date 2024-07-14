@@ -3,7 +3,6 @@
 namespace App\Repositories\Model;
 
 use App\Repositories\Contract\BaseRepositoryInterface;
-use BaconQrCode\Common\Mode;
 use Illuminate\Database\Eloquent\Model;
 
 class BaseRepository implements BaseRepositoryInterface
@@ -50,6 +49,6 @@ class BaseRepository implements BaseRepositoryInterface
 
     public function find($id)
     {
-        return $this->model->findOrFail($id);
+        return $this->model->find($id);
     }
 }
