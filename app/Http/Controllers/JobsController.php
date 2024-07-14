@@ -1,11 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
-use App\Services\Keitaro\KeitaroCaller;
-use App\Services\Keitaro\Requests\Flows\CreateFlowRequest;
-use Carbon\Carbon;
-
+use App\Services\Campaign\CampaignService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
@@ -14,12 +12,12 @@ use App\Models\UrlShortener;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use File;
-use Illuminate\Support\Str;
 
 class JobsController extends Controller
 {
     public function __construct(
-        protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository
+        protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
+        protected CampaignRepositoryInterface $campaignRepository,
     )
     {
     }
@@ -52,6 +50,7 @@ class JobsController extends Controller
 
                     $current_campaign_id = 0;
                     $message = null;
+                    $campaign_service = new CampaignService();
                     foreach ($logs as $log) {
 
                         if ($log->campaign_id != $current_campaign_id) {
@@ -72,9 +71,7 @@ class JobsController extends Controller
                             $campaign_key = $campaign->id . '';
                             if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
                                 $unique_campaigns->add($campaign);
-                                $unique_campaign_map[$campaign_key] = [
-                                    'url' => $generated_url
-                                ];
+                                $unique_campaign_map[$campaign_key] = true;
                             }
                         }
                         $log->save();
@@ -98,24 +95,20 @@ class JobsController extends Controller
                     BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
                         ->update(['is_downloaded_as_csv' => 1, 'batch' => $batch_no]);
 
-                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map) {
-                        $url_for_campaign = $unique_campaign_map[$item->id]['url'];
-                        if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_campaign)
-                            && empty($item->asset_id) == false
-                        ) {
-                            $action_options = new \stdClass();
-                            $action_options->url = $url_for_campaign;
-                            $create_flow_request = new CreateFlowRequest(
-                                $item->asset_id, 'redirect', 'regular',
-                                Str::slug($item->title), 'http', null, null, $action_options);
-                            $caller = new KeitaroCaller();
-
-                            $response = $caller->call($create_flow_request);
+                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map, $campaign_service, $log) {
+                        $alias_for_campaign = uniqid();
+                        $url_for_campaign = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+                        if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_campaign)) {
+                            $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id);
+                            $response_flow = $campaign_service->createFlowOnKeitaro($url_for_campaign, $response_campaign['id'], $item->title);
                             $this->campaignShortUrlRepository->create([
                                 'campaign_id' => $item->id,
                                 'url_shortener' => $url_for_campaign,
-                                'flow_id' => $response['id'],
-                                'response' => @json_encode($response),
+                                'flow_id' => $response_flow['id'],
+                                'response' => @json_encode($response_flow),
+                                'keitaro_campaign_id' => $response_campaign['id'],
+                                'keitaro_campaign_response' => @json_encode($response_campaign),
+                                'campaign_alias' => $alias_for_campaign,
                             ]);
 
                         }

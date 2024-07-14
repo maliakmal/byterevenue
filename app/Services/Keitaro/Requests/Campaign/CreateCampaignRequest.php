@@ -46,9 +46,9 @@ class CreateCampaignRequest extends AbstractRequest
      * @param $postbacks
      * @param $notes
      */
-    public function __construct($alias, $name, $token, $type = null, $cookies_ttl = null, $state = null,
+    public function __construct($alias, $name, $token, $type = null, $group_id = null, $cookies_ttl = null, $state = null,
                                 $cost_type = null, $cost_value = null, $cost_currency = null, $cost_auto = null,
-                                $group_id = null, $bind_visitors = null, $traffic_source_id = null, $parameters = null,
+                                $bind_visitors = null, $traffic_source_id = null, $parameters = null,
                                 $domain_id = null, $postbacks = null, $notes = null)
     {
         $this->alias = $alias;

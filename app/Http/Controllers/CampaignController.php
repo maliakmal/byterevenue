@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Campaign\CreateCampaignRequest;
+use App\Services\Keitaro\Requests\Groups\CreateGroupRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\Campaign;
@@ -92,12 +93,10 @@ class CampaignController extends Controller
                 $campaign->generateUniqueFolder();
                 $campaign->save();
                 $caller = new KeitaroCaller();
-                $keitaro_token = uniqid();
-                $create_campaign_request = new CreateCampaignRequest($campaign->code, $inputs['title'], $keitaro_token);
-                $response = $caller->call($create_campaign_request);
-                $campaign->asset_id = $response['id'];
-                $campaign->keitaro_token = $keitaro_token;
-                $campaign->response = @json_encode($response);
+                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
+                $response = $caller->call($create_group_request);
+                $campaign->keitaro_group_id = $response['id'];
+                $campaign->keitaro_create_group_response = @json_encode($response);
                 $campaign->save();
                 DB::commit();
             }
