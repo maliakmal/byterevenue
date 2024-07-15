@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
+use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
@@ -18,6 +20,7 @@ class JobsController extends Controller
     public function __construct(
         protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
         protected CampaignRepositoryInterface $campaignRepository,
+        protected BroadcastLogRepositoryInterface $broadcastLogRepository,
     )
     {
     }
@@ -166,6 +169,38 @@ class JobsController extends Controller
 
     }
 
+    public function updateSentMessage(Request $request)
+    {
+        $request->validate(['uid' => 'required|numeric|min:1']);
+        $uid = $request->uid;
+        $model = $this->broadcastLogRepository->find($uid);
+        if(!$model){
+            return response()->error('not found');
+        }
+        if(!$this->broadcastLogRepository->updateByModel([
+            'sent_at' => Carbon::now(),
+            'is_sent' => true,
+        ], $model)){
+            return response()->error('update failed');
+        }
+        return response()->success();
+    }
 
+    public function updateClickMessage(Request $request)
+    {
+        $request->validate(['uid' => 'required|numeric|min:1']);
+        $uid = $request->uid;
+        $model = $this->broadcastLogRepository->find($uid);
+        if(!$model){
+            return response()->error('not found');
+        }
+        if(!$this->broadcastLogRepository->updateByModel([
+            'is_click' => true,
+            'clicked_at' => Carbon::now(),
+        ], $model)){
+            return response()->error('update failed');
+        }
+        return response()->success();
+    }
 
 }
