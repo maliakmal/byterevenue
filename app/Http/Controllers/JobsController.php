@@ -28,7 +28,7 @@ class JobsController extends Controller
     public function index(Request $request){
 
         $download_me = null;
-        $urlShorteners = UrlShortener::all();
+        $urlShorteners = UrlShortener::select()->onlyRegistered()->get();
         if ($request->isMethod('post')) {
             $unique_campaigns = collect();
             $unique_campaign_map = [];
@@ -49,7 +49,7 @@ class JobsController extends Controller
 
                     $csvContent = '';
 
-                    $csvContent .= implode(',', ['Phone', 'Subject', 'Text']) . "\n";
+                    $csvContent .= implode(',', ['UID','Phone', 'Subject', 'Text']) . "\n";
 
                     $current_campaign_id = 0;
                     $message = null;
@@ -68,7 +68,7 @@ class JobsController extends Controller
                             }
                         }
                         if ($message) {
-                            $generated_url = $campaign->generateTrackableUrl($url_shortener, [$log->id]);
+                            $generated_url = $campaign->generateTrackableUrl($url_shortener, ['uid'=>$log->id]);
                             $log->message_body = $message->getParsedMessage($generated_url);
 
                             $campaign_key = $campaign->id . '';
@@ -84,7 +84,7 @@ class JobsController extends Controller
                         // with that batch number
                         // name the csv using the same batch number
 
-                        $csvContent .= implode(',', [$log->recipient_phone, '', $log->message_body]) . "\n";
+                        $csvContent .= implode(',', [$log->id, $log->recipient_phone, '', $log->message_body]) . "\n";
                     }
                     $download_me = env('DO_SPACES_ENDPOINT') . $filename;
                     Storage::disk('spaces')->put($filename, $csvContent);

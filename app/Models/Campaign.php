@@ -28,7 +28,7 @@ class Campaign extends Model
             $short_url = $url->name;
         }
 
-        return $short_url.'/'.($this->getUniqueFolder()).(count($params)>0?'/'.(join('/', $params)):'');
+        return $short_url.'/'.($this->getUniqueFolder()).(count($params)>0?'?'.(http_build_query($params)):'');
     }
 
     public function getUniqueFolder(){
