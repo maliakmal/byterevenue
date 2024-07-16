@@ -92,12 +92,12 @@ class CampaignController extends Controller
                 ]);
                 $campaign->generateUniqueFolder();
                 $campaign->save();
-                $caller = new KeitaroCaller();
-                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
-                $response = $caller->call($create_group_request);
-                $campaign->keitaro_group_id = $response['id'];
-                $campaign->keitaro_create_group_response = @json_encode($response);
-                $campaign->save();
+//                $caller = new KeitaroCaller();
+//                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
+//                $response = $caller->call($create_group_request);
+//                $campaign->keitaro_group_id = $response['id'];
+//                $campaign->keitaro_create_group_response = @json_encode($response);
+//                $campaign->save();
                 DB::commit();
             }
             catch (RequestException $exception){

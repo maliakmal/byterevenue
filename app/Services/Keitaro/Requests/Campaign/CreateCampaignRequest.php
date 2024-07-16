@@ -26,6 +26,10 @@ class CreateCampaignRequest extends AbstractRequest
     private $domain_id;
     private $postbacks;
     private $notes;
+    private $uniqueness_method;
+    private $position;
+    private $uniqueness_use_cookies;
+    private $traffic_loss;
 
     /**
      * @param $alias
@@ -46,10 +50,12 @@ class CreateCampaignRequest extends AbstractRequest
      * @param $postbacks
      * @param $notes
      */
-    public function __construct($alias, $name, $token, $type = null, $group_id = null, $cookies_ttl = null, $state = null,
+    public function __construct($alias, $name, $token, $type = null, $group_id = null, $domain_id = null,  $cookies_ttl = null, $state = null,
                                 $cost_type = null, $cost_value = null, $cost_currency = null, $cost_auto = null,
                                 $bind_visitors = null, $traffic_source_id = null, $parameters = null,
-                                $domain_id = null, $postbacks = null, $notes = null)
+                                $postbacks = null, $notes = null, $uniqueness_method = null, $position = null, $uniqueness_use_cookies = true,
+                                $traffic_loss = 0
+    )
     {
         $this->alias = $alias;
         $this->name = $name;
@@ -68,6 +74,10 @@ class CreateCampaignRequest extends AbstractRequest
         $this->domain_id = $domain_id;
         $this->postbacks = $postbacks;
         $this->notes = $notes;
+        $this->uniqueness_method = $uniqueness_method;
+        $this->position = $position;
+        $this->uniqueness_use_cookies = $uniqueness_use_cookies;
+        $this->traffic_loss = $traffic_loss;
     }
 
 
@@ -91,6 +101,10 @@ class CreateCampaignRequest extends AbstractRequest
             'domain_id'         => $this->domain_id,
             'postbacks'         => $this->postbacks,
             'notes'             => $this->notes,
+            'uniqueness_method' => $this->uniqueness_method,
+            'position'          => $this->position,
+            'uniqueness_use_cookies' => $this->uniqueness_use_cookies,
+            'traffic_loss'      => $this->traffic_loss,
 
         ];
     }

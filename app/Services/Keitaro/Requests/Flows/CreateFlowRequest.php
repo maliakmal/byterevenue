@@ -14,6 +14,7 @@ class CreateFlowRequest extends AbstractRequest
     private $type;
     private $name;
     private $actionType;
+    private $actionPayload;
     private $position;
     private $weight;
     private $actionOption;
@@ -25,6 +26,7 @@ class CreateFlowRequest extends AbstractRequest
     private $triggers;
     private $landings;
     private $offers;
+    private $offer_selection;
 
     /**
      * @param $campaignID
@@ -44,11 +46,11 @@ class CreateFlowRequest extends AbstractRequest
      * @param $landings
      * @param $offers
      */
-    public function __construct($campaignID, $schema, $type, $name, $actionType,
+    public function __construct($campaignID, $schema, $type, $name, $actionType, $action_payload = null,
                                 $position = null, $weight = null, $actionOption = null,
                                 $comments = null, $state = null, $collectClicks = null,
                                 $filterOr = null, $filters = null, $triggers = null,
-                                $landings = null, $offers = null)
+                                $landings = null, $offers = null, $offer_selection = null )
     {
         $this->campaignID = $campaignID;
         $this->schema = $schema;
@@ -66,6 +68,8 @@ class CreateFlowRequest extends AbstractRequest
         $this->triggers = $triggers;
         $this->landings = $landings;
         $this->offers = $offers;
+        $this->actionPayload = $action_payload;
+        $this->offer_selection = $offer_selection;
     }
 
 
@@ -81,6 +85,7 @@ class CreateFlowRequest extends AbstractRequest
           "comments"        => $this->comments,
           "state"           => $this->state,
           "action_type"     => $this->actionType,
+          "action_payload"   => $this->actionPayload,
           "schema"          => $this->schema,
           "collect_clicks"  => $this->collectClicks,
           "filter_or"       => $this->filterOr,
@@ -88,6 +93,7 @@ class CreateFlowRequest extends AbstractRequest
           "triggers"        => $this->triggers,
           "landings"        => $this->landings,
           "offers"          => $this->offers,
+          "offer_selection" => $this->offer_selection,
         ];
     }
 }

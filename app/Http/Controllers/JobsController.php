@@ -35,6 +35,7 @@ class JobsController extends Controller
 
             $limit = $request->number_messages;
             $url_shortener = $request->url_shortener;
+            $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
 
             //$logs = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get();
             $logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->take($limit)->get();
@@ -97,13 +98,13 @@ class JobsController extends Controller
 
                     BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
                         ->update(['is_downloaded_as_csv' => 1, 'batch' => $batch_no]);
-
-                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map, $campaign_service, $log) {
+                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map, $campaign_service, $log, $domain_id) {
                         $alias_for_campaign = uniqid();
-                        $url_for_campaign = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+//                        $url_for_campaign = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+                        $url_for_campaign = $item->message?->target_url;
                         if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_campaign)) {
-                            $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id);
-                            $response_flow = $campaign_service->createFlowOnKeitaro($url_for_campaign, $response_campaign['id'], $item->title);
+                            $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id, $domain_id);
+                            $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'], $item->title, $url_for_campaign);
                             $this->campaignShortUrlRepository->create([
                                 'campaign_id' => $item->id,
                                 'url_shortener' => $url_for_campaign,
