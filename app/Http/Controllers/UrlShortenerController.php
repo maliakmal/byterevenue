@@ -29,7 +29,8 @@ class UrlShortenerController extends Controller
             'endpoint' => 'required|string|max:2048',
         ]);
         $inputs = $request->all();
-        $request = new RegisterShortDomainRequest($inputs['name']);
+        $request = new RegisterShortDomainRequest($inputs['name'],null, null, null,
+            null, true, true, true, false);
         $caller = new KeitaroCaller();
         $response = null;
         try{

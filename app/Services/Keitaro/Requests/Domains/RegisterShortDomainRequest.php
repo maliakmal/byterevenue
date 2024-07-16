@@ -17,6 +17,8 @@ class RegisterShortDomainRequest extends AbstractRequest
     private $ssl_redirect;
     private $allow_indexing;
     private $admin_dashboard;
+    private $is_ssl;
+    private $cloudflare_proxy;
 
 
     /**
@@ -30,7 +32,7 @@ class RegisterShortDomainRequest extends AbstractRequest
      * @param $admin_dashboard
      */
     public function __construct($name, $default_campaign_id = null, $group_id = null, $catch_not_found = null, $notes = null,
-                                $ssl_redirect = null, $allow_indexing = null, $admin_dashboard = null)
+                                $ssl_redirect = null, $is_ssl = null, $cloudflare_proxy = null, $allow_indexing = null, $admin_dashboard = null)
     {
         $this->name = $name;
         $this->default_campaign_id = $default_campaign_id;
@@ -40,6 +42,8 @@ class RegisterShortDomainRequest extends AbstractRequest
         $this->ssl_redirect = $ssl_redirect;
         $this->allow_indexing = $allow_indexing;
         $this->admin_dashboard = $admin_dashboard;
+        $this->is_ssl = $is_ssl;
+        $this->cloudflare_proxy = $cloudflare_proxy;
     }
 
 
@@ -52,8 +56,10 @@ class RegisterShortDomainRequest extends AbstractRequest
             'catch_not_found'     => $this->catch_not_found,
             'notes'               => $this->notes,
             'ssl_redirect'        => $this->ssl_redirect,
+            'is_ssl'              => $this->is_ssl,
             'allow_indexing'      => $this->allow_indexing,
             'admin_dashboard'     => $this->admin_dashboard,
+            'cloudflare_proxy'     => $this->cloudflare_proxy,
         ];
     }
 }
