@@ -9,4 +9,8 @@ class UrlShortener extends Model
 {
     use HasFactory;
     protected $fillable = ['name', 'endpoint', 'asset_id','is_registered', 'response'];
+
+    public function scopeOnlyRegistered($q){
+        return $q->where('is_registered', 1);
+    }
 }
