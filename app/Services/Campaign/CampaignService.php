@@ -9,9 +9,9 @@ use Illuminate\Support\Str;
 
 class CampaignService
 {
-    public function generateUrlForCampaign($domain, $alias, $messageID)
+    public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        return $domain.DIRECTORY_SEPARATOR.$alias.'?uid='.$messageID;
+        return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?uid='.$messageID : '' );
     }
 
     public function createCampaignOnKeitaro($alias, $title, $groupID, $domainID, $type = 'position', $uniqueness_method = 'ip_ua',
@@ -31,8 +31,8 @@ class CampaignService
     }
 
     public function createFlowOnKeitaro($campaignID, $campaignTitle, $action_payload = null, $filters = null, $action_options = null,
-                                        $type = 'regular', $schema = 'redirect', $position = 1,
-                                        $comments = null, $state = 'deleted', $action_type = 'http',
+                                        $type = 'forced', $schema = 'redirect', $position = 1,
+                                        $comments = null, $state = 'active', $action_type = 'http',
                                         $collect_clicks = true, $filter_or = false, $weight = 100,
     )
     {

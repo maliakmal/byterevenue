@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
+use App\Models\CampaignShortUrl;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
 use Illuminate\Support\Facades\DB;
@@ -69,12 +70,26 @@ class JobsController extends Controller
                             }
                         }
                         if ($message) {
-                            $generated_url = $campaign->generateTrackableUrl($url_shortener, ['uid'=>$log->id]);
+                            // allocate a uniq id to the campaign if it doesnt have one already
+                            // check if there an existing URL for this campaign with the same domain
+                            $campaign_short_url = CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%'.$url_shortener.'%')->orderby('id', 'desc')->first();
+
+                            // if yes - use that
+
+                            if($campaign_short_url){
+                                $alias_for_campaign = explode('?', explode(DIRECTORY_SEPARATOR,  $campaign_short_url->url_shortener)[1])[0];
+                            }else{
+                                $alias_for_campaign = uniqid();
+                            }
+
+                            $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+
                             $log->message_body = $message->getParsedMessage($generated_url);
+
 
                             $campaign_key = $campaign->id . '';
                             if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
-                                $unique_campaigns->add($campaign);
+                                $unique_campaigns->add(['campaign'=>$campaign, 'alias'=>$alias_for_campaign]);
                                 $unique_campaign_map[$campaign_key] = true;
                             }
                         }
@@ -98,16 +113,22 @@ class JobsController extends Controller
 
                     BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->orderby('id', 'ASC')->take($limit)->get()->last()->id)
                         ->update(['is_downloaded_as_csv' => 1, 'batch' => $batch_no]);
-                    $unique_campaigns->each(function ($item) use ($url_shortener, $unique_campaign_map, $campaign_service, $log, $domain_id) {
-                        $alias_for_campaign = uniqid();
-//                        $url_for_campaign = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+                    $unique_campaigns->each(function ($itemCollection) use ($url_shortener, $unique_campaign_map, $campaign_service, $log, $domain_id) {
+                        $alias_for_campaign = $itemCollection['alias'];
+                        $item = $itemCollection['campaign'];
+
+                        $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
                         $url_for_campaign = $item->message?->target_url;
-                        if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_campaign)) {
+                        // maintain a record of short urls created against a campaign
+                        // if a short url has been created against a campaign - do not create a new one, use the existing one
+                        // else create a new one
+                        if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_keitaro)) {
+
                             $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id, $domain_id);
                             $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'], $item->title, $url_for_campaign);
                             $this->campaignShortUrlRepository->create([
                                 'campaign_id' => $item->id,
-                                'url_shortener' => $url_for_campaign,
+                                'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                                 'flow_id' => $response_flow['id'],
                                 'response' => @json_encode($response_flow),
                                 'keitaro_campaign_id' => $response_campaign['id'],
@@ -121,10 +142,13 @@ class JobsController extends Controller
                 }
                 catch (RequestException $exception) {
                     DB::rollBack();
+                    var_dump($exception);
+                    die();
                     return redirect()->route('jobs.index')->with('error', $exception->getMessage());
                 } catch (\Exception $exception) {
                     DB::rollBack();
                     report($exception);
+                    die();
                     return redirect()->route('jobs.index')->with('error', 'Error Call Keitaro');
                 }
 

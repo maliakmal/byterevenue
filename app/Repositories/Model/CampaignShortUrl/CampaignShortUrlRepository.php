@@ -15,6 +15,6 @@ class CampaignShortUrlRepository extends BaseRepository implements CampaignShort
 
     public function findWithCampaignIDUrlID($campaignID, $url)
     {
-        return $this->model->where('campaign_id', $campaignID)->where('url_shortener', $url)->first();
+        return $this->model->where('campaign_id', $campaignID)->where('url_shortener', 'like', $url.'%')->first();
     }
 }
