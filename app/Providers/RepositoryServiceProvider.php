@@ -5,10 +5,12 @@ namespace App\Providers;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
+use App\Repositories\Contract\Setting\SettingRepositoryInterface;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use App\Repositories\Model\Campaign\CampaignRepository;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
+use App\Repositories\Model\Setting\SettingRepository;
 use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +25,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(CampaignRepositoryInterface::class, CampaignRepository::class);
         $this->app->bind(BroadcastLogRepositoryInterface::class, BroadcastLogRepository::class);
         $this->app->bind(UrlShortenerRepositoryInterface::class, UrlShortenerRepository::class);
+        $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
     }
 
     /**
