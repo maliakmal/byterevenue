@@ -62,7 +62,8 @@
         <thead>
         <tr class="bg-gray-100">
                 <th class="px-4 py-2">ID</th>
-                <th class="px-4 py-3">Key</th>
+                <th class="px-4 py-3">Label</th>
+                <th class="px-4 py-3">Name</th>
                 <th class="px-4 py-3">Value</th>
                 <th class="px-4 py-3">Created At</th>
                 <th class="px-4 py-3">Actions</th>
@@ -74,7 +75,8 @@
 
       <tr>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->id }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->key }}</td>
+                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->label }}</td>
+                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->name }}</td>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->value }}</td>
                 <td style="text-align: center" title="{{ $item->created_at }}" class="border-b border-gray-200 px-4 py-2">{{ $item->created_at->diffForHumans() }}</td>
                 <td style="text-align: center" class="border-b border-gray-200 px-4 py-2">

@@ -50,10 +50,17 @@
             @method('PUT')
 
             <div class="mb-4">
-              <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Key</label>
-              <input type="text" value="{{ $setting->key }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="key" name="key" >
+                <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Label</label>
+                <input type="text" value="{{ $setting->label }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="label" name="label" >
             </div>
-            <input type="text" value="{{ $setting->value }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="value" name="value" >
+            <div class="mb-4">
+              <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+              <input type="text" value="{{ $setting->name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" >
+            </div>
+            <div class="mb-4">
+                <label for="value" class="block text-gray-700 text-sm font-bold mb-2">Value</label>
+                <input type="text" value="{{ $setting->value }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="value" name="value" >
+            </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">Update Setting</button>
             <a href="/settings" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-2 px-4  font-medium text-gray-700 shadow-sm hover:bg-gray-50 ">Back</a>
           </form>

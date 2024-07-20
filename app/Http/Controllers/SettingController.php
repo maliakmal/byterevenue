@@ -40,13 +40,15 @@ class SettingController extends Controller
         public function store(Request $request)
         {
             $request->validate([
-                'key' => 'required|unique:settings,key|string|min:1|max:255',
-                'value' => 'required|string|min:1|max:255',
+                'name' => 'required|unique:settings,name|string|min:1|max:255',
+                'value' => 'required|string|min:1',
+                'label' => 'nullable|string|min:1|max:255',
             ]);
             $inputs = $request->all();
             $setting = $this->settingRepository->create([
-                'key' => $inputs['key'],
+                'name' => $inputs['name'],
                 'value' => $inputs['value'],
+                'label' => $inputs['label'],
             ]);
             return redirect()->route('settings.index', $setting)->with('success', 'Setting created successfully.');
         }
@@ -64,14 +66,17 @@ class SettingController extends Controller
          */
         public function update(Request $request, Setting $setting)
         {
+            $request->all();
             $id = $setting->id;
             $request->validate([
-                'key' => "required|unique:settings,key,$id|string|min:1|max:255",
-                'value' => "required|string|min:1|max:255",
+                'name' => "required|unique:settings,name,$id|string|min:1|max:255",
+                'value' => "required|string|min:1",
+                'label' => "nullable|string|min:1|max:255",
             ]);
 
-            $setting->key = $request->key;
+            $setting->name = $request->name;
             $setting->value = $request->value;
+            $setting->label = $request->label;
             $setting->save();
             return redirect()->route('settings.index', $setting)->with('success', 'Setting Updated successfully.');
         }

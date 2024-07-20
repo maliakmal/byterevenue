@@ -49,8 +49,12 @@
         <form action="{{ route('settings.store') }}" method="post">
             @csrf
             <div class="mb-4">
-              <label for="key" class="block text-gray-700 text-sm font-bold mb-2">Key</label>
-              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="key" name="key" >
+                <label for="label" class="block text-gray-700 text-sm font-bold mb-2">Label</label>
+                <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="label" name="label" >
+            </div>
+            <div class="mb-4">
+              <label for="key" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" >
             </div>
             <div class="mb-4">
               <label for="value" class="block text-gray-700 text-sm font-bold mb-value">Value</label>
