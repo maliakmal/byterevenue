@@ -70,12 +70,17 @@ class SettingController extends Controller
             $id = $setting->id;
             $request->validate([
                 'name' => "required|unique:settings,name,$id|string|min:1|max:255",
-                'value' => "required|string|min:1",
+                'value' => "required|min:1",
                 'label' => "nullable|string|min:1|max:255",
             ]);
+            $value = $request->value;
+            if(is_array($value)){
+                $value = collect($value)->whereNotNull()->toArray();
+                $value = json_encode(array_values($value));
+            }
 
             $setting->name = $request->name;
-            $setting->value = $request->value;
+            $setting->value = $value;
             $setting->label = $request->label;
             $setting->save();
             return redirect()->route('settings.index', $setting)->with('success', 'Setting Updated successfully.');
