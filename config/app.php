@@ -132,6 +132,9 @@ return [
     ],
     'domain' => [
         'schedule_check_propagation' => 'hourly',
+    ],
+    'csv' => [
+        'disk' => env('CSV_DISK', 'space')
     ]
 
 ];
