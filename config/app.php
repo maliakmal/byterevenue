@@ -135,6 +135,9 @@ return [
     ],
     'csv' => [
         'disk' => env('CSV_DISK', 'space')
-    ]
+    ],
+    'one_plus_e' => [
+        'host' => env('ONE_PLUS_E', 'http://172.16.1.105:8000'),
+    ],
 
 ];
