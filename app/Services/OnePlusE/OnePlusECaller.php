@@ -17,7 +17,7 @@ class OnePlusECaller
         $http = Http::retry(3);
         if(is_array($attachments) && count($attachments) > 0){
             foreach ($attachments as $key => $value){
-                $http = $http->attach($key, $value);
+                $http = $http->attach($key, $value, $key);
             }
         }
         $response = $http->withHeaders($headers)
