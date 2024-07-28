@@ -19,4 +19,6 @@ interface BaseRepositoryInterface
     public function deleteByModel(Model $model);
 
     public function find($id);
+
+    public function paginate($perPage, $latest = true);
 }

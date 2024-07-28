@@ -51,6 +51,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
     Route::resource('url_shorteners', UrlShortenerController::class);
     Route::resource('settings', \App\Http\Controllers\SettingController::class);
+    Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
 });
 
 Route::get('/forbidden', function () {

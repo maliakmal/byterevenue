@@ -51,4 +51,13 @@ class BaseRepository implements BaseRepositoryInterface
     {
         return $this->model->find($id);
     }
+
+    public function paginate($perPage, $latest = true)
+    {
+        $query = $this->model->newQuery();
+        if($latest){
+            $query = $query->latest();
+        }
+        return $query->paginate($perPage);
+    }
 }
