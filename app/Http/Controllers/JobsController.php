@@ -103,7 +103,7 @@ class JobsController extends Controller
                         $csvContent .= implode(',', [$log->id, $log->recipient_phone, '', $log->message_body]) . "\n";
                     }
                     $download_me = env('DO_SPACES_ENDPOINT') . $filename;
-                    Storage::disk('spaces')->put($filename, $csvContent);
+                    //Storage::disk('spaces')->put($filename, $csvContent);
 
                     BatchFile::create(['filename' => $filename,
                         'path' => env('DO_SPACES_ENDPOINT') . $filename,
