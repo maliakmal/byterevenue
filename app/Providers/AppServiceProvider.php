@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Setting;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Response;
 
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerConfigs();
         Response::macro('success', function ($message = '', $data = [], $code = 200, $headers = []) {
             return Response::make([
                 'success' => true,
@@ -33,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
                 'success' => false,
                 'message' => $errorMessages,
             ], $code, $headers);
+        });
+    }
+
+    private function registerConfigs()
+    {
+        Setting::orderBy('id')->chunk(100, function ($items){
+            foreach ($items as $item){
+                $key = 'setting.'.$item->name;
+                Config::set($key, $item->value);
+            }
         });
     }
 }
