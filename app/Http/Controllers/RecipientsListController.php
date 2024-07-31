@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ContactsImport;
+use League\Csv\Reader;
+use App\Jobs\ProcessRecipientsImportCsvChunk;
+use Illuminate\Support\Facades\Redis;
+
 
 class RecipientsListController extends Controller
 {
@@ -45,27 +49,63 @@ class RecipientsListController extends Controller
 
         if($request->entry_type =='file'){
             $data = [];
-            $file = fopen($request->csv_file->getRealPath(), mode:'r');
-            while($row = fgetcsv($file)){
-                $data[] = [
-                    'name' => empty($row[0]) ? $row[2] : $row[0],
-                    'phone' => $row[2],
-                    'email' => $row[1],
-                ];
+            $csv = Reader::createFromPath($request->csv_file->getRealPath(), 'r');
+            //$csv->setHeaderOffset(0); // Assuming the first row contains headers
+            $csv->setDelimiter(',');
+            // Get the records in chunks
+            $chunkSize = 500; // Adjust chunk size as needed
+            $ii = 0;
+
+            $records = $csv->getRecords();
+            $chunk = [];
+            $rowCount = 0;
+    
+            foreach ($records as $record) {
+                $chunk[] = $record;
+                $rowCount++;
+    
+                // If the chunk size is reached, dispatch a job and reset the chunk
+                if ($rowCount % $chunkSize === 0) {
+                    $_params = [];
+                    $_params['user_id'] = auth()->user()->id;
+                    $_params['recipient_list'] = $recipientsList;
+                    $_params['rows'] = $chunk;
+                    ProcessRecipientsImportCsvChunk::dispatch($_params);
+                    $chunk = [];
+                }
             }
 
-            fclose($file);
+            // Dispatch remaining records if any
+            if (!empty($chunk)) {
+                $_params = [];
+                $_params['user_id'] = auth()->user()->id;
+                $_params['recipient_list'] = $recipientsList;
+                $_params['rows'] = $chunk;
+                $_params['is_import'] = true;
+                ProcessRecipientsImportCsvChunk::dispatch($_params);
+            }else{
+                $_params = [];
+                $_params['user_id'] = auth()->user()->id;
+                $_params['recipient_list'] = $recipientsList;
+                $_params['rows'] = [];
+                $_params['is_import'] = true;
+                ProcessRecipientsImportCsvChunk::dispatch($_params);
+
+            }
+
+            return redirect()->route('recipient_lists.index')->with('success', 'Contacts are being imported.');
+
 
         }else{
             $data = explode(',', $request->numbers);
-
         }
+
         DB::beginTransaction();
 
         try {
             $insertables = [];
             $now = now()->toDateTimeString();
-            $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone')->unique()->toArray();
+            $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone', 'id')->toArray();
             foreach ($data as $row) {
                 if(is_array($row)):
 
@@ -78,7 +118,10 @@ class RecipientsListController extends Controller
                             'created_at'=>$now,
                             'updated_at'=>$now,
                             ];
-                    endif;
+                        else:
+                            $attachable_id = array_search($row['phone'], $existing_phones_for_user);
+                            $recipient_list->contacts()->attach($attachable_id, ['user_id'=>$user_id]);
+                        endif;
 
                 else:
 
@@ -98,6 +141,10 @@ class RecipientsListController extends Controller
                 $contact = Contact::create($insertable);
                 $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
             }
+
+            $recipientsList->is_imported = true;
+            $recipientsList->save();
+
 
             DB::commit();
             return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');

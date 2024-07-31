@@ -62,6 +62,12 @@
               
             </div>
             <p class="mt-1 truncate text-sm text-gray-500">{{ $recipient_list->contacts->count() }} contacts</p>
+            @if($recipient_list->is_imported == 1)
+          <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">Import Complete</span>
+
+          @else
+          <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-300 border border-yellow-300">Import in Progress</span>
+          @endif
             @if(auth()->user()->hasRole('admin'))
             <p class="mt-1 truncate text-sm text-gray-500">
               <a href="{{ route('accounts.show', $recipient_list->user_id) }}" class="flex items-center">
