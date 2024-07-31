@@ -39,9 +39,9 @@ Route::middleware([
     Route::resource('accounts', AccountsController::class);
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
 
-    
 
-    
+
+
 });
 Route::middleware([CheckAdminRole::class])->group(function () {
 
@@ -50,6 +50,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
     Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
     Route::resource('url_shorteners', UrlShortenerController::class);
+    Route::resource('settings', \App\Http\Controllers\SettingController::class);
 });
 
 Route::get('/forbidden', function () {

@@ -12,4 +12,14 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         $this->model = $model;
     }
+
+    /**
+     * @param array $ids
+     * @param $fieldsToUpdate
+     * @return mixed
+     */
+    public function updateWithIDs(array $ids, $fieldsToUpdate)
+    {
+        return $this->model->whereIn('id', $ids)->update($fieldsToUpdate);
+    }
 }
