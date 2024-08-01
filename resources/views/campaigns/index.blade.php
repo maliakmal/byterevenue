@@ -107,7 +107,7 @@
                 <td class="border-b border-gray-200 px-4 py-2"><a href="{{ route('accounts.show', $campaign->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
                 {{ $campaign->user->name }}</a></td>
                 @endif
-                <td class="border-b border-gray-200 px-4 py-2">{{ $campaign->recipient_list ? $campaign->recipient_list->contacts->count():'-' }}</td>
+                <td class="border-b border-gray-200 px-4 py-2">{{ $campaign->recipient_list ? $campaign->recipient_list->contacts()->count():'-' }}</td>
                 <td class="border-b border-gray-200 px-4 py-2">
                 @switch($campaign->status)
                   @case(\App\Models\Campaign::STATUS_DRAFT)
