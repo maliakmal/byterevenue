@@ -43,11 +43,11 @@ class RecipientsListController extends Controller
      */
     public function store(Request $request)
     {
-        $recipientsList = auth()->user()->recipientLists()->create([
-            'name' => $request->name,
-        ]);
 
         if($request->entry_type =='file'){
+            $recipientsList = auth()->user()->recipientLists()->create([
+                'name' => $request->name,
+            ]);
             $data = [];
             $csv = Reader::createFromPath($request->csv_file->getRealPath(), 'r');
             //$csv->setHeaderOffset(0); // Assuming the first row contains headers
@@ -100,7 +100,14 @@ class RecipientsListController extends Controller
             $data = explode(',', $request->numbers);
         }
 
+        if(count($data)==0){
+            return redirect()->back()->withErrors(['error' => 'Cannot create an empty recipient list.']);
+        }
+
         DB::beginTransaction();
+        $recipientsList = auth()->user()->recipientLists()->create([
+            'name' => $request->name,
+        ]);
 
         try {
             $insertables = [];
@@ -150,8 +157,6 @@ class RecipientsListController extends Controller
             return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
         } catch (\Exception $e) {
             DB::rollback();
-            var_dump($e);
-            exit();
             return redirect()->back()->withErrors(['error' => 'An error occurred while importing contacts.']);
         }
 
@@ -175,24 +180,25 @@ class RecipientsListController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(RecipientsList $recipientsList)
+    public function edit($id)
     {
+        $recipientsList = RecipientsList::findOrFail($id);
         return view('recipient_lists.edit', compact('recipientsList'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RecipientsList $recipientsList)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|max:255'.$client->id,
         ]);
+
+        $recipientsList = RecipientsList::findOrFail($id);
 
         $recipientsList->update([
             'name' => $request->name,
-            'email' => $request->email,
         ]);
 
         return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');
