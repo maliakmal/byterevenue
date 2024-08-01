@@ -149,12 +149,13 @@ class CampaignController extends Controller
         public function markAsProcessed($id){
             // create message logs against each contact and generate the message acordingly
             $campaign = Campaign::findOrFail($id);
-            $contacts = $campaign->recipient_list->contacts->all();
             $account = User::find($campaign->user_id);
-            $amount = count($contacts);
+            $amount = $campaign->recipient_list->contacts()->count();
             if($account->tokens < $amount){
                 return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);
             }
+            DB::enableQueryLog();
+            
             DB::beginTransaction();
 
             try {
@@ -162,30 +163,38 @@ class CampaignController extends Controller
 
                 //$message = $campaign->message->getParsedMessage();
 
-                $data = [
-                    'user_id'=>auth()->id(),
-                    'recipients_list_id'=>$campaign->recipient_list->id,
-                    'message_id'=>$campaign->message->id,
-                    'message_body'=>'',
-                    'recipient_phone'=>'',
-                    'contact_id'=>0,
-                    'is_downloaded_as_csv'=>0,
-                    'campaign_id'=>$campaign->id,
-                ];
 
-                $contacts = $campaign->recipient_list->contacts->all();
+                $sql = "INSERT INTO broadcast_logs ";
+                $sql.="(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
+                $sql.="SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
+                //var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
+                DB::insert($sql, [auth()->id(), $campaign->recipient_list->id, $campaign->message->id, 0, $campaign->id, $campaign->recipient_list->id]);
 
-                foreach($contacts as $contact){
-                    $data['recipient_phone'] = $contact->phone;
-                    $data['contact_id'] = $contact->id;
-                    BroadcastLog::create($data);
-                }
 
+                // $data = [
+                //     'user_id'=>auth()->id(),
+                //     'recipients_list_id'=>$campaign->recipient_list->id,
+                //     'message_id'=>$campaign->message->id,
+                //     'message_body'=>'',
+                //     'recipient_phone'=>'',
+                //     'contact_id'=>0,
+                //     'is_downloaded_as_csv'=>0,
+                //     'campaign_id'=>$campaign->id,
+                // ];
+
+                // $contacts = $campaign->recipient_list->contacts()->get();
+
+                // foreach($contacts as $contact){
+                //     $data['recipient_phone'] = $contact->phone;
+                //     $data['contact_id'] = $contact->id;
+                //     BroadcastLog::create($data);
+                // }
+//
                 $campaign->markAsProcessed();
                 $campaign->save();
 
                 $account = User::find(auth()->user()->id);
-                $amount = count($contacts);
+                $amount = $campaign->recipient_list->contacts()->count();
                 Transaction::create([
                     'user_id'=>$account->id,
                     'amount'=>$amount,
@@ -195,9 +204,14 @@ class CampaignController extends Controller
                 $account->save();
 
                 DB::commit();
+
+                $queries = DB::getQueryLog();
+
+                
                 return redirect()->back()->with('success', 'Job is being processed.');
             } catch (\Exception $e) {
                 DB::rollback();
+                var_dump($e);die();
                 return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
             }
 
