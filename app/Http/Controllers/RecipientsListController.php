@@ -50,6 +50,9 @@ class RecipientsListController extends Controller
         if($request->entry_type =='file'){
             $data = [];
             $csv = Reader::createFromPath($request->csv_file->getRealPath(), 'r');
+// var_dump($csv);
+// var_dump($request->csv_file->getRealPath());
+// die();
             //$csv->setHeaderOffset(0); // Assuming the first row contains headers
             $csv->setDelimiter(',');
             // Get the records in chunks
