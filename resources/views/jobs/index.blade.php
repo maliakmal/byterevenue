@@ -64,7 +64,7 @@
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
                 <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 3000] as $num)
+                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
                   <option value="{{$num}}">{{$num}} messages</option>
                 @endforeach
                 </select>
