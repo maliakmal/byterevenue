@@ -56,7 +56,7 @@ class RecipientsListController extends Controller
             //$csv->setHeaderOffset(0); // Assuming the first row contains headers
             $csv->setDelimiter(',');
             // Get the records in chunks
-            $chunkSize = 500; // Adjust chunk size as needed
+            $chunkSize = 100; // Adjust chunk size as needed
             $ii = 0;
 
             $records = $csv->getRecords();

@@ -99,13 +99,18 @@
             @foreach ($params['files'] as $file)
               <tr>
                 <td class="border-b border-gray-200 px-4 py-2">
-                  <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['filename'] }}</a> 
+                  <a href="/download/{{$file['id'] }}">{{ $file['filename'] }}</a> 
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                 {{ $file['number_of_entries'] }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
-                  <a href="{{ env('DO_SPACES_ENDPOINT').$file['filename'] }}">{{ $file['created_at']->diffForHumans() }}</a> 
+                  <a href="/download/{{$file['id'] }}">
+                  @if($file['is_ready'] == 1)
+                    (pending)
+                  @endif
+                    {{ $file['created_at']->diffForHumans() }}
+                  </a> 
                 </td>
               </tr>
             @endforeach
