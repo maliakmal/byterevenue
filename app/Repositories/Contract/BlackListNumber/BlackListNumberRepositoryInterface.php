@@ -6,4 +6,5 @@ use App\Repositories\Contract\BaseRepositoryInterface;
 
 interface BlackListNumberRepositoryInterface extends BaseRepositoryInterface
 {
+    public function upsertPhoneNumber(array $upsertFields);
 }

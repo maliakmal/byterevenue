@@ -14,4 +14,7 @@ Route::middleware(\App\Http\Middleware\CheckExternalApiToken::class)->group(func
         Route::post('/update/sent', [JobsController::class, 'updateSentMessage']);
         Route::post('/update/clicked', [JobsController::class, 'updateClickMessage']);
     });
+    Route::prefix('blacklist-numbers')->group(function (){
+        Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
+    });
 });

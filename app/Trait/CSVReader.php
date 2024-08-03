@@ -2,8 +2,14 @@
 
 namespace App\Trait;
 
+use Illuminate\Support\Collection;
+
 trait CSVReader
 {
+    /**
+     * @param $string
+     * @return false|Collection
+     */
     public function csvToCollection($string)
     {
         try{
@@ -18,7 +24,7 @@ trait CSVReader
                         break;
                     }
                     $split_row = explode(',', $row);
-                    $data[$column] = $split_row[$columnIndex];
+                    $data[trim($column)] = trim($split_row[$columnIndex]);
                 }
                 $list->add($data);
             }

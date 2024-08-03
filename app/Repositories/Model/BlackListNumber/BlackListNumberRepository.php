@@ -12,4 +12,13 @@ class BlackListNumberRepository extends BaseRepository implements BlackListNumbe
     {
         $this->model = $model;
     }
+
+    /**
+     * @param array $upsertFields
+     * @return mixed
+     */
+    public function upsertPhoneNumber(array $upsertFields)
+    {
+        return $this->model->upsert($upsertFields, ['phone_number'], ['phone_number']);
+    }
 }
