@@ -45,58 +45,47 @@ class RecipientsListController extends Controller
     {
 
         if($request->entry_type =='file'){
+            DB::beginTransaction();
             $recipientsList = auth()->user()->recipientLists()->create([
                 'name' => $request->name,
             ]);
-            $data = [];
-            $csv = Reader::createFromPath($request->csv_file->getRealPath(), 'r');
-// var_dump($csv);
-// var_dump($request->csv_file->getRealPath());
-// die();
-            //$csv->setHeaderOffset(0); // Assuming the first row contains headers
-            $csv->setDelimiter(',');
-            // Get the records in chunks
-            $chunkSize = 100; // Adjust chunk size as needed
-            $ii = 0;
 
-            $records = $csv->getRecords();
-            $chunk = [];
-            $rowCount = 0;
-    
-            foreach ($records as $record) {
-                $chunk[] = $record;
-                $rowCount++;
-    
-                // If the chunk size is reached, dispatch a job and reset the chunk
-                if ($rowCount % $chunkSize === 0) {
-                    $_params = [];
-                    $_params['user_id'] = auth()->user()->id;
-                    $_params['recipient_list'] = $recipientsList;
-                    $_params['rows'] = $chunk;
-                    ProcessRecipientsImportCsvChunk::dispatch($_params);
-                    $chunk = [];
-                }
+            $user_id = auth()->user()->id;
+            $file = $request->file('csv_file');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $newFileName = $user_id . '_' . time() . '.' . $extension;
+            $filePath = $file->storeAs('uploads', $newFileName);
+            $fullPath = storage_path('app/' . $filePath);
+
+
+            try {
+
+                DB::statement("LOAD DATA LOCAL INFILE '$fullPath' 
+                               INTO TABLE contacts 
+                               FIELDS TERMINATED BY ',' 
+                               ENCLOSED BY '\"' 
+                               LINES TERMINATED BY '\n' 
+                               IGNORE 1 ROWS 
+                               (name, email, phone) 
+                               SET created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                DB::statement(
+                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+                                SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+                                FROM contacts 
+                                WHERE file_tag='$newFileName'"
+                            );
+                $recipientsList->is_imported = true;
+                $recipientsList->save();
+                
+                            DB::commit();
+
+                return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
+            } catch (\Exception $e) {
+                DB::rollback();
+
+                return redirect()->back()->with('error', 'Error importing CSV file: ' . $e->getMessage());
             }
-
-            // Dispatch remaining records if any
-            if (!empty($chunk)) {
-                $_params = [];
-                $_params['user_id'] = auth()->user()->id;
-                $_params['recipient_list'] = $recipientsList;
-                $_params['rows'] = $chunk;
-                $_params['is_import'] = true;
-                ProcessRecipientsImportCsvChunk::dispatch($_params);
-            }else{
-                $_params = [];
-                $_params['user_id'] = auth()->user()->id;
-                $_params['recipient_list'] = $recipientsList;
-                $_params['rows'] = [];
-                $_params['is_import'] = true;
-                ProcessRecipientsImportCsvChunk::dispatch($_params);
-
-            }
-
-            return redirect()->route('recipient_lists.index')->with('success', 'Contacts are being imported.');
 
 
         }else{
