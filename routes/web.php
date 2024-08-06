@@ -38,7 +38,10 @@ Route::middleware([
     Route::resource('broadcast_batches', BroadcastBatchController::class);
     Route::resource('accounts', AccountsController::class);
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
+    Route::get('/user', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
 
+    Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
+    Route::get('black-list-numbers/user', [\App\Http\Controllers\BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
 
 
 

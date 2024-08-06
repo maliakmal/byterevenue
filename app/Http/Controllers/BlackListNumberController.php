@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\BlackListNumber;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
+use App\Repositories\Contract\Contact\ContactRepositoryInterface;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class BlackListNumberController extends Controller
 {
     public function __construct(
-        protected BlackListNumberRepositoryInterface $blackListNumberRepository
+        protected BlackListNumberRepositoryInterface $blackListNumberRepository,
+        protected ContactRepositoryInterface $contactRepository,
     )
     {
     }
@@ -80,4 +85,18 @@ class BlackListNumberController extends Controller
             $blackListNumber->delete();
             return redirect()->route('black-list-numbers.index')->with('success', 'Item deleted successfully.');
         }
+
+    /**
+     * @param Request $request
+     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     */
+    public function getBlackListNumberForUser(Request $request)
+    {
+        $filter = array(
+            'count'=> request('count')?request('count'):5,
+        );
+        $user_id = auth()->id();
+        $list = $this->contactRepository->getBlockedListUserContacts($user_id, $filter['count']);
+        return view('black_list_number.black_list_user', compact('list', 'filter'));
     }
+}
