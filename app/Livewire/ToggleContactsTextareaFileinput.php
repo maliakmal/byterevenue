@@ -10,6 +10,8 @@ class ToggleContactsTextareaFileinput extends Component
     public $textareaName = 'content';
     public $fileInputName = 'file';
     public $selectorName = 'selector';
+    public $onChange = '';
+    public $radioInputChange = '';
 
     public function render()
     {
