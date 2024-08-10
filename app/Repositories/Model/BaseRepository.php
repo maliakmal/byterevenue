@@ -47,6 +47,16 @@ class BaseRepository implements BaseRepositoryInterface
 
     /**
      * @param array $data
+     * @param $id
+     * @return mixed
+     */
+    public function updateByID(array $data, $id)
+    {
+        return $this->model->where('id', $id)->update($data);
+    }
+
+    /**
+     * @param array $data
      * @param Model $model
      * @return Model
      */
