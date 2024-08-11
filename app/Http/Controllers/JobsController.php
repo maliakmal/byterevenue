@@ -62,9 +62,6 @@ class JobsController extends Controller
 
             }
             return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
-
-
-
         }
 
 
