@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
@@ -133,6 +134,7 @@ class JobsController extends Controller
         if(!$this->broadcastLogRepository->updateByModel([
             'sent_at' => Carbon::now(),
             'is_sent' => true,
+            'status' => BroadcastLogStatus::SENT,
         ], $model)){
             return response()->error('update failed');
         }

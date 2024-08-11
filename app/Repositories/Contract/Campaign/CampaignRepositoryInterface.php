@@ -6,5 +6,5 @@ use App\Repositories\Contract\BaseRepositoryInterface;
 
 interface CampaignRepositoryInterface extends BaseRepositoryInterface
 {
-
+    public function getCampaignsForUser(int $userID);
 }

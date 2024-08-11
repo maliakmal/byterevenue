@@ -57,10 +57,29 @@
               <label for="title" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
               <input type="text" value="{{ $setting->name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" >
             </div>
-            <div class="mb-4">
-                <label for="value" class="block text-gray-700 text-sm font-bold mb-2">Value</label>
-                <input type="text" value="{{ $setting->value }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="value" name="value" >
+            @if(is_array(($value_array = @json_decode( $setting->value, false))))
+            <div class="mb-4" id="value_array_container">
+                <label for="value" class="block text-gray-700 text-sm font-bold mb-2">Value
+                    <button type="button" onclick="addValueArrayItem()" style="cursor: pointer" class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M12,2C6.477,2,2,6.477,2,12s4.477,10,10,10s10-4.477,10-10S17.523,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"></path>
+                        </svg>
+                    </button>
+                </label>
+                @foreach($value_array as $index => $value_array_item)
+                    <div>
+                    <input type="text" value="{{ $value_array_item }}" style="margin-top:15px" id="value{{$index}}" name="value[]" />
+                        <button type="button" style='color:red' onclick="this.parentNode.remove()">remove</button>
+                    </div>
+                @endforeach
+
             </div>
+            @else
+                <div class="mb-4">
+                    <label for="value" class="block text-gray-700 text-sm font-bold mb-2">Value</label>
+                    <input type="text" value="{{ $setting->value }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="value" name="value" >
+                </div>
+            @endif
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">Update Setting</button>
             <a href="/settings" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-2 px-4  font-medium text-gray-700 shadow-sm hover:bg-gray-50 ">Back</a>
           </form>
@@ -90,4 +109,25 @@ document.getElementById('lnk-spintax-preview').addEventListener('click', functio
   document.getElementById('spintax-holder').classList.remove('hidden');
   document.querySelector('#spintax-preview div').innerHTML = text;
 });
+function addValueArrayItem(){
+    var element = document.createElement('input');
+    element.setAttribute('name','value[]');
+    element.setAttribute('type','text');
+    element.setAttribute('style','margin-top:15px');
+
+    var removeButton = document.createElement('button');
+    removeButton.style='color:red;margin-left:5px';
+    removeButton.setAttribute('type', 'button');
+    removeButton.addEventListener('click', removeValueArrayItem);
+    removeButton.innerText='remove';
+
+    var parent = document.createElement('div');
+    parent.appendChild(element);
+    parent.appendChild(removeButton);
+    document.getElementById('value_array_container').appendChild(parent);
+}
+function removeValueArrayItem(event){
+    var element = event.target || event.srcElement;
+    element.parentNode.remove();
+}
 </script>
