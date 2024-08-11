@@ -59,7 +59,6 @@
             <div class="mb-4">
               <livewire:toggle-contacts-textarea-fileinput radio-input-change="changeRadioButton()" on-change="changeCSV()" textarea-name="numbers" selector-name="entry_type" file-input-name="csv_file" />
             </div>
-              <button onclick="submitForm()" type="button" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Create Recipient List</button>
               <div style="margin-top: 50px;display: none" id="csv-table-holder">
                   <h1> <b>Uploaded CSV Data </b></h1>
                   <h3 style="color: red">choose selected proper columns</h3>
@@ -83,7 +82,8 @@
                   <div style="margin-top: 50px">
                      <table id="csvTable"></table>
                   </div>
-              </div>
+                  <button onclick="submitForm()" type="button" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Create Recipient List</button>
+                  </div>
           </form>
         </div>
       </div>
@@ -145,12 +145,14 @@
              destoryTable();
          }
          var keys = Object.keys(data[0]);
+         console.log({keys:keys});
          var columns = [];
          var i;
          for (i=0;i<keys.length;i++) {
              var obj = {};
              obj['data'] = keys[i];
              obj['title'] = keys[i];
+             console.log({obj:obj});
              columns.push(obj);
          }
          initializeTable(data,columns);
@@ -192,7 +194,7 @@
          var option_tag = '';
          for(i=0;i<options.length;i++){
              var data = options[i];
-             option_tag += "<option value='"+data+"'>"+data+"</option>";
+             option_tag += "<option value='"+i+"'>"+data+"</option>";
          }
          $('#name_column').empty();
          $('#email_column').empty();
@@ -208,7 +210,10 @@
      }
      function submitForm(){
          if(!$('#phone_column').val()){
-             alert('choosing phone number column is mandatory');
+             alert('Choosing phone number column is mandatory');
+             return;
          }
+
+         $('#submit_form').submit();
      }
  </script>
