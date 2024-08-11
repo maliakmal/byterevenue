@@ -2,22 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Keitaro\KeitaroCaller;
-use App\Services\Keitaro\Requests\Campaign\CreateCampaignRequest;
-use App\Services\Keitaro\Requests\Groups\CreateGroupRequest;
+use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\Campaign;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\BroadcastLog;
-use App\Models\RecipientsList;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
 class CampaignController extends Controller
 {
-        /**
+    public function __construct(
+        protected  CampaignRepositoryInterface $campaignRepository
+    )
+    {
+    }
+
+    /**
          * Display a listing of the resource.
          */
         public function index()
@@ -249,4 +252,17 @@ class CampaignController extends Controller
 
             return redirect()->route('campaigns.index')->with('success', 'Campaign deleted successfully.');
         }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function getCampaignForUser(Request $request)
+    {
+        $request->validate(['user_id' => 'required|numeric']);
+        $user_id = $request->user_id;
+        $campaigns = $this->campaignRepository->getCampaignsForUser($user_id);
+        return response()->success(null, $campaigns);
+
     }
+}

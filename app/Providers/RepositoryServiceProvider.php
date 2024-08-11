@@ -9,6 +9,7 @@ use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterfa
 use App\Repositories\Contract\Contact\ContactRepositoryInterface;
 use App\Repositories\Contract\Setting\SettingRepositoryInterface;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
+use App\Repositories\Contract\User\UserRepositoryInterface;
 use App\Repositories\Model\BlackListNumber\BlackListNumberRepository;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use App\Repositories\Model\Campaign\CampaignRepository;
@@ -16,6 +17,7 @@ use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Repositories\Model\Contact\ContactRepository;
 use App\Repositories\Model\Setting\SettingRepository;
 use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
+use App\Repositories\Model\User\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -32,6 +34,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
         $this->app->bind(BlackListNumberRepositoryInterface::class, BlackListNumberRepository::class);
         $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
     }
 
     /**

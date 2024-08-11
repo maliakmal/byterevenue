@@ -55,6 +55,10 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::resource('url_shorteners', UrlShortenerController::class);
     Route::resource('settings', \App\Http\Controllers\SettingController::class);
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
+    Route::prefix('reports')->group(function (){
+        Route::get('messages', [\App\Http\Controllers\ReportController::class, 'messages'])->name('reports.messages');
+    });
+    Route::get('/user/campaigns', [CampaignController::class, 'getCampaignForUser']);
 });
 
 Route::get('/forbidden', function () {
