@@ -85,11 +85,14 @@
           </div>
       </div>
       <div class="h-12">
-          <button  class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+          <button type="button" onclick="download_csv.value=0;document.getElementById('filter-form').submit()"  class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
               search
           </button>
+          <button type="button" onclick="download_csv.value=1;document.getElementById('filter-form').submit()" class="bg-green-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+              download
+          </button>
       </div>
-
+      <input type="hidden" id="download_csv" name="download_csv" value="0"/>
 </form>
 
 <table  class="mt-5 table-auto w-full">

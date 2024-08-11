@@ -8,5 +8,5 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
 {
     public function updateWithIDs(array $ids, $fieldsToUpdate);
 
-    public function paginateBroadcastLogs(array $inputs);
+    public function paginateBroadcastLogs(array $inputs, bool $paginate);
 }

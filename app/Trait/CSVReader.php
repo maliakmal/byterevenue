@@ -34,4 +34,25 @@ trait CSVReader
         }
         return $list;
     }
+
+    /**
+     * @param $collection
+     * @return false|string
+     */
+    public function collectionToCSV($collection)
+    {
+        $result = '';
+        try{
+            $result .= join(',', array_keys($collection[0]->toArray()));
+            for ($i=0;$i< count($collection);$i++){
+                $row = $collection[$i];
+                $tmp = join(',', array_values($row->toArray()));
+                $result .= ("\n".$tmp);
+            }
+
+        }catch (\Exception $exception){
+            return false;
+        }
+        return $result;
+    }
 }
