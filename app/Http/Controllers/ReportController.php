@@ -6,6 +6,9 @@ use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\User\UserRepositoryInterface;
 use App\Trait\CSVReader;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Response;
 
 class ReportController extends Controller
@@ -27,7 +30,7 @@ class ReportController extends Controller
         );
         $download_csv = request()->get('download_csv') == 1;
         $inputs = request()->all();
-        
+
         $list = $this->broadcastLogRepository->paginateBroadcastLogs($inputs, !$download_csv);
         $users = $this->userRepository->all();
         $campaigns = [];
@@ -45,5 +48,19 @@ class ReportController extends Controller
             return $response;
         }
         return view('reports.messages', compact('list', 'filter', 'users', 'campaigns'));
+    }
+
+    /**
+     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     */
+    public function campaigns()
+    {
+        $filter = array(
+            'sortby'=> request('sortby')?request('sortby'):'id_desc',
+            'count'=> request('count')?request('count'):15,
+        );
+        $list = $this->campaignRepository->reportCampaigns(request()->all());
+        $users = $this->userRepository->all();
+        return view('reports.campaigns', compact('list', 'filter', 'users'));
     }
 }

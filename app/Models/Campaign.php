@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Tuupola\Base62;
 
 class Campaign extends Model
@@ -58,7 +59,7 @@ class Campaign extends Model
     public function recipient_list(){
         return $this->belongsTo(RecipientsList::class, 'recipients_list_id');
      }
-     
+
     public function message(){
         return $this->hasOne(Message::class);
     }
@@ -80,6 +81,50 @@ class Campaign extends Model
     public function markAsProcessed(){
         $this->status = self::STATUS_PROCESSING;
         $this->save();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function broadCaseLogMessages()
+    {
+        return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function broadCaseLogMessagesSent()
+    {
+        return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
+            ->where('is_sent', true);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function broadCaseLogMessagesUnSent()
+    {
+        return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
+            ->where('is_sent', false);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function broadCaseLogMessagesClick()
+    {
+        return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
+            ->where('is_click', true);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function broadCaseLogMessagesNotClick()
+    {
+        return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
+            ->where('is_click', false);
     }
 
 

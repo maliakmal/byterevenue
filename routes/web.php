@@ -57,6 +57,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
     Route::prefix('reports')->group(function (){
         Route::get('messages', [\App\Http\Controllers\ReportController::class, 'messages'])->name('reports.messages');
+        Route::get('campaigns', [\App\Http\Controllers\ReportController::class, 'campaigns'])->name('reports.campaigns');
     });
     Route::get('/user/campaigns', [CampaignController::class, 'getCampaignForUser']);
 });
