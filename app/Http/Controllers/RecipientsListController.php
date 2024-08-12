@@ -59,18 +59,27 @@ class RecipientsListController extends Controller
             $filePath = $file->storeAs('uploads', $newFileName);
             $fullPath = storage_path('app/' . $filePath);
 
-            $nameColumn = $request->input('name_column') ? ($request->input('name_column')>=0?$request->input('name_column'):null):null;
-            $emailColumn = $request->input('email_column') ? ($request->input('email_column')>=0?$request->input('email_column'):null):null;
-            $phoneColumn = $request->input('phone_column') ? ($request->input('phone_column')>=0?$request->input('phone_column'):null):null;
+            $nameColumn = $request->input('name_column');
+            $emailColumn = $request->input('email_column');
+            $phoneColumn = $request->input('phone_column');
             $totalColumns = $request->input('total_columns');
             $dummyVariables = array_fill(0, $totalColumns, '@dummy');
+            
+            var_dump(request()->all());
+            var_dump($nameColumn);
+            var_dump($emailColumn);
+            var_dump($phoneColumn);
 
-            if($nameColumn!=null){
+            $nameVar = '@dummy';
+            $emailVar = '@dummy';
+            if($nameColumn!=null && $nameColumn!='-1'){
                 $dummyVariables[$nameColumn] = 'name';
+                $nameVar = 'name';
             }
 
-            if($emailColumn!=null){
+            if($emailColumn!=null && $emailColumn!='-1'){
                 $dummyVariables[$emailColumn] = 'email';
+                $emailVar = 'email';
             }
 
             $dummyVariables[$phoneColumn] = 'phone';
@@ -80,18 +89,33 @@ class RecipientsListController extends Controller
                 DB::statement("LOAD DATA LOCAL INFILE '$fullPath' 
                                INTO TABLE contacts 
                                FIELDS TERMINATED BY ',' 
-                               ENCLOSED BY '\"' 
+                               OPTIONALLY ENCLOSED BY '\"' 
+
                                LINES TERMINATED BY '\n' 
                                IGNORE 1 ROWS 
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = IFNULL(name, ''), email = IFNULL(email, ''), phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
                                 "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
                                 FROM contacts 
                                 WHERE file_tag='$newFileName'"
                             );
-                $recipientsList->is_imported = true;
+var_dump("LOAD DATA LOCAL INFILE '$fullPath' 
+                               INTO TABLE contacts 
+                               FIELDS TERMINATED BY ',' 
+                               OPTIONALLY ENCLOSED BY '\"' 
+                               LINES TERMINATED BY '\n' 
+                               IGNORE 1 ROWS 
+                                (" . implode(', ', $dummyVariables) . ")
+                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+
+var_dump(                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+FROM contacts 
+WHERE file_tag='$newFileName'");
+
+$recipientsList->is_imported = true;
                 $recipientsList->save();
                 
                             DB::commit();
