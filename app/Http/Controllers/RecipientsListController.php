@@ -44,6 +44,7 @@ class RecipientsListController extends Controller
     public function store(Request $request)
     {
 
+
         if($request->entry_type =='file'){
             DB::beginTransaction();
             $recipientsList = auth()->user()->recipientLists()->create([
@@ -58,17 +59,32 @@ class RecipientsListController extends Controller
             $filePath = $file->storeAs('uploads', $newFileName);
             $fullPath = storage_path('app/' . $filePath);
 
+            $nameColumn = $request->input('name_column') ? ($request->input('name_column')>=0?$request->input('name_column'):null):null;
+            $emailColumn = $request->input('email_column') ? ($request->input('email_column')>=0?$request->input('email_column'):null):null;
+            $phoneColumn = $request->input('phone_column') ? ($request->input('phone_column')>=0?$request->input('phone_column'):null):null;
+            $totalColumns = $request->input('total_columns');
+            $dummyVariables = array_fill(0, $totalColumns, '@dummy');
+
+            if($nameColumn!=null){
+                $dummyVariables[$nameColumn] = 'name';
+            }
+
+            if($emailColumn!=null){
+                $dummyVariables[$emailColumn] = 'email';
+            }
+
+            $dummyVariables[$phoneColumn] = 'phone';
+    
 
             try {
-
                 DB::statement("LOAD DATA LOCAL INFILE '$fullPath' 
                                INTO TABLE contacts 
                                FIELDS TERMINATED BY ',' 
                                ENCLOSED BY '\"' 
                                LINES TERMINATED BY '\n' 
                                IGNORE 1 ROWS 
-                               (name, email, phone) 
-                               SET created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                                (" . implode(', ', $dummyVariables) . ")
+                               SET name = IFNULL(name, ''), email = IFNULL(email, ''), phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
                                 "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()

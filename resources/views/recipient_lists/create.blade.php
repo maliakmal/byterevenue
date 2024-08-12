@@ -50,19 +50,194 @@
     @include('partials.alerts')
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 py-7 sm:px-20 bg-white border-b border-gray-200">
-          <form action="{{ route('recipient_lists.store') }}" enctype="multipart/form-data" method="post">
+          <form action="{{ route('recipient_lists.store') }}" id="submit_form" enctype="multipart/form-data" method="post">
             @csrf
             <div class="mb-4 mt-4">
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name of List</label>
-              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" >
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="name" name="name" >
+              <input type="hidden" class="" id="total_columns" name="total_columns" >
+              
             </div>
             <div class="mb-4">
-              <livewire:toggle-contacts-textarea-fileinput textarea-name="numbers" selector-name="entry_type" file-input-name="csv_file" />
+              <livewire:toggle-contacts-textarea-fileinput radio-input-change="changeRadioButton()" on-change="changeCSV()" textarea-name="numbers" selector-name="entry_type" file-input-name="csv_file" />
             </div>
-            <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Create Recipient List</button>
+              <div style="margin-top: 50px;display: none" id="csv-table-holder">
+                  <h1> <b>Uploaded CSV Data </b></h1>
+                  <h3 style="color: red">choose selected proper columns</h3>
+
+                  <div class="flex mb-4">
+                      <div class="w-1/3 h-12" style="padding: 10px 5px">
+                          <label>name</label>
+                          <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name_column"  name="name_column">
+                          </select>
+                      </div>
+                      <div class="w-1/3 h-12" style="padding: 10px 5px">
+                          <label>email</label>
+                          <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email_column" name="email_column"></select>
+                      </div>
+                      <div class="w-1/3 h-12" style="padding: 10px 5px">
+                          <label>phone</label>
+                          <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="phone_column" name="phone_column"></select>
+                      </div>
+                  </div>
+                  <div style="margin-top: 50px">
+                     <table id="csvTable"></table>
+                  </div>
+
+                  <button onclick="submitForm()" type="button" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Create Recipient List</button>
+                  </div>
           </form>
         </div>
       </div>
     </div>
   </div>
 </x-app-layout>
+ <script>
+
+     var csvTable = null;
+     function changeCSV(){
+         var file = document.getElementsByName('csv_file')[0].files[0];
+         if(!file){
+             return;
+         }
+         var reader = new FileReader();
+         $.LoadingOverlay("show");
+         reader.onload = function () {
+          var content = reader.result;
+             var parsedCSV = null;
+             try {
+                 parsedCSV = parseCSV(content);
+             }catch (e) {
+                $.LoadingOverlay("hide");
+                alert('Error parsing csv')
+                return;
+             }
+             initTable(parsedCSV);
+
+
+         };
+         reader.onerror = function () {
+          $.LoadingOverlay("hide");
+          console.error('Error reading the file');
+         };
+         reader.readAsText(file, 'utf-8');
+     }
+     function parseCSV(content){
+         var lines = content.split('\n');
+         var headers = lines[0].split(',');
+         var i;
+         var data = [];
+         for(i=1;i<lines.length;i++){
+             var row_string = lines[i];
+             if(row_string=='') continue;
+             var parse_row = row_string.split(',');
+             if(headers.length != parse_row.length){
+                 throw new Error('error parse row '+i);
+             }
+             var obj = {};
+             var j;
+             for(j=0;j<parse_row.length;j++){
+                 var key = headers[j].trim();
+                 var value = parse_row[j].trim();
+                 obj[key] = value;
+             }
+             data.push(obj);
+         }
+         return data;
+     }
+     function initTable(data){
+         if(csvTable != null){
+             destoryTable();
+         }
+         var keys = Object.keys(data[0]);
+         console.log({keys:keys});
+
+         var columns = [];
+         $('#total_columns').val(keys.length);
+         var i;
+         for (i=0;i<keys.length;i++) {
+             var obj = {};
+             obj['data'] = keys[i];
+             obj['title'] = keys[i];
+             console.log({obj:obj});
+             columns.push(obj);
+         }
+         initializeTable(data,columns);
+         fillCSVSelectTags(keys);
+
+     }
+     function initializeTable(data,columns){
+         $('#csv-table-holder').show();
+         csvTable =  $('#csvTable').DataTable({
+             data: data,
+             columns: columns,
+             searching:false,
+             lengthChange: false
+         });
+     }
+     function  destoryTable(){
+         csvTable.destroy();
+         csvTable = null;
+         $('#csvTable').empty();
+         $('#csv-table-holder').hide();
+     }
+     function changeRadioButton(){
+         var data = $('#submit_form').serializeArray();
+         var i;
+         for(i=0;i<data.length;i++){
+             var item = data[i];
+             if(item.name == "entry_type"){
+                 if(item.value == 'file'){
+                     $('#csv-table-holder').show();
+                 }else{
+                     if(csvTable) {
+                         destoryTable();
+                     }
+                     $('#csv-table-holder').hide();
+                 }
+             }
+         }
+     }
+     function fillCSVSelectTags(options){
+         var i;
+         var option_tag = '';
+         option_tag += "<option value='-1'>--none--</option>";
+         for(i=0;i<options.length;i++){
+             var data = options[i];
+             option_tag += "<option value='"+i+"'>"+data+"</option>";
+         }
+         
+         $('#name_column').empty();
+         $('#email_column').empty();
+         $('#phone_column').empty();
+
+         $('#name_column').append(option_tag);
+         $('#email_column').append(option_tag);
+         $('#phone_column').append(option_tag);
+
+         $('#name_column').val('name').change();
+         $('#email_column').val('email').change();
+         $('#phone_column').val('phone').change();
+         $.LoadingOverlay("hide");
+
+     }
+     
+     function submitForm(){
+
+        if(!$('#phone_column').val() || $('#phone_column').val() == '-1' ){
+             alert('Choosing phone number column is mandatory');
+             return;
+         }
+
+         if($('#name').val() == ''){
+             alert('Recipient List name is mandatory');
+             return;
+         }
+
+
+         $.LoadingOverlay("show");
+
+
+         $('#submit_form').submit();
+     }
+ </script>

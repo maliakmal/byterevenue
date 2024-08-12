@@ -134,7 +134,11 @@ return [
         'schedule_check_propagation' => 'hourly',
     ],
     'csv' => [
-        'disk' => env('CSV_DISK', 'space')
-    ]
+        'disk' => env('CSV_DISK', 'space'),
+        'upload_max_size_allowed' => env('UPLOAD_MAX_SIZE_ALLOWED', 100000),
+    ],
+    'one_plus_e' => [
+        'host' => env('ONE_PLUS_E', 'http://172.16.0.101:8000'),
+    ],
 
 ];

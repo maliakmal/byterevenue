@@ -77,7 +77,7 @@
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->id }}</td>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->label }}</td>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->name }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->value }}</td>
+                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ is_array(@json_decode($item->value,false)) ?  'array' : $item->value  }}</td>
                 <td style="text-align: center" title="{{ $item->created_at }}" class="border-b border-gray-200 px-4 py-2">{{ $item->created_at->diffForHumans() }}</td>
                 <td style="text-align: center" class="border-b border-gray-200 px-4 py-2">
 
@@ -85,7 +85,6 @@
         <div class="flex w-0 flex-1">
 
         </div>
-
           <div class="flex w-0 flex-1">
             <a href="{{ route('settings.edit', $item->id) }}" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3  py-4 text-sm font-semibold text-gray-900">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
