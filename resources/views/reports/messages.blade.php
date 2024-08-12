@@ -50,7 +50,7 @@
   <form method="get" id="filter-form">
       <div class="flex mb-4">
       <div class="w-1/3 h-12">
-          <label>user</label>
+          <label>By Client?</label>
           <select onchange="userChange(this)" name="user_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="user_filter">
               <option value="">choose</option>
               @foreach($users as $user)
@@ -59,7 +59,7 @@
           </select>
       </div>
           <div class="w-1/3 h-12">
-              <label>campaign</label>
+              <label>Client Campaigns?</label>
               <select name="campaign_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="campaign_filter">
                   <option value="">choose</option>
                   @foreach($campaigns as $campaign)
@@ -68,19 +68,19 @@
               </select>
           </div>
           <div class="w-1/3 h-12">
-              <label>status</label>
+              <label>Sent?</label>
               <select name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status_filter">
                   <option value="">choose</option>
-                  <option value="send"  @if(($_GET['status'] ?? null) == 'send') selected @endif>send</option>
-                  <option value="unsend"  @if(($_GET['status'] ?? null) == 'unsend') selected @endif>unsend</option>
+                  <option value="send"  @if(($_GET['is_sent'] ?? null) == '1') selected @endif>Sent</option>
+                  <option value="unsend"  @if(($_GET['is_sent'] ?? null) == '0') selected @endif>Unsent</option>
               </select>
           </div>
           <div class="w-1/3 h-12">
-              <label>click</label>
+              <label>Clicked?</label>
               <select name="is_click" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="click_filter">
                   <option value="">choose</option>
-                  <option value="1"  @if(($_GET['is_click'] ?? null) == '1') selected @endif>clicked</option>
-                  <option value="0"  @if(($_GET['is_click'] ?? null) == '0') selected @endif>none</option>
+                  <option value="1"  @if(($_GET['is_click'] ?? null) == '1') selected @endif>Clicked</option>
+                  <option value="0"  @if(($_GET['is_click'] ?? null) == '0') selected @endif>Not Clicked</option>
               </select>
           </div>
       </div>
@@ -96,15 +96,10 @@
         <thead>
         <tr class="bg-gray-100">
                 <th class="px-4 py-2">ID</th>
-                <th class="px-4 py-3">campaign id</th>
-                <th class="px-4 py-3">campaign name</th>
-                <th class="px-4 py-3">is sent</th>
-                <th class="px-4 py-3">sent at</th>
-                <th class="px-4 py-3">is_click</th>
-                <th class="px-4 py-3">clicked at</th>
-                <th class="px-4 py-3">user id</th>
-                <th class="px-4 py-3">user</th>
-                <th class="px-4 py-3">status</th>
+                <th class="px-4 py-3">Campaign</th>
+                <th class="px-4 py-3">Sent?</th>
+                <th class="px-4 py-3">Clicked?</th>
+                <th class="px-4 py-3">Client</th>
 
             </tr>
         </thead>
@@ -115,15 +110,22 @@
       <tr>
 
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->id }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->campaign?->id }}</td>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->campaign?->title }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->is_sent }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->sent_at }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->is_click }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->click_at }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->campaign?->user?->id }}</td>
+                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">
+                  @if($item->is_sent == 1)
+                    <span class="py-1 px-2.5 border-none rounded bg-green-100  text-green-800">YES</span>
+                  @else
+                    <span class="py-1 px-2.5 border-none rounded bg-yellow-100  text-yellow-800 ">NO</span>
+                  @endif
+                </td>
+                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">
+                  @if($item->click_at == 1)
+                    <span class="py-1 px-2.5 border-none rounded bg-green-100  text-green-800">YES</span>
+                  @else
+                    <span class="py-1 px-2.5 border-none rounded bg-yellow-100  text-yellow-800 ">NO</span>
+                  @endif
+                </td>
                 <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->campaign?->user?->name }}</td>
-                <td style="text-align: center"  class="border-b border-gray-200 px-4 py-2">{{ $item->status }}</td>
             </tr>
 
           @endforeach
