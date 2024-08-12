@@ -69,10 +69,10 @@
           </div>
           <div class="w-1/3 h-12">
               <label>Sent?</label>
-              <select name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status_filter">
+              <select name="is_sent" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status_filter">
                   <option value="">choose</option>
-                  <option value="send"  @if(($_GET['is_sent'] ?? null) == '1') selected @endif>Sent</option>
-                  <option value="unsend"  @if(($_GET['is_sent'] ?? null) == '0') selected @endif>Unsent</option>
+                  <option value="1"  @if(($_GET['is_sent'] ?? null) == '1') selected @endif>Sent</option>
+                  <option value="0"  @if(($_GET['is_sent'] ?? null) == '0') selected @endif>Unsent</option>
               </select>
           </div>
           <div class="w-1/3 h-12">
@@ -85,11 +85,14 @@
           </div>
       </div>
       <div class="h-12">
-          <button  class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-              search
+          <button type="button" onclick="download_csv.value=0;document.getElementById('filter-form').submit()"  class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+              Filter
+          </button>
+          <button type="button" onclick="download_csv.value=1;document.getElementById('filter-form').submit()" class="bg-green-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+              Export CSV
           </button>
       </div>
-
+      <input type="hidden" id="download_csv" name="download_csv" value="0"/>
 </form>
 
 <table  class="mt-5 table-auto w-full">
