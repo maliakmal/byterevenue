@@ -42,6 +42,7 @@ Route::middleware([
 
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
     Route::get('black-list-numbers/user', [\App\Http\Controllers\BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
+    Route::get('/introductory/disable', [\App\Http\Controllers\DashboardController::class, 'disableIntroductory'])->name('block_numbers_user');
 
 
 

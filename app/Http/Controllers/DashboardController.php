@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RecipientsList;
 use Illuminate\Http\Request;
 use App\Models\DataFeed;
 use App\Models\Campaign;
@@ -20,12 +21,13 @@ class DashboardController extends Controller
             $accounts = User::select()->orderby('id', 'desc')->get()->take(10);
             $params['total_in_queue'] = BroadcastLog::select()->count();
             $params['total_not_downloaded_in_queue'] = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
-               
+
         else:
             $campaigns = auth()->user()->campaigns()->latest()->get()->take(30);
         endif;
-
-        return view('dashboard', compact('dataFeed', 'campaigns', 'accounts', 'params'));
+        $has_campaign = Campaign::where('user_id', auth()->user()->id)->exists();
+        $has_reception_list = RecipientsList::where('user_id', auth()->user()->id)->exists();
+        return view('dashboard', compact('dataFeed', 'campaigns', 'accounts', 'params', 'has_campaign', 'has_reception_list'));
     }
 
     /**
@@ -46,5 +48,11 @@ class DashboardController extends Controller
     public function fintech()
     {
         return view('pages/dashboard/fintech');
+    }
+
+    public function disableIntroductory()
+    {
+        User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+        return response()->redirectTo('/dashboard');
     }
 }
