@@ -13,8 +13,37 @@ class UrlShortenerController extends Controller
 {
     public function index()
     {
-        $urlShorteners = UrlShortener::select()->paginate(5);
-        return view('url_shorteners.index', compact('urlShorteners'));
+
+        $urlShorteners = UrlShortener::query();
+        $filter = array(
+            'is_propagated'=> request('is_propagated')!=''?request('is_propagated'):null,
+            'sortby'=> request('sortby')?request('sortby'):'id_desc',
+        );
+
+        if(!is_null($filter['is_propagated'])){
+            $urlShorteners->where('is_propagated', $filter['is_propagated']);
+        }
+
+
+        if(!empty($filter['sortby'])){
+            switch($filter['sortby']){
+                case 'id_desc':
+                    $urlShorteners->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $urlShorteners->orderby('id', 'asc');
+                    break;
+                case 'url_asc':
+                    $urlShorteners->orderby('name', 'asc');
+                    break;
+                case 'url_desc':
+                    $urlShorteners->orderby('name', 'desc');
+                    break;
+            }
+        }
+
+        $urlShorteners = $urlShorteners->paginate(10);
+        return view('url_shorteners.index', compact('filter' ,'urlShorteners'));
     }
 
     public function create()
@@ -36,6 +65,8 @@ class UrlShortenerController extends Controller
         try{
             $response = $caller->call($request)[0];
             $inputs['is_registered'] = true;
+            $inputs['is_propagated'] = false;
+
             $inputs['asset_id'] = $response['id'];
             $inputs['response'] = json_encode($response);
         }
