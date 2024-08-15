@@ -44,8 +44,13 @@
 
     <!-- Content -->
     <div class="relative">
-        <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Good afternoon, {{ Auth::user()->name }} 👋</h1>
-        <p class="dark:text-indigo-200">Here is what's happening with your projects today:</p>
+    @if(auth()->user()->hasRole('admin') == false && auth()->user()->show_introductory_screen == true)
+    <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Welcome, {{ Auth::user()->name }} 👋</h1>
+        <p class="dark:text-indigo-200">Lets get you started:</p>
+    @else
+    <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Good afternoon, {{ Auth::user()->name }} 👋</h1>
+        <p class="dark:text-indigo-200">What will you do today:</p>
+    @endif
     </div>
 
 </div>
