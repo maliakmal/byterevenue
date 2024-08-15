@@ -47,19 +47,55 @@
     @include('partials.alerts')
     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-          @forelse ($urlShorteners as $url_shortener)
-            <div class="max-w-4xl mx-auto mt-24">
-              <div class="flex gap-3 bg-white border border-gray-300 rounded-xl overflow-hidden items-center justify-start">
-                <div class="relative w-32 h-32 flex-shrink-0">
-                    <img class="absolute left-0 top-0 w-full h-full object-cover object-center transition duration-50" loading="lazy" src="https://via.placeholder.com/150">
-                </div>
 
-                <div class="flex flex-col p-2">
 
-                  <p class="text-xl font-bold"><a href="/url_shorteners/{{$url_shortener->id}}">{{ $url_shortener->name }}</a></p>
+        <div>
+        <form method="get" id="filter-form">
+        <select id="is_propagated" name="is_propagated">
+          <option value="">Is Propagated?</option>
+          <option  {{ $filter['is_propagated']=='1'?'selected' :'' }}  value="1">YES</option>
+          <option  {{ $filter['is_propagated']=='0'?'selected' :'' }}  value="0">NO</option>
+        </select>
 
-                  <span class="flex items-center justify-start text-gray-500">
-                    <form action="{{ route('url_shorteners.destroy', $url_shortener->id) }}" method="post">
+        <select id="sortby" name="sortby">
+  <option value="">Sort By</option>
+  <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
+  <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
+  <option  {{ $filter['sortby']=='url_asc'?'selected' :'' }}  value="url_asc">URL - Ascending</option>
+  <option  {{ $filter['sortby']=='url_desc'?'selected' :'' }}  value="url_desc">URL - Descending</option>
+</select>
+</form>
+
+        </div>
+        <div>
+        <table  class="mt-5 table-auto w-full">
+        <thead>
+        <tr class="bg-gray-100">
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Url</th>
+        <th class="px-4 py-2">Is Propagated</th>
+        <th class="px-4 py-2">Created At</th>
+        <th class="px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach ($urlShorteners as $url_shortener)
+
+        <tr>
+          <td class="border-b border-gray-200 px-4 py-2">{{ $url_shortener->id }}</td>
+          <td class="border-b border-gray-200 px-4 py-2">{{ $url_shortener->name }}</td>
+
+          <td class="border-b border-gray-200 px-4 py-2">
+            @if($url_shortener->is_propagated == 1)
+              <span class="py-1 px-2.5 border-none rounded bg-green-100  text-green-800 font-medium">YES</span>
+            @else
+              <span class="py-1 px-2.5 border-none rounded bg-yellow-100  text-yellow-800 font-medium">NO</span>
+            @endif
+          </td>
+          <td title="{{ $url_shortener->created_at }}" class="border-b border-gray-200 px-4 py-2">{{ $url_shortener->created_at->diffForHumans() }}</td>
+          <td class="border-b border-gray-200 px-4 py-2">
+
+          <form action="{{ route('url_shorteners.destroy', $url_shortener->id) }}" method="post">
                       @csrf
                       @method('DELETE')
                       <button type="submit" onclick="return confirm('Are you sure')" class="inline-flex items-center px-2 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
@@ -68,23 +104,23 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                           </svg>
                         </span>
-                        <span class="hidden md:inline-block">Delete</span>
                       </button>
                     </form>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="p-4 pagination">
-              {{ $urlShorteners->links() }}
+
+          </td>
+</tr>
+
+                @endforeach
+
+
+        </tbody>
+        </table>
+        <div class="p-4 pagination">
+              {{ $urlShorteners->appends($filter)->links()}}
             </div>
 
 
-              @empty
-                <div>
-                  <div class="border border-gray-200 px-4 py-2 text-center">{{ __('No url shortners found') }}</div>
-</div>
-              @endforelse
+        </div>
 
 
         </div>
@@ -93,4 +129,21 @@
   </div>
 </x-app-layout>
 
+@push('scripts')
+<script>
 
+document.addEventListener('DOMContentLoaded', function() {
+  var selectElements = document.querySelectorAll('#filter-form select');
+  var form = document.getElementById('filter-form');
+
+  selectElements.forEach(function(selectElement) {
+    selectElement.addEventListener('change', function() {
+      if (form) {
+        form.submit();
+      }
+    });
+  });
+});
+
+
+</script>
