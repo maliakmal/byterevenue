@@ -7,6 +7,7 @@ use App\Services\Clicks\ClickService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Mockery\Exception;
 
 class UpdateClicksFromKeitaro extends Command
 {
@@ -57,6 +58,7 @@ class UpdateClicksFromKeitaro extends Command
                 if(!is_numeric($log_id)){
                     continue;
                 }
+                $log_data = $this->tryGetLog($row);
                 $date_time_string = $row['datetime'];
                 $date_time = null;
                 try {
@@ -67,7 +69,8 @@ class UpdateClicksFromKeitaro extends Command
                 }
                 if($this->broadcastLogRepository->updateByID([
                     'is_click' => true,
-                    'clicked_at' => $date_time
+                    'clicked_at' => $date_time,
+                    'keitaro_click_log' => $log_data,
                 ], $log_id) === false){
                     Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
                 }
@@ -75,5 +78,38 @@ class UpdateClicksFromKeitaro extends Command
             $offset += $limit;
             $total = $response['total'];
         }
+    }
+
+    /**
+     * @param $row
+     * @return array
+     */
+    private function tryGetLog($row) : ?array
+    {
+        try {
+            $data = [
+                "isp" => $row['isp'] ?? null,
+                "country_flag" => $row['country_flag'] ?? null,
+                "country" => $row['country'] ?? null,
+                "region" => $row['region'] ?? null,
+                "city" => $row['city'] ?? null,
+                "language" => $row['language'] ?? null,
+                "device_type" => $row['device_type'] ?? null,
+                "user_agent" => $row['user_agent'] ?? null,
+                "os_icon" => $row['os_icon'] ?? null,
+                "os" => $row['os'] ?? null,
+                "os_version" => $row['os_version'] ?? null,
+                "browser" => $row['browser'] ?? null,
+                "browser_version" => $row['browser_version'] ?? null,
+                "device_model" => $row['device_model'] ?? null,
+                "browser_icon" => $row['browser_icon'] ?? null,
+                "ip" => $row['ip'] ?? null,
+            ];
+            return $data;
+        }catch (\Exception $exception){
+            report($exception);
+        }
+        return null;
+
     }
 }

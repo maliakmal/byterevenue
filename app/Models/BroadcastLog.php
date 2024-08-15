@@ -10,6 +10,10 @@ class BroadcastLog extends Model
     use HasFactory;
     protected $guarded = [];
 
+    protected $casts = [
+        'keitaro_click_log' => 'json',
+    ];
+
     public function campaign(){
         return $this->belongsTo(Campaign::class);
     }
