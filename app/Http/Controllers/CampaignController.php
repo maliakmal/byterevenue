@@ -95,6 +95,9 @@ class CampaignController extends Controller
                 ]);
                 $campaign->generateUniqueFolder();
                 $campaign->save();
+                if(auth()->user()->show_introductory_screen == true){
+                    User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+                }
 //                $caller = new KeitaroCaller();
 //                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
 //                $response = $caller->call($create_group_request);
@@ -158,7 +161,7 @@ class CampaignController extends Controller
                 return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);
             }
             DB::enableQueryLog();
-            
+
             DB::beginTransaction();
 
             try {
@@ -210,7 +213,7 @@ class CampaignController extends Controller
 
                 $queries = DB::getQueryLog();
 
-                
+
                 return redirect()->back()->with('success', 'Job is being processed.');
             } catch (\Exception $e) {
                 DB::rollback();

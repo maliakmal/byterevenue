@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\RecipientsList;
 use App\Models\Contact;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -43,7 +44,9 @@ class RecipientsListController extends Controller
      */
     public function store(Request $request)
     {
-
+        if(auth()->user()->show_introductory_screen == true){
+            User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+        }
 
         if($request->entry_type =='file'){
             DB::beginTransaction();
@@ -64,7 +67,7 @@ class RecipientsListController extends Controller
             $phoneColumn = $request->input('phone_column');
             $totalColumns = $request->input('total_columns');
             $dummyVariables = array_fill(0, $totalColumns, '@dummy');
-            
+
             var_dump(request()->all());
             var_dump($nameColumn);
             var_dump($emailColumn);
@@ -83,41 +86,41 @@ class RecipientsListController extends Controller
             }
 
             $dummyVariables[$phoneColumn] = 'phone';
-    
+
 
             try {
-                DB::statement("LOAD DATA LOCAL INFILE '$fullPath' 
-                               INTO TABLE contacts 
-                               FIELDS TERMINATED BY ',' 
-                               OPTIONALLY ENCLOSED BY '\"' 
+                DB::statement("LOAD DATA LOCAL INFILE '$fullPath'
+                               INTO TABLE contacts
+                               FIELDS TERMINATED BY ','
+                               OPTIONALLY ENCLOSED BY '\"'
 
-                               LINES TERMINATED BY '\n' 
-                               IGNORE 1 ROWS 
+                               LINES TERMINATED BY '\n'
+                               IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
                                SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
                                 "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-                                FROM contacts 
+                                FROM contacts
                                 WHERE file_tag='$newFileName'"
                             );
-var_dump("LOAD DATA LOCAL INFILE '$fullPath' 
-                               INTO TABLE contacts 
-                               FIELDS TERMINATED BY ',' 
-                               OPTIONALLY ENCLOSED BY '\"' 
-                               LINES TERMINATED BY '\n' 
-                               IGNORE 1 ROWS 
+var_dump("LOAD DATA LOCAL INFILE '$fullPath'
+                               INTO TABLE contacts
+                               FIELDS TERMINATED BY ','
+                               OPTIONALLY ENCLOSED BY '\"'
+                               LINES TERMINATED BY '\n'
+                               IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
                                SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
 
 var_dump(                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-FROM contacts 
+FROM contacts
 WHERE file_tag='$newFileName'");
 
 $recipientsList->is_imported = true;
                 $recipientsList->save();
-                
+
                             DB::commit();
 
                 return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
@@ -172,7 +175,7 @@ $recipientsList->is_imported = true;
                         'created_at'=>$now,
                         'updated_at'=>$now,
                     ];
-                    
+
                 endif;
             }
 

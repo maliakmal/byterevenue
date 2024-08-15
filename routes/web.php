@@ -26,7 +26,7 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::any('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
     Route::get('/tokens', [AccountsController::class, 'tokens'])->name('accounts.tokens');
 
@@ -42,6 +42,7 @@ Route::middleware([
 
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
     Route::get('black-list-numbers/user', [\App\Http\Controllers\BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
+    Route::get('/introductory/disable', [\App\Http\Controllers\DashboardController::class, 'disableIntroductory'])->name('block_numbers_user');
 
 
 
@@ -57,6 +58,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
     Route::prefix('reports')->group(function (){
         Route::get('messages', [\App\Http\Controllers\ReportController::class, 'messages'])->name('reports.messages');
+        Route::get('campaigns', [\App\Http\Controllers\ReportController::class, 'campaigns'])->name('reports.campaigns');
     });
     Route::get('/user/campaigns', [CampaignController::class, 'getCampaignForUser']);
 });
