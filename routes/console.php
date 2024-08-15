@@ -11,5 +11,5 @@ Artisan::command('inspire', function () {
 $check_propagation_schedule = config('app.domain.schedule_check_propagation');
 Schedule::job(new \App\Jobs\CheckDomainPropagationJob())->$check_propagation_schedule();
 
-$check_update_click_schedule = config('setting.schedule_update_click', 'everyThreeHours');
+$check_update_click_schedule = config('setting.schedule_update_click', 'everyTenMinutes');
 Schedule::command('keitaro:update-clicks')->$check_update_click_schedule();

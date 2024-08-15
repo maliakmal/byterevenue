@@ -31,8 +31,92 @@
 
         </div>
         <div class="">
-          <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Campaigns to Watch</h1>
-  <div class="mt-5">
+        <form action="" id="form-admin-dashboard" class="float-right" method="post">
+            @csrf
+            @method('POST')
+            <input type="text" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="dates" name="dates" value="" >
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text text-white font-bold py-2 px-4 rounded">Filter</button>
+          </form>
+
+        <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Campaigns to Watch</h1>
+
+
+
+          @if(auth()->user()->hasRole('admin'))
+          <div class="mt-5">
+
+          <div class="mt-5">
+            <div class=" sm:rounded-lg">
+              <ul role="list" class="grid grid-cols-4 gap-2">
+
+
+              <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+                <div class="flex w-full items-center justify-between space-x-6 p-6">
+                  <div class="flex-1 truncate">
+                    <div class="  ">
+                      <h2 class="truncate  font-medium text-gray-900 text-3xl">
+                        {{ $params['total_campaigns'] }}
+                      </h2>
+                      <p>Campaigns Created</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+                <div class="flex w-full items-center justify-between space-x-6 p-6">
+                  <div class="flex-1 truncate">
+                    <div class="  ">
+                      <h2 class="truncate  font-medium text-gray-900 text-3xl">
+                        {{ $params['total_num_sent'] }}
+                      </h2>
+                      <p>Sent messages</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+                <div class="flex w-full items-center justify-between space-x-6 p-6">
+                  <div class="flex-1 truncate">
+                    <div class="  ">
+                      <h2 class="truncate  font-medium text-gray-900 text-3xl">
+                        {{ $params['total_num_clicks'] }}
+                      </h2>
+                      <p>Clicks</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+                <div class="flex w-full items-center justify-between space-x-6 p-6">
+                  <div class="flex-1 truncate">
+                    <div class="  ">
+                      <h2 class="truncate  font-medium text-gray-900 text-3xl">
+                        {{ $params['ctr'] }}%
+                      </h2>
+                      <p>Click Through Rate</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              
+
+
+
+
+              </ul>
+
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <div class=" sm:rounded-lg">
+            <div id="myLineChart" style="width: 100%; height: 400px;"></div>
+            </div>
+          </div>
+
+
+          @else
+          <div class="mt-5">
       <div class=" sm:rounded-lg">
 
         @if(count($campaigns)>0)
@@ -83,6 +167,8 @@
 @endif
 </div>
       </div>
+      @endif
+
       @if(auth()->user()->hasRole('admin'))
       <br/>
       <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
@@ -141,3 +227,89 @@
 
     </div>
 </x-app-layout>
+@push('scripts')
+<script>
+  $(function(){
+    $('input[name="dates"]').daterangepicker({
+      "startDate": '{{ $params['start_date'] }}',
+      "endDate": '{{ $params['end_date'] }}'
+    });
+    $('input[name="dates"]').on('apply.daterangepicker', function(ev, picker) {
+      $('#form-admin-dashboard').submit();
+    });
+  });
+
+  function generateDates(startDate, endDate) {
+            const dates = [];
+            let currentDate = new Date(startDate);
+
+            while (currentDate <= endDate) {
+                dates.push(new Date(currentDate)); // Add a copy of the current date
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            return dates;
+        }
+
+        // Define the start and end dates for the three-month period
+        const startDate = new Date('2024-06-01');
+        const endDate = new Date('2024-08-31');
+
+        // Generate dates for the X-axis
+        const labels = generateDates(startDate, endDate);
+
+        // Convert date objects to ISO string format for labels
+        const labelsFormatted = labels.map(date => date.toISOString().split('T')[0]);
+
+        // Dummy data for the four lines
+        const dataLine1 = labels.map(() => Math.floor(Math.random() * 100));
+        const dataLine2 = labels.map(() => Math.floor(Math.random() * 100));
+        const dataLine3 = labels.map(() => Math.floor(Math.random() * 100));
+        const dataLine4 = labels.map(() => Math.floor(Math.random() * 100));
+
+        // Plotly data for the four lines
+        const trace1 = {
+            x: labelsFormatted,
+            y: dataLine1,
+            mode: 'lines',
+            name: 'Line 1',
+            line: {color: 'rgba(255, 99, 132, 1)'}
+        };
+        const trace2 = {
+            x: labelsFormatted,
+            y: dataLine2,
+            mode: 'lines',
+            name: 'Line 2',
+            line: {color: 'rgba(54, 162, 235, 1)'}
+        };
+        const trace3 = {
+            x: labelsFormatted,
+            y: dataLine3,
+            mode: 'lines',
+            name: 'Line 3',
+            line: {color: 'rgba(75, 192, 192, 1)'}
+        };
+        const trace4 = {
+            x: labelsFormatted,
+            y: dataLine4,
+            mode: 'lines',
+            name: 'Line 4',
+            line: {color: 'rgba(153, 102, 255, 1)'}
+        };
+
+        // Plotly layout
+        const layout = {
+            title: '',
+            xaxis: {
+                title: 'Date',
+                type: 'date'
+            },
+            yaxis: {
+                title: 'Value'
+            }
+        };
+
+        // Plot the chart
+        Plotly.newPlot('myLineChart', [trace1, trace2, trace3, trace4], layout);
+
+    </script>
+
