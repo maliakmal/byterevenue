@@ -67,6 +67,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $bindings = [];
         $batch = $batch_no;
 
+        $campaign_short_url_map = [];
+
         foreach ($this->logs as $log) {
             $message_body = '';
             $is_downloaded_as_csv = 0;
