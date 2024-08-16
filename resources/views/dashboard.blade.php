@@ -115,7 +115,7 @@
                   </div>
                 </div>
               </li>
-              
+
 
 
 
@@ -261,48 +261,51 @@
         }
 
         // Define the start and end dates for the three-month period
-        const startDate = new Date('2024-06-01');
-        const endDate = new Date('2024-08-31');
+        // const startDate = new Date('2024-06-01');
+        // const endDate = new Date('2024-06-02');
 
         // Generate dates for the X-axis
-        const labels = generateDates(startDate, endDate);
+        // const labels = generateDates(startDate, endDate);
+  // const labelsFormatted = labels.map(date => date.toISOString().split('T')[0]);
+
+        // const labels = ['a', 'b', 'c', 'd'];
 
         // Convert date objects to ISO string format for labels
-        const labelsFormatted = labels.map(date => date.toISOString().split('T')[0]);
+         const labelsFormatted = labels = {!! json_encode($labels) !!};
 
         // Dummy data for the four lines
-        const dataLine1 = labels.map(() => Math.floor(Math.random() * 100));
-        const dataLine2 = labels.map(() => Math.floor(Math.random() * 100));
-        const dataLine3 = labels.map(() => Math.floor(Math.random() * 100));
-        const dataLine4 = labels.map(() => Math.floor(Math.random() * 100));
+        const dataLine1 = {!! json_encode($campaigns_graph) !!};
+        const dataLine2 = {!! json_encode($send_graph) !!};
+        const dataLine3 = {!! json_encode($clicks_graph) !!};
+        const dataLine4 = {!! json_encode($ctr) !!};
 
         // Plotly data for the four lines
         const trace1 = {
             x: labelsFormatted,
             y: dataLine1,
             mode: 'lines',
-            name: 'Line 1',
+            name: 'Campaigns',
             line: {color: 'rgba(255, 99, 132, 1)'}
         };
         const trace2 = {
             x: labelsFormatted,
             y: dataLine2,
             mode: 'lines',
-            name: 'Line 2',
+            name: 'Send Messages',
             line: {color: 'rgba(54, 162, 235, 1)'}
         };
         const trace3 = {
             x: labelsFormatted,
             y: dataLine3,
             mode: 'lines',
-            name: 'Line 3',
+            name: 'Clicks',
             line: {color: 'rgba(75, 192, 192, 1)'}
         };
         const trace4 = {
             x: labelsFormatted,
             y: dataLine4,
             mode: 'lines',
-            name: 'Line 4',
+            name: 'CTR',
             line: {color: 'rgba(153, 102, 255, 1)'}
         };
 
@@ -318,8 +321,9 @@
             }
         };
 
-        // Plot the chart
-        Plotly.newPlot('myLineChart', [trace1, trace2, trace3, trace4], layout);
+      $( document ).ready(function() {
+          Plotly.newPlot('myLineChart', [trace1, trace2, trace3, trace4], layout);
+      });
 
     </script>
 @endif

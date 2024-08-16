@@ -11,7 +11,8 @@ class CampaignService
 {
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?uid='.$messageID : '' );
+        $param = config('app.keitaro.uid_param', 'sub_id_1');
+        return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 
     public function createCampaignOnKeitaro($alias, $title, $groupID, $domainID, $type = 'position', $uniqueness_method = 'ip_ua',
