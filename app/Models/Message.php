@@ -13,7 +13,7 @@ class Message extends Model
 
     public function getParsedMessage($url = null){
         $target_url = $this->target_url;
-        $text = str_replace('[link]', $url, $this->body);
+        $text = str_replace('[URL]', $url, $this->body);
         $spintax = Parser::parse($text);
         return $spintax->generate();
     }
