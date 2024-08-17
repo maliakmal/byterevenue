@@ -59,8 +59,29 @@ class ReportController extends Controller
             'sortby'=> request('sortby')?request('sortby'):'id_desc',
             'count'=> request('count')?request('count'):15,
         );
-        $list = $this->campaignRepository->reportCampaigns(request()->all());
+        $download_csv = request()->get('download_csv') == 1;
+        $columns = [
+            'id', 'title', 'user_id'
+        ];
+        $list = $this->campaignRepository->reportCampaigns(request()->all(),$columns , !$download_csv);
+            foreach ($list as $index => $item){
+                $list[$index]->user_name = '';
+                if(!empty($item->user))
+                {
+                    $list[$index]->user_name = $item->user->name;
+                }
+                $list[$index]->ctr = 0;
+                if($item->broad_case_log_messages_sent_count > 0) {
+                    $list[$index]->ctr = ($item->broad_case_log_messages_click_count / $item->broad_case_log_messages_sent_count) * 100;
+                }
+        }
         $users = $this->userRepository->all();
+        if($download_csv){
+            $response = Response::make($this->collectionToCSV($list, ['user']), 200);
+            $response->header('Content-Type', 'text/csv')
+                ->header('Content-disposition','attachment; filename="report-campaign-'.time().'.csv"');;
+            return $response;
+        }
         return view('reports.campaigns', compact('list', 'filter', 'users'));
     }
 }

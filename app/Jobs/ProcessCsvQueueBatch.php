@@ -13,6 +13,7 @@ use App\Models\BatchFile;
 use App\Models\UrlShortener;
 use App\Services\Campaign\CampaignService;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
+use Illuminate\Support\Facades\Log;
 
 class ProcessCsvQueueBatch implements ShouldQueue
 {
@@ -69,7 +70,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         $campaign_short_url_map = [];
 
-
         foreach ($this->logs as $log) {
             $message_body = '';
             $is_downloaded_as_csv = 0;
@@ -98,9 +98,15 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 // if yes - use that
 
                 if($campaign_short_url){
-                    $alias_for_campaign = explode('?', explode(DIRECTORY_SEPARATOR,  $campaign_short_url->url_shortener)[1])[0];
+                    if(strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)){
+                        $alias_for_campaign = explode('?', explode(DIRECTORY_SEPARATOR,  $campaign_short_url->url_shortener)[1])[0];
+                    }else{
+                        $alias_for_campaign = $campaign_short_url->url_shortener;
+                    }
                 }else{
                     $alias_for_campaign = uniqid();
+                    $campaign_short_url_map[$campaign->id] = (object)['url_shortener'=>$alias_for_campaign];
+
                 }
 
                 $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
@@ -115,7 +121,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 }
             }
             $ids[] =  $log->id;
-        
+
 
         
             // $log->is_downloaded_as_csv = 1;
@@ -146,7 +152,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $this->batch_file->is_ready = 1;
             $this->batch_file->save();
         }
-
 
         $unique_campaigns->each(function ($itemCollection) use ($url_shortener, $unique_campaign_map, $campaign_service, $domain_id) {
             $alias_for_campaign = $itemCollection['alias'];

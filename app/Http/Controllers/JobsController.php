@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Log;
 
 class JobsController extends Controller
 {
@@ -56,9 +57,12 @@ class JobsController extends Controller
                     'is_ready'=>0,
                     'campaign_id' => 0]);
             
+            Log::info('numBatches - '.$numBatches);
             for ($batch = 0; $batch < $numBatches; $batch++) {
                 $offset = $batch * $batchSize;
                 $is_last = $batch ==($numBatches+1)?true:false;
+                Log::info('BATCH number - '.$batch);
+                Log::info('BATCH offset - '.$offset);
                 dispatch(new ProcessCsvQueueBatch($offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last));
 
             }
