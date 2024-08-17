@@ -67,11 +67,21 @@ class UpdateClicksFromKeitaro extends Command
                 catch (\Exception $exception){
                     $date_time = Carbon::now();
                 }
-                if($this->broadcastLogRepository->updateByID([
+                $updateData = [
                     'is_click' => true,
                     'clicked_at' => $date_time,
                     'keitaro_click_log' => $log_data,
-                ], $log_id) === false){
+                ];
+                if(isset($row['is_bot'])){
+                    $updateData['is_bot'] = $row['is_bot'];
+                }
+                if(isset($row['is_unique_global'])){
+                    $updateData['is_unique_global'] = $row['is_unique_global'];
+                }
+                if(isset($row['is_unique_campaign'])){
+                    $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
+                }
+                if($this->broadcastLogRepository->updateByID($updateData, $log_id) === false){
                     Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
                 }
             }
