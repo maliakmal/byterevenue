@@ -47,4 +47,19 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         }
         return $query->get();
     }
+
+    /**
+     * @param array $inputs
+     */
+
+     public function requeueUnsent(array $inputs){
+        $query = $this->model->newQuery();
+        if(!empty($inputs['campaign_id'])){
+            $query = $query->where('campaign_id', $inputs['campaign_id']);
+        }
+        if(!empty($inputs['count'])){
+            $query = $query->limit($input['count']);
+        }
+
+     }
 }
