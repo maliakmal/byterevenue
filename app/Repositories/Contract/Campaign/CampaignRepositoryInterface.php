@@ -8,5 +8,5 @@ interface CampaignRepositoryInterface extends BaseRepositoryInterface
 {
     public function getCampaignsForUser(int $userID);
 
-    public function reportCampaigns(array $inputs);
+    public function reportCampaigns(array $inputs, array $selectColumns = [], bool $paginate = true);
 }

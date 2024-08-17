@@ -6,6 +6,8 @@ use App\Models\Campaign;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class CampaignRepository extends BaseRepository implements CampaignRepositoryInterface
 {
@@ -24,16 +26,25 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     }
 
     /**
-     * @return LengthAwarePaginator
+     * @param array $inputs
+     * @param array $selectColumns
+     * @param bool $paginate
+     * @return LengthAwarePaginator|Builder[]|Collection
      */
-    public function reportCampaigns(array $inputs)
+    public function reportCampaigns(array $inputs, array $selectColumns = [], bool $paginate = true)
     {
         $query = $this->model->newQuery();
+        if(!empty($selectColumns)){
+            $query = $query->select($selectColumns);
+        }
         $query = $query->with(['user'])->withCount(['broadCaseLogMessages', 'broadCaseLogMessagesSent', 'broadCaseLogMessagesUnSent', 'broadCaseLogMessagesClick', 'broadCaseLogMessagesNotClick']);
         if(!empty($inputs['user_id'])){
             $query = $query->where('user_id', $inputs['user_id']);
         }
         $query = $query->orderBy('id', 'DESC');
-        return $query->paginate();
+        if($paginate){
+            return $query->paginate();
+        }
+        return $query->get();
     }
 }
