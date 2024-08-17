@@ -39,14 +39,27 @@ trait CSVReader
      * @param $collection
      * @return false|string
      */
-    public function collectionToCSV($collection)
+    public function collectionToCSV($collection, $unset = [])
     {
         $result = '';
         try{
-            $result .= join(',', array_keys($collection[0]->toArray()));
+            $keys = ($collection[0]->toArray());
+            if(count($unset) > 0){
+                foreach ($unset as $item){
+                    unset($keys[$item]);
+                }
+            }
+            $keys = array_keys($keys);
+            $result .= join(',', $keys);
             for ($i=0;$i< count($collection);$i++){
                 $row = $collection[$i];
-                $tmp = join(',', array_values($row->toArray()));
+                $row_array =  ($row->toArray());
+                if(count($unset) > 0){
+                    foreach ($unset as $item){
+                        unset($row_array[$item]);
+                    }
+                }
+                $tmp = join(',', array_values($row_array));
                 $result .= ("\n".$tmp);
             }
 
