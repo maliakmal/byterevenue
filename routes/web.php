@@ -54,6 +54,12 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
     Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
     Route::resource('url_shorteners', UrlShortenerController::class);
+    Route::prefix('settings')->group(function (){
+        Route::prefix('upload-messages')->group(function (){
+            Route::get('/', [\App\Http\Controllers\SettingController::class, 'uploadSendDataIndex'])->name('messages.uploadMessageSendDataIndex');
+            Route::post('/', [\App\Http\Controllers\SettingController::class, 'uploadSendData'])->name('messages.uploadMessageSendData');
+        });
+    });
     Route::resource('settings', \App\Http\Controllers\SettingController::class);
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
     Route::prefix('reports')->group(function (){

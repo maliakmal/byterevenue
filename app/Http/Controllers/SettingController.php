@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Models\Setting;
+use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Setting\SettingRepositoryInterface;
+use App\Trait\CSVReader;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
+    use CSVReader;
     public function __construct(
-        protected SettingRepositoryInterface $settingRepository
+        protected SettingRepositoryInterface $settingRepository,
+        protected BroadcastLogRepositoryInterface $broadcastLogRepository
     )
     {
     }
@@ -94,4 +100,33 @@ class SettingController extends Controller
             $setting->delete();
             return redirect()->route('settings.index')->with('success', 'Setting deleted successfully.');
         }
+
+    public function uploadSendDataIndex()
+    {
+        return view('settings.upload_message_send_data');
     }
+    public function uploadSendData(Request $request)
+    {
+        $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');
+        $request->validate([
+            'file' => "required|max:$max_allowed_csv_upload_file",
+            'has_header' => "required|in:yes,no",
+        ]);
+        $file = $request->file('file');
+        $content = file_get_contents($file->getRealPath());
+        if($request->has_header == 'no'){
+            $content = "UID\n".$content;
+        }
+        $csv = $this->csvToCollection($content);
+        if(!$csv){
+            return redirect()->route('messages.uploadMessageSendDataIndex')->with('error', 'error parse csv');
+        }
+        $message_ids = $csv->pluck('UID')->toArray();
+        $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [
+            'sent_at' => Carbon::now(),
+            'is_sent' => true,
+            'status' => BroadcastLogStatus::SENT,
+        ]);
+        return redirect()->route('messages.uploadMessageSendDataIndex')->with('success', "Send Data Updated for $number_of_updated_rows Message");
+    }
+}
