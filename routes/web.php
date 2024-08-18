@@ -59,6 +59,10 @@ Route::middleware([CheckAdminRole::class])->group(function () {
             Route::get('/', [\App\Http\Controllers\SettingController::class, 'uploadSendDataIndex'])->name('messages.uploadMessageSendDataIndex');
             Route::post('/', [\App\Http\Controllers\SettingController::class, 'uploadSendData'])->name('messages.uploadMessageSendData');
         });
+        Route::prefix('upload-black-numbers')->group(function (){
+            Route::get('/', [\App\Http\Controllers\SettingController::class, 'uploadBlackListNumberIndex'])->name('messages.uploadBlackListNumberIndex');
+            Route::post('/', [\App\Http\Controllers\SettingController::class, 'uploadBlackListNumber'])->name('messages.uploadBlackListNumber');
+        });
     });
     Route::resource('settings', \App\Http\Controllers\SettingController::class);
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);

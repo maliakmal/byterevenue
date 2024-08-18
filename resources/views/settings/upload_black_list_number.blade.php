@@ -22,12 +22,12 @@
                   <svg class="h-5 w-5 flex-shrink-0 text-gray-400" x-description="Heroicon name: mini/chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
   <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"></path>
 </svg>
-                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Upload Message Send Data</a>
+                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Upload Black List</a>
                 </div>
               </li>
             </ol>
           </nav>
-          <h1 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Upload File Message Send Data</h1>
+          <h1 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Upload File Black List Numbers</h1>
           <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
           </div>
         </div>
@@ -46,7 +46,7 @@
         <div>
         @include('partials.alerts')
 
-        <form action="{{ route('messages.uploadMessageSendData') }}" method="post" enctype="multipart/form-data" >
+        <form action="{{ route('messages.uploadBlackListNumber') }}" method="post" enctype="multipart/form-data" >
             @csrf
             <div class="mb-4">
                 <label for="label" class="block text-gray-700 text-sm font-bold mb-2">Choose file</label>
@@ -57,7 +57,7 @@
                     <option value="no" >no</option>
                 </select>
 
-                <small style="color:red">the first columns must be exactly <b>UID</b></small>
+                <small style="color:red">The first columns must be exactly <b>phone_number</b></small>
             </div>
 
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">Upload</button>

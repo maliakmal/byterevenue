@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Models\Setting;
+use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Setting\SettingRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller
@@ -15,7 +20,8 @@ class SettingController extends Controller
     use CSVReader;
     public function __construct(
         protected SettingRepositoryInterface $settingRepository,
-        protected BroadcastLogRepositoryInterface $broadcastLogRepository
+        protected BroadcastLogRepositoryInterface $broadcastLogRepository,
+        protected BlackListNumberRepositoryInterface $blackListNumberRepository,
     )
     {
     }
@@ -129,4 +135,41 @@ class SettingController extends Controller
         ]);
         return redirect()->route('messages.uploadMessageSendDataIndex')->with('success', "Send Data Updated for $number_of_updated_rows Message");
     }
+
+    /**
+     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     */
+    public function uploadBlackListNumberIndex()
+    {
+        return view('settings.upload_black_list_number');
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function uploadBlackListNumber(Request $request)
+    {
+        $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');
+        $request->validate([
+            'file' => "required|max:$max_allowed_csv_upload_file",
+            'has_header' => "required|in:yes,no",
+        ]);
+        $file = $request->file('file');
+        $content = file_get_contents($file->getRealPath());
+        if($request->has_header == 'no'){
+            $content = "phone_number\n".$content;
+        }
+        $csv = $this->csvToCollection($content);
+        if(!$csv){
+            return redirect()->route('messages.uploadBlockNumberIndex')->with('error', 'error parse csv');
+        }
+        if(isset($csv->first()['phone_number']) == false){
+            return redirect()->route('messages.uploadBlackListNumberIndex')->with('error', "first column should be phone_number");
+        }
+        $data = $csv->toArray();
+        $this->blackListNumberRepository->upsertPhoneNumber($data);
+        return redirect()->route('messages.uploadBlackListNumberIndex')->with('success', "Update Was Successful");
+    }
+
 }
