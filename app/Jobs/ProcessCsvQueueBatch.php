@@ -13,6 +13,11 @@ use App\Models\BatchFile;
 use App\Models\UrlShortener;
 use App\Services\Campaign\CampaignService;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
+
+use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
+use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
+
+
 use Illuminate\Support\Facades\Log;
 
 class ProcessCsvQueueBatch implements ShouldQueue
@@ -28,6 +33,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $batch_file = null;
     protected $is_last = false;
     protected $campaignShortUrlRepository = null;
+    protected $urlShortenerRepository = null;
     protected $campaignRepository = null;
     protected $broadcastLogRepository = null;
 
@@ -39,6 +45,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     )
     {
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
+        $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
         $this->url_shortener = $url_shortener != null ? $url_shortener:$this->url_shortener ;
         $this->campaign_service = new CampaignService();
         $this->batch_no = $batch_no;
@@ -166,6 +173,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
                 $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id, $domain_id);
                 $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'], $item->title, $url_for_campaign);
+                $_url_shortener = $this->urlShortenerRepository->search(['name'=>$url_shortener]);
+
                 $this->campaignShortUrlRepository->create([
                     'campaign_id' => $item->id,
                     'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
@@ -174,6 +183,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     'keitaro_campaign_id' => $response_campaign['id'],
                     'keitaro_campaign_response' => @json_encode($response_campaign),
                     'campaign_alias' => $alias_for_campaign,
+                    'url_shortener_id'=>_url_shortener->id
                 ]);
 
             }

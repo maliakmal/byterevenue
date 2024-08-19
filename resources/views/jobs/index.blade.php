@@ -73,7 +73,7 @@
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
                 <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
                 @foreach($params['urlShorteners'] as $vv)  
-                <option value="{{ $vv->name }}">{{ $vv->name }}</option>
+                <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
                   @endforeach
                 </select>
               </div>

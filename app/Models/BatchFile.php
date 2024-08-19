@@ -13,4 +13,5 @@ class BatchFile extends Model
     public function getBatchFromFilename(){
         return preg_replace('/[^0-9]/', '', $this->filename);
     }
+
 }

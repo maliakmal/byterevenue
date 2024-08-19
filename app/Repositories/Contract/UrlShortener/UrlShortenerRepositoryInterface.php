@@ -6,4 +6,6 @@ use App\Repositories\Contract\BaseRepositoryInterface;
 
 interface UrlShortenerRepositoryInterface extends BaseRepositoryInterface
 {
+    public function search(array $params);
+
 }

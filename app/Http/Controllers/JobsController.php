@@ -33,7 +33,7 @@ class JobsController extends Controller
     public function index(Request $request){
 
         $download_me = null;
-        $urlShorteners = UrlShortener::select()->onlyRegistered()->get();
+        $urlShorteners = UrlShortener::select()->onlyRegistered()->orderby('id', 'desc')->get();
         if ($request->isMethod('post')) {
             $unique_campaigns = collect();
             $unique_campaign_map = [];

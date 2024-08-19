@@ -12,5 +12,18 @@ class UrlShortenerRepository extends BaseRepository implements UrlShortenerRepos
     {
         $this->model = $model;
     }
+    /**
+     * @param array $search
+     * @return mixed
+     */
+    public function search(array $params)
+    {
+        $q = $this->model->query();
+        if(isset($params['name']) && !empty($params['name'])){
+            $q = $q->where('name',  trim($params['name']));
+        }
+
+        return   $q->get()->first();
+    }
 
 }

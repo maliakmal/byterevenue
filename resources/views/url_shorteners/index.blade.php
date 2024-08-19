@@ -73,6 +73,7 @@
         <tr class="bg-gray-100">
         <th class="px-4 py-2">ID</th>
         <th class="px-4 py-2">Url</th>
+        <th class="px-4 py-2">Keitaro Camps Used?</th>
         <th class="px-4 py-2">Is Propagated</th>
         <th class="px-4 py-2">Created At</th>
         <th class="px-4 py-2">Actions</th>
@@ -84,6 +85,7 @@
         <tr>
           <td class="border-b border-gray-200 px-4 py-2">{{ $url_shortener->id }}</td>
           <td class="border-b border-gray-200 px-4 py-2">{{ $url_shortener->name }}</td>
+          <td class="border-b border-gray-200 px-4 py-2">{{ ($url_shortener->campaignShortUrls()->count()) }}</td>
 
           <td class="border-b border-gray-200 px-4 py-2">
             @if($url_shortener->is_propagated == 1)
