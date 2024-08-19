@@ -57,7 +57,7 @@
 
       <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-          <form action="{{ route('jobs.postIndex') }}" enctype="multipart/form-data" method="post">
+          <form action="{{ route('jobs.postIndex') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
               @csrf
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>

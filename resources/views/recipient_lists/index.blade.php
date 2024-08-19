@@ -61,7 +61,7 @@
               <h3 class="truncate text-sm font-medium text-gray-900">{{ $recipient_list->name }}</h3>
               
             </div>
-            <p class="mt-1 truncate text-sm text-gray-500">{{ $recipient_list->contacts()->count()  }} contacts</p>
+            <p class="mt-1 truncate text-sm text-gray-500">{{ $recipient_list->contacts()->count() }} contacts</p>
             @if($recipient_list->is_imported == 1)
           <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">Import Complete</span>
 
