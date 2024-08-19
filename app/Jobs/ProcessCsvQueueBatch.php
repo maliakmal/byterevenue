@@ -183,7 +183,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     'keitaro_campaign_id' => $response_campaign['id'],
                     'keitaro_campaign_response' => @json_encode($response_campaign),
                     'campaign_alias' => $alias_for_campaign,
-                    'url_shortener_id'=>_url_shortener->id
+                    'url_shortener_id'=>$_url_shortener->id
                 ]);
 
             }
