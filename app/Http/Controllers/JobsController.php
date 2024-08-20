@@ -7,6 +7,9 @@ use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
 use App\Jobs\ProcessCsvQueueBatch;
+use App\Jobs\CreateCampaignsOnKeitaro;
+
+
 use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -38,15 +41,36 @@ class JobsController extends Controller
             $unique_campaigns = collect();
             $unique_campaign_map = [];
 
+
             $total = $request->number_messages;
             $url_shortener = $request->url_shortener;
-            $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-
+            $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
+            $domain_id = $_url_shortener->asset_id;
+            $campaign_service = new CampaignService();
+            $campaign_short_urls = [];
             $batchSize = 100;
+            $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($total);
+
+            foreach($uniq_campaign_ids as $uniq_campaign_id):
+                if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
+                    $alias_for_campaign = uniqid();
+                    $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+
+                    $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                        'campaign_id' => $uniq_campaign_id,
+                        'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                        'campaign_alias' => $alias_for_campaign,
+                        'url_shortener_id'=>$_url_shortener->id
+                    ]);
+                    $campaign_short_urls[] = $_campaign_short_url;
+    
+                }
+
+            endforeach;
+
 
             $numBatches = ceil($total / $batchSize);
             $campaign_short_url_map = []; // maps campaign_id -> short url
-            $campaign_service = new CampaignService();
             $batch_no = preg_replace("/[^A-Za-z0-9]/", '', microtime());
 
             $filename = '/csv/byterevenue-messages-' . $batch_no . '.csv';
@@ -62,10 +86,13 @@ class JobsController extends Controller
                 $offset = $batch * $batchSize;
                 $is_last = $batch ==($numBatches+1)?true:false;
                 Log::info('BATCH number - '.$batch);
-                Log::info('BATCH offset - '.$offset);
                 dispatch(new ProcessCsvQueueBatch($offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last));
 
             }
+            
+            $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
+            dispatch(new CreateCampaignsOnKeitaro($params));
+
             return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
         }
 

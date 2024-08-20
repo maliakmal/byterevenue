@@ -62,4 +62,14 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         }
 
      }
+
+
+     public function getUniqueCampaignsIDs($limit){
+        $query = $this->model->newQuery()->select('campaign_id')->distinct();
+        $query = $query->whereNull('batch');
+
+        $query = $query->limit($limit);
+
+        return $query->pluck('campaign_id');
+     }
 }

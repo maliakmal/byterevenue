@@ -62,6 +62,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
     {
         $unique_campaigns = collect();
         $unique_campaign_map = [];
+
+        $new_campaigns = collect();
         $campaign_service = $this->campaign_service;
         $current_campaign_id = 0;
         $message = '';
@@ -69,7 +71,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $this->logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
-
+        Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
         $ids = [0];
         $cases = ["WHEN 0 THEN ''"];
         $bindings = [];
@@ -93,11 +95,11 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 }
             }
             if ($message) {
-                // allocate a uniq id to the campaign if it doesnt have one already
                 // check if there an existing URL for this campaign with the same domain
                 if(isset($campaign_short_url_map[$campaign->id])){
                     $campaign_short_url = $campaign_short_url_map[$campaign->id];
                 }else{
+                    // is there an existing campaign url alias for this campaign with the same domain?
                     $campaign_short_url = CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%'.$url_shortener.'%')->orderby('id', 'desc')->first();
                     $campaign_short_url_map[$campaign->id] = $campaign_short_url;
                 }
@@ -110,10 +112,50 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     }else{
                         $alias_for_campaign = $campaign_short_url->url_shortener;
                     }
-                }else{
-                    $alias_for_campaign = uniqid();
-                    $campaign_short_url_map[$campaign->id] = (object)['url_shortener'=>$alias_for_campaign];
+                    Log::info('campaign_short_url existed in the database');
+                    Log::info($campaign_short_url->toArray());
+                    // hack in case we have an entry but no keitaro reference
+                    if(!$campaign_short_url->keitaro_campaign_id){
+                        $_new_campaign = [
+                            'campaign_short_url_id'=>$campaign_short_url->id,
+                            'url_shortener'=>$url_shortener, 
+                            'campaign'=>$campaign,
+                            'domain_id'=>$domain_id,
+                            'alias'=>$alias_for_campaign
+                        ];
+    
+                        $new_campaigns->add($_new_campaign);
+    
+                    }
 
+                }else{
+                    // there is no campaign entry
+                    $alias_for_campaign = uniqid();
+                    Log::info('campaign_short_url generated from uniqid ');
+
+                    // make a spoof entry for campaign url
+                    $_url_shortener = $this->urlShortenerRepository->search(['name'=>$url_shortener]);
+                    $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+
+                    $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                        'campaign_id' => $campaign->id,
+                        'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                        'campaign_alias' => $alias_for_campaign,
+                        'url_shortener_id'=>$_url_shortener->id
+                    ]);
+
+                    $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
+                    Log::info((array)$campaign_short_url_map[$campaign->id]->toArray());
+
+                    $_new_campaign = [
+                        'campaign_short_url_id'=>$_campaign_short_url->id,
+                        'url_shortener'=>$url_shortener, 
+                        'campaign'=>$campaign,
+                        'domain_id'=>$domain_id,
+                        'alias'=>$alias_for_campaign
+                    ];
+
+                    $new_campaigns->add($_new_campaign);
                 }
 
                 $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
@@ -137,30 +179,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         }
 
-        $idList = implode(',', $ids);
-        $caseList = implode(' ', $cases);
-        $is_downloaded_as_csv = 1;
-        $sql = "
-        UPDATE `broadcast_logs`
 
-        SET `message_body` = CASE `id` 
-            {$caseList} 
-        END,
-
-        `is_downloaded_as_csv` = 1,
-        `batch` = '$batch',
-        `updated_at` = NOW()
-        WHERE `id` IN ({$idList})
-    ";
-
-        DB::statement($sql);
-
-        if($this->is_last == true){
-            $this->batch_file->is_ready = 1;
-            $this->batch_file->save();
-        }
-
-        $unique_campaigns->each(function ($itemCollection) use ($url_shortener, $unique_campaign_map, $campaign_service, $domain_id) {
+        /*  $unique_campaigns->each(function ($itemCollection) use ($url_shortener, $unique_campaign_map, $campaign_service, $domain_id) {
             $alias_for_campaign = $itemCollection['alias'];
             $item = $itemCollection['campaign'];
 
@@ -170,6 +190,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
             // if a short url has been created against a campaign - do not create a new one, use the existing one
             // else create a new one
             if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_keitaro)) {
+                Log::info('Campaign Short URL for  Campaign ID - '.$item->id.' and URL '.$url_for_keitaro.' was not found so created a new one');
 
                 $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id, $domain_id);
                 $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'], $item->title, $url_for_campaign);
@@ -187,7 +208,55 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 ]);
 
             }
+        }); */
+
+        $idList = implode(',', $ids);
+        $caseList = implode(' ', $cases);
+        $is_downloaded_as_csv = 1;
+        
+        Log::info('Number of log entries updated - '.count($ids).' - with number of cases - '.count($cases));
+
+        $sql = "
+        UPDATE `broadcast_logs`
+
+        SET `message_body` = CASE `id` 
+            {$caseList} 
+        END,
+
+        `is_downloaded_as_csv` = 1,
+        `batch` = '$batch',
+        `updated_at` = NOW()
+        WHERE `id` IN ({$idList})
+        ";
+
+        DB::statement($sql);
+        Log::info('new_campaigns ', $new_campaigns->toArray());
+
+        /* $new_campaigns->each(function($_item) use ($campaign_service, $domain_id){
+            $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['alias']);
+            $url_for_campaign = $_item['campaign']->message?->target_url;
+            $response_campaign = $campaign_service->createCampaignOnKeitaro($_item['alias'], $_item['campaign']->title, $_item['campaign']->keitaro_group_id, $domain_id);
+            $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'],  $_item['campaign']->title, $url_for_campaign);
+            $_url_shortener = $this->urlShortenerRepository->search(['name'=>$_item['url_shortener']]);
+
+            $this->campaignShortUrlRepository->updateByID([
+                'flow_id' => $response_flow['id'],
+                'response' => @json_encode($response_flow),
+                'keitaro_campaign_id' => $response_campaign['id'],
+                'keitaro_campaign_response' => @json_encode($response_campaign),
+            ], $_item['campaign_short_url_id'] );
+
+
         });
+        */
+
+
+        if($this->is_last == true){
+            Log::info('IS THE LAST ONE');
+            $this->batch_file->is_ready = 1;
+            $this->batch_file->save();
+        }
+
 
 }
 }
