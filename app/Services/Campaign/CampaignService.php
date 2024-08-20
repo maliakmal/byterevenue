@@ -4,6 +4,8 @@ namespace App\Services\Campaign;
 
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Campaign\CreateCampaignRequest;
+use App\Services\Keitaro\Requests\Campaign\GetAllCampaignsRequest;
+use App\Services\Keitaro\Requests\Campaign\MoveCampaignToArchiveRequest;
 use App\Services\Keitaro\Requests\Flows\CreateFlowRequest;
 use Illuminate\Support\Str;
 
@@ -44,5 +46,28 @@ class CampaignService
         );
         $caller = new KeitaroCaller();
         return $caller->call($create_flow_request);
+    }
+
+    /**
+     * @param int|null $limit
+     * @param int $offset
+     * @return mixed
+     */
+    public function getAllCampaigns(?int $limit, int $offset)
+    {
+        $request = new GetAllCampaignsRequest($limit, $offset);
+        $caller = new KeitaroCaller();
+        return $caller->call($request);
+    }
+
+    /**
+     * @param int $campaignID
+     * @return mixed
+     */
+    public function moveCampaignToArchive(int $campaignID)
+    {
+        $request = new MoveCampaignToArchiveRequest($campaignID);
+        $caller = new KeitaroCaller();
+        return $caller->call($request);
     }
 }
