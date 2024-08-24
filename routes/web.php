@@ -67,6 +67,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     });
     Route::resource('settings', \App\Http\Controllers\SettingController::class);
     Route::resource('black-list-numbers', \App\Http\Controllers\BlackListNumberController::class);
+    Route::resource('black-list-words', \App\Http\Controllers\BlackListWordController::class);
     Route::prefix('reports')->group(function (){
         Route::get('messages', [\App\Http\Controllers\ReportController::class, 'messages'])->name('reports.messages');
         Route::get('campaigns', [\App\Http\Controllers\ReportController::class, 'campaigns'])->name('reports.campaigns');

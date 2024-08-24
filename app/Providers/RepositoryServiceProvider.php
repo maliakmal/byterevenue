@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
+use App\Repositories\Contract\BlackListWord\BlackListWordRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
@@ -12,6 +13,7 @@ use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use App\Repositories\Contract\User\UserRepositoryInterface;
 use App\Repositories\Contract\BatchFile\BatchFileRepositoryInterface;
 use App\Repositories\Model\BlackListNumber\BlackListNumberRepository;
+use App\Repositories\Model\BlackListWord\BlackListWordRepository;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use App\Repositories\Model\Campaign\CampaignRepository;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
@@ -38,6 +40,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(BatchFileRepositoryInterface::class, BatchFileRepository::class);
+        $this->app->bind(BlackListWordRepositoryInterface::class, BlackListWordRepository::class);
     }
 
     /**
