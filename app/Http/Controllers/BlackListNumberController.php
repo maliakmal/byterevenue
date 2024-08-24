@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BlackListNumber;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
 use App\Repositories\Contract\Contact\ContactRepositoryInterface;
+use App\Services\Unitily\UtilityService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -45,13 +46,21 @@ class BlackListNumberController extends Controller
         public function store(Request $request)
         {
             $request->validate([
-                'phone_number' => 'required|unique:black_list_numbers,phone_number|string|min:1|max:255',
+                'phone_number' => 'required|string|min:1',
             ]);
-            $inputs = $request->all();
-            $black_list_number = $this->blackListNumberRepository->create([
-                'phone_number' => $inputs['phone_number'],
-            ]);
-            return redirect()->route('black-list-numbers.index', $black_list_number)->with('success', 'The Item created successfully.');
+            $utility_service = new UtilityService();
+            $phone_number_string = $utility_service->formatPhoneNumber($request->phone_number);
+            $list = collect(explode("\n", $phone_number_string));
+            $list = $list->reject(function ($item){
+                return empty($item);
+            });
+            $list = $list->map(function ($item) use ($utility_service){
+                return ['phone_number' => trim($item)];
+            });
+            $black_list_number = BlackListNumber::upsert(
+                $list->toArray(), ['phone_number'],['updated_at' => now()]
+            );
+            return redirect()->route('black-list-numbers.index')->with('success', 'The Item created successfully.');
         }
 
         /**
