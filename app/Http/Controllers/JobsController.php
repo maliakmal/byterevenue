@@ -7,6 +7,7 @@ use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
 use App\Jobs\ProcessCsvQueueBatch;
+use App\Jobs\ProcessCsvRegenQueueBatch;
 use App\Jobs\CreateCampaignsOnKeitaro;
 
 
@@ -109,6 +110,76 @@ class JobsController extends Controller
         return view('jobs.index', compact('params'));
     }
 
+    public function regenerateUnsent(Request $request){
+        // get all unsent
+        $batch_id = $request->batch;
+        $_batch = BatchFile::find($batch_id);
+        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $_batch->filename, $matches);
+        if(!$matches[1]){
+            return redirect()->route('jobs.index')->with('error', 'Something went wrong - csv could not be generated.');
+        }else{
+            $batch = $matches[1];
+        }
+        $url_shortener = $request->url_shortener;
+        $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
+        $domain_id = $_url_shortener->asset_id;
+        $original_batch_no = $batch;
+        $campaign_short_urls = [];
+        $batchSize = 100;
+        $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch'=>$batch]);
+        $total = count($unsent_logs);
+        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($batch);
+
+        foreach($uniq_campaign_ids as $uniq_campaign_id):
+            // if there is no existing keitaro camp id for this campaign + url combo - create one
+            if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
+                $alias_for_campaign = uniqid();
+                $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+
+                $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                    'campaign_id' => $uniq_campaign_id,
+                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                    'campaign_alias' => $alias_for_campaign,
+                    'url_shortener_id'=>$_url_shortener->id
+                ]);
+                $campaign_short_urls[] = $_campaign_short_url;
+            }
+
+        endforeach;
+
+        $numBatches = ceil($total / $batchSize);
+        $campaign_short_url_map = []; // maps campaign_id -> short url
+        $batch_no = $batch.'_1';
+        $filename = '/csv/byterevenue-regen-' . $batch_no . '.csv';
+
+        $batch_file = BatchFile::create(['filename' => $filename,
+                'path' => env('DO_SPACES_ENDPOINT') . $filename,
+                'number_of_entries' => $total,
+                'is_ready'=>0,
+                'campaign_id' => 0]);
+        
+        Log::info('numBatches - '.$numBatches);
+        for ($batch = 0; $batch < $numBatches; $batch++) {
+            $offset = $batch * $batchSize;
+            $is_last = $batch ==($numBatches+1)?true:false;
+            Log::info('BATCH number - '.$batch);
+            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last));
+        }
+        
+        $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
+        dispatch(new CreateCampaignsOnKeitaro($params));
+        $original_filename = '/csv/byterevenue-messages-' . $batch. '.csv';
+
+        $original_batch_file = BatchFile::select()->where('filename', $original_filename)->get()->first();
+        if($original_batch_file){
+            $original_batch_file->number_of_entries-=$total;
+            $original_batch_file->save();
+        }
+
+        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+
+    }
+
     public function downloadFile($filename)
     {
         $batch = BatchFile::find($filename);
@@ -118,7 +189,7 @@ class JobsController extends Controller
             fputcsv($handle, ['UID','Phone', 'Subject', 'Text']);
 
             $batch_no = $batch->getBatchFromFilename();
-
+            
             // Query and write data to the file
             $rows = BroadcastLog::select()->where('batch', '=', $batch_no)->orderby('id', 'ASC')->cursor();
             foreach ($rows as $row) {

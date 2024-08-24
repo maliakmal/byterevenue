@@ -11,7 +11,12 @@ class BatchFile extends Model
     protected $guarded = [];
 
     public function getBatchFromFilename(){
-        return preg_replace('/[^0-9]/', '', $this->filename);
+        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $this->filename, $matches);
+        if(!$matches[1]){
+            return null;
+        }else{
+            return $matches[1];
+        }        
     }
 
 }

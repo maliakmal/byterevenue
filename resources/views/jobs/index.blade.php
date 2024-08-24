@@ -32,6 +32,7 @@
 
   <div class="py-12">
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+  @include('partials.alerts')
 
     @if($params['download_me']!= null)
     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-3" role="alert">
@@ -115,9 +116,16 @@
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                     <div class="inline-flex">
-                        <button data-modal-target="default-modal" data-modal-toggle="default-modal" style="width: 100px;font-size:13px;" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-2 rounded-l">
-                            Regenerate Unsent
-                        </button>
+
+
+                    <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                        <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12a7.5 7.5 0 0115 0m0 0H15m4.5 0l-1.5-1.5M4.5 12H9m-4.5 0l1.5 1.5"/>
+                        </svg>
+                        Refresh
+                    </a>
+
+
                     </div>
                 </td>
               </tr>
@@ -140,7 +148,7 @@
             <!-- Modal header -->
             <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    Terms of Service
+                    Regenerate Unsent Messages
                 </h3>
                 <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -150,26 +158,38 @@
                 </button>
             </div>
             <!-- Modal body -->
+            <form action="/jobs/regenerate" method="post">
             <div class="p-4 md:p-5 space-y-4">
+                <p>This will generate a unique csv list with regenerated messages using the selected short domain below. As of now this would create a csv with all unsent messages from the original batch. Once done the messages would be removed from the original csv and shifted to a new csv for download. Proceed if this is what you intend to do.</p>
+                <br/>
                 <div class="form-group">
-                    <label>domain: </label>
-                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label>Domain: </label>
+                    @csrf
+                    <select name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         @foreach($params['urlShorteners'] as $vv)
                             <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
                         @endforeach
                     </select>
+                    <input name="batch" id="modal_batch" type="hidden" />
                 </div>
             </div>
             <!-- Modal footer -->
             <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                <button data-modal-hide="default-modal" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
-                <button data-modal-hide="default-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Decline</button>
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Regenerate</button>
+                <button data-modal-hide="default-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancel</button>
             </div>
+            </form>
         </div>
     </div>
 </div>
 @push('scripts')
 <script>
+  $(function(){
+    $('.btn-batch-regenerate').click(function(){
+      $('#modal_batch').val($(this).data('batch_id'));
+      $('#default-modal').removeClass('hidden');
+    });
+  });
     @if($params['download_me']!= null)
     $('.downloadables:first li:first-child').toggle( "highlight" );
 // function downloadURI(uri, name) {

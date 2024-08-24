@@ -48,19 +48,63 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $query->get();
     }
 
+
+
+
     /**
      * @param array $inputs
      */
 
      public function requeueUnsent(array $inputs){
         $query = $this->model->newQuery();
+        $query = $query->where('is_sent', '0');
+
         if(!empty($inputs['campaign_id'])){
             $query = $query->where('campaign_id', $inputs['campaign_id']);
         }
+
+        if(!empty($inputs['batch'])){
+            $query = $query->where('batch', $inputs['batch']);
+        }
+
         if(!empty($inputs['count'])){
             $query = $query->limit($input['count']);
         }
 
+
+
+     }
+
+     /**
+      * @params array $inputs
+      * @return mixed
+      */
+
+     public function getUnsent(array $inputs){
+        $query = $this->model->newQuery();
+        $query = $query->where('is_sent', '0');
+
+        if(!empty($inputs['campaign_id'])){
+            $query = $query->where('campaign_id', $inputs['campaign_id']);
+        }
+
+        if(!empty($inputs['batch'])){
+            $query = $query->where('batch', $inputs['batch']);
+        }
+
+        if(!empty($inputs['count'])){
+            $query = $query->limit($input['count']);
+        }
+
+        return $query->get();
+
+     }
+
+
+     public function getUniqueCampaignsIDsFromExistingBatch($batch){
+        $query = $this->model->newQuery()->select('campaign_id')->distinct();
+        $query = $query->where('batch', $batch);
+        return $query->pluck('campaign_id');
      }
 
 

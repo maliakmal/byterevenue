@@ -37,6 +37,11 @@ class PurneCampaignsOnKeitaro extends Command
             $this->error('the key prune_keitaro_campaigns is not set in settings');
             exit();
         }
+
+        if($schedule_to_purne == 0){
+            $this->info('the key prune_keitaro_campaigns is set to 0 - no records will be pruned');
+            exit();
+        }
         $purne_date = Carbon::now()->subDays($schedule_to_purne);
 
         $counter = 0;
