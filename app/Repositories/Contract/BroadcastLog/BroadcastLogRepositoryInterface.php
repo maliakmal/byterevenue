@@ -14,5 +14,6 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
     public function getUnsent(array $inputs);
 
     public function getUniqueCampaignsIDs($limit);
+    
     public function getUniqueCampaignsIDsFromExistingBatch($batch);
 }

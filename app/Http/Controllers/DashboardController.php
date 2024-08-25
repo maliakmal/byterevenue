@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $accounts = [];
         $params = [];
         $_dateFormat = 'm/d/Y';
-        $start_date = Carbon::now()->subMonths(3)->format($_dateFormat);
+        $start_date = Carbon::now()->subDays(1)->format($_dateFormat);
         $end_date = Carbon::now()->format($_dateFormat);
         $campaigns_graph = $send_graph = $clicks_graph = $ctr = $labels = [];
 
@@ -45,11 +45,16 @@ class DashboardController extends Controller
             $endDate = Carbon::createFromFormat('m/d/Y', $end_date);
 
             $params['total_campaigns'] = Campaign::select()->whereBetween('created_at', [$startDate, $endDate])->count();
-            $params['total_num_sent'] = BroadcastLog::select()->where('is_sent', 1)->whereBetween('created_at', [$startDate, $endDate])->count();
-            $params['total_num_clicks'] = BroadcastLog::select()->where('is_click', 1)->whereBetween('created_at', [$startDate, $endDate])->count();
+            $params['total_num_sent'] = BroadcastLog::select()->where('is_sent', 1)->whereBetween('sent_at', [$startDate, $endDate])->count();
+            $params['total_num_clicks'] = BroadcastLog::select()->where('is_click', 1)->whereBetween('clicked_at', [$startDate, $endDate])->count();
             $params['ctr'] = $params['total_num_sent'] == 0 || $params['total_num_clicks'] == 0 ? 0 : ($params['total_num_clicks'] / $params['total_num_sent']) * 100;
             $params['start_date'] = $start_date;
             $params['end_date'] = $end_date;
+
+            $params['campaigns_remaining_in_queue'] = BroadcastLog::select('campaign_id')->distinct()->where('is_sent', 0)->get()->count();
+            $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->distinct()->get()->count();
+            $params['campaigns_completed_from_queue'] = $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
+            $params['users_campaigns'] = User::withCount('campaigns')->having('campaigns_count', '>', 0)->orderBy('campaigns_count', 'desc')->get()->take(10);
 
             list($labels, $campaigns_graph, $send_graph, $clicks_graph, $ctr) = $this->dashboardService->getAdminGraphData($startDate, $endDate);
 

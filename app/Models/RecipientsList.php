@@ -24,5 +24,9 @@ class RecipientsList extends Model
         return $this->hasMany(Campaign::class);
     }
 
+    public function canBeDeleted(){
+        return $this->campaigns()->count() > 0 ? false : true;
+    }
+
 
 }

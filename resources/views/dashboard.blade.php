@@ -45,6 +45,12 @@
       <br/>
       <br/>
     @endif
+    <div class="mt-5">
+            <div class=" sm:rounded-lg">
+
+            </div>
+          </div>
+          <div class="mt-5 mb-5"></div>
 
         <div class="">
 
@@ -58,7 +64,7 @@
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text text-white font-bold py-2 px-4 rounded">Filter</button>
           </form>
 
-        <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Campaigns to Watch</h1>
+        <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Dashboard</h1>
 
           <div class="mt-5">
 
@@ -72,9 +78,9 @@
                   <div class="flex-1 truncate">
                     <div class="  ">
                       <h2 class="truncate  font-medium text-gray-900 text-3xl">
-                        {{ $params['total_campaigns'] }}
+                        {{ $params['campaigns_remaining_in_queue'] }}
                       </h2>
-                      <p>Campaigns Created</p>
+                      <p>Campaigns inQueue</p>
                     </div>
                   </div>
                 </div>
@@ -220,12 +226,18 @@
         </li>
         <li class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
             <div class="p-6 m-6">
-                <div class="p-6 m-6">
-                    <div class="p-6 m-6">
-                        <div class="text-3xl font-bold text-slate-800 dark:text-slate-100 mr-2">
-                          <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/jobs">{{$params['total_not_downloaded_in_queue']}} / {{$params['total_in_queue']}}</a>
-                        </div>
-                        <small>Messages in Queue</small>
+                <div class="">
+                    <div class="">
+                    <h2 class="truncate font-bold  text-gray-900 ">
+                        Running Campaigns by User
+                      </h2>                    
+                    <div class="  ">
+                      @foreach($params['users_campaigns'] as $user)
+                      <p><a href="/campaigns?user_id={{ $user->id }}">{{ $user->name }}({{ $user->campaigns_count }})</a></p>
+                      @endforeach
+                      
+                    </div>
+
                     </div>
                 </div>
             </div>
