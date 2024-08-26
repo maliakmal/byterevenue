@@ -6,6 +6,7 @@ use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepositoryInterface
 {
@@ -116,4 +117,17 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         return $query->pluck('campaign_id');
      }
+
+     public function getTotalSentAndClicksByCampaign($campaign_id){
+        $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->select(
+            [
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ]
+        )->first();
+
+        return $totals;
+     }
+
 }

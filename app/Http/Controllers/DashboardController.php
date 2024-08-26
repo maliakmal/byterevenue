@@ -38,7 +38,17 @@ class DashboardController extends Controller
         }
         if(auth()->user()->hasRole('admin')):
             $campaigns = Campaign::select()->orderby('id', 'desc')->get()->take(100);
-            $accounts = User::select()->orderby('updated_at', 'desc')->get()->take(5);
+            $accounts = User::select()->with('latestCampaign')->selectSub(function ($query) {
+                $query->selectRaw('COUNT(*)')
+                      ->from('campaigns')
+                      ->whereColumn('campaigns.user_id', 'users.id');
+            }, 'campaign_count')->selectSub(function ($query) {
+                $query->selectRaw('COUNT(*)')
+                      ->from('campaigns')
+                      ->whereColumn('campaigns.user_id', 'users.id')
+                      ->where('status', [Campaign::STATUS_PROCESSING]);
+            }, 'processing_campaign_count')->having('campaign_count', '>', 0)->orderBy('campaign_count', 'desc')->orderby('updated_at', 'desc')->get()->take(10);
+
             $params['total_in_queue'] = BroadcastLog::select()->count();
             $params['total_not_downloaded_in_queue'] = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
             $startDate = Carbon::createFromFormat('m/d/Y', $start_date);

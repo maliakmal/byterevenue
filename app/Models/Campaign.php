@@ -15,8 +15,7 @@ class Campaign extends Model
     const STATUS_PROCESSING = 1;
     const STATUS_DONE = 2;
 
-    public function user()
-    {
+    public function user(){
         return $this->belongsTo(User::class);
     }
 
@@ -48,21 +47,22 @@ class Campaign extends Model
         $this->code = $res;
     }
 
-    public function client()
-    {
+    public function client(){
         return $this->belongsTo(Client::class);
     }
 
     public function broadcast_batches(){
         return $this->hasMany(BroadcastBatch::class);
     }
+
     public function recipient_list(){
         return $this->belongsTo(RecipientsList::class, 'recipients_list_id');
-     }
+    }
 
     public function message(){
         return $this->hasOne(Message::class);
     }
+
     public function isDispatched(){
         return $this->status == self::STATUS_DRAFT ? false : true;
     }
@@ -74,28 +74,29 @@ class Campaign extends Model
     public function canBeProcessed(){
         return $this->status == self::STATUS_DRAFT;
     }
+
     public function isDraft(){
         return $this->status == self::STATUS_DRAFT;
     }
 
     public function markAsProcessed(){
         $this->status = self::STATUS_PROCESSING;
+        $this->total_recipients = $this->recipient_list->contacts()->count();
+        $this->submitted_at = now();
         $this->save();
     }
 
     /**
      * @return HasMany
      */
-    public function broadCaseLogMessages()
-    {
+    public function broadCaseLogMessages(){
         return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function broadCaseLogMessagesSent()
-    {
+    public function broadCaseLogMessagesSent(){
         return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
             ->where('is_sent', true);
     }

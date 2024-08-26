@@ -8,6 +8,7 @@ use App\Repositories\Model\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 
 class CampaignRepository extends BaseRepository implements CampaignRepositoryInterface
 {
@@ -23,6 +24,11 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     public function getCampaignsForUser(int $userID)
     {
         return $this->model->where('user_id', $userID)->get();
+    }
+
+    public function getPendingCampaigns(array $params){
+        $fiveDaysAgo = Carbon::now()->subDays(5);
+        return $this->model->whereIn('status', [Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE])->where('submitted_at', '>=', $fiveDaysAgo)->get();
     }
 
     /**
@@ -46,5 +52,11 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
             return $query->paginate();
         }
         return $query->get();
+    }
+
+    public function markCampaignAsDone($campaign_id){
+        $campaign = $this->model->find($campaign_id);
+        $campaign->status = Campaign::STATUS_DONE;
+        $campaign->save();
     }
 }

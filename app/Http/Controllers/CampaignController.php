@@ -56,9 +56,21 @@ class CampaignController extends Controller
                     case 'id_asc':
                         $campaigns->orderby('id', 'asc');
                         break;
+                    case 'ctr_desc':
+                        $campaigns->orderby('total_ctr', 'desc');
+                        break;
+                    case 'ctr_asc':
+                        $campaigns->orderby('total_ctr', 'asc');
+                        break;
+                    case 'clicks_desc':
+                        $campaigns->orderby('total_recipients_click_thru', 'desc');
+                        break;
+                    case 'clicks_asc':
+                        $campaigns->orderby('total_recipients_click_thru', 'asc');
+                        break;
                     case 'title':
                         $campaigns->orderby('title', 'asc');
-                        break;
+                    break;
                 }
             }
             $campaigns = $campaigns->paginate($filter['count']);

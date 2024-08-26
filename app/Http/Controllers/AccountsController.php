@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Token;
+use App\Models\Campaign;
 use App\Models\Transaction;
 
 class AccountsController extends Controller
@@ -15,7 +16,17 @@ class AccountsController extends Controller
             'sortby'=> request('sortby')?request('sortby'):'id_desc',
             'count'=> request('count')?request('count'):5,
         );
-        $accounts = User::query();
+        $accounts = User::query()->with('latestCampaign')->selectSub(function ($query) {
+                $query->selectRaw('COUNT(*)')
+                    ->from('campaigns')
+                    ->whereColumn('campaigns.user_id', 'users.id');
+            }, 'campaign_count')->selectSub(function ($query) {
+                $query->selectRaw('COUNT(*)')
+                    ->from('campaigns')
+                    ->whereColumn('campaigns.user_id', 'users.id')
+                    ->where('status', [Campaign::STATUS_PROCESSING]);
+            }, 'processing_campaign_count');
+
         if(!empty($filter['sortby'])){
             switch($filter['sortby']){
                 case 'id_desc':
@@ -33,7 +44,13 @@ class AccountsController extends Controller
                 case 'tokens_asc':
                     $accounts->orderby('tokens', 'asc');
                     break;
-                }
+                case 'campaigns_desc':
+                    $accounts->orderby('campaign_count', 'desc');
+                    break;
+                case 'campaigns_asc':
+                    $accounts->orderby('campaign_count', 'asc');
+                    break;
+            }
         }
         $accounts = $accounts->paginate($filter['count']);
 

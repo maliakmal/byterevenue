@@ -35,53 +35,56 @@
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
   @include('partials.alerts')
   <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-
-      
-
-
-      
-      
-      
-      <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
+    <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
       <div>
-  <form method="get" id="filter-form">
-
-<select id="sortby" name="sortby">
-  <option value="">Sort By</option>
-  <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
-  <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
-  <option  {{ $filter['sortby']=='tokens_desc'?'selected' :'' }}  value="tokens_desc">Tokens(High to Less)</option>
-  <option  {{ $filter['sortby']=='tokens_asc'?'selected' :'' }}  value="tokens_asc">Tokens(Less to High)</option>
-  <option  {{ $filter['sortby']=='name'?'selected' :'' }}  value="name">Name - Alphabetically</option>
-</select>
-<select id="count" name="count">
-  <option value="">Count</option>
-  <option  {{ $filter['count']=='5'?'selected' :'' }}  value="5">5</option>
-  <option  {{ $filter['count']=='10'?'selected' :'' }}  value="10">10</option>
-  <option  {{ $filter['count']=='50'?'selected' :'' }}  value="50">50</option>
-  <option  {{ $filter['count']=='100'?'selected' :'' }}  value="100">100</option>
-</select>
-</form>
-</div>
-
+        <form method="get" id="filter-form">
+          <select id="sortby" name="sortby">
+            <option value="">Sort By</option>
+            <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
+            <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
+            <option  {{ $filter['sortby']=='tokens_desc'?'selected' :'' }}  value="tokens_desc">Tokens(High to Less)</option>
+            <option  {{ $filter['sortby']=='tokens_asc'?'selected' :'' }}  value="tokens_asc">Tokens(Less to High)</option>
+            <option  {{ $filter['sortby']=='name'?'selected' :'' }}  value="name">Name - Alphabetically</option>
+          </select>
+          <select id="count" name="count">
+            <option value="">Count</option>
+            <option  {{ $filter['count']=='5'?'selected' :'' }}  value="5">5</option>
+            <option  {{ $filter['count']=='10'?'selected' :'' }}  value="10">10</option>
+            <option  {{ $filter['count']=='50'?'selected' :'' }}  value="50">50</option>
+            <option  {{ $filter['count']=='100'?'selected' :'' }}  value="100">100</option>
+          </select>
+        </form>
+      </div>
       <table  class="mt-5 table-auto w-full">
-        <tr class="bg-gray-100">
-        <tr class="bg-gray-100">
-                <th class="px-4 py-2">Name</th>
-                <th class="px-4 py-2">Email</th>
-                <th class="px-4 py-2">Tokens</th>
-              </tr>
-            </thead>
-            <tbody>
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Campaigns</th>
+            <th class="px-4 py-2">Latest Campaign CTR</th>
+            <th class="px-4 py-2">Email</th>
+            <th class="px-4 py-2">Tokens</th>
+          </tr>
+        </thead>
+        <tbody>
               @forelse ($accounts as $account)
                 <tr>
                   <td class="border border-gray-200 px-4 py-2"><a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
+                  <td class="border border-gray-200 px-4 py-2">
+                    {{ $account->campaigns()->count() }}
+                  </td>
+                  <td class="border border-gray-200 px-4 py-2">
+                    @if($account->latestCampaign)
+                        {{ number_format($account->latestCampaign->CTR, 2) }}
+                    @else
+                        No campaigns
+                    @endif
+                  </td>
                   <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
                   <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No accounts found') }}</td>
+                  <td colspan="5" class="border border-gray-200 px-4 py-2 text-center">{{ __('No accounts found') }}</td>
                 </tr>
               @endforelse
             </tbody>

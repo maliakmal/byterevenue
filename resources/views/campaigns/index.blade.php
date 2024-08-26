@@ -52,8 +52,8 @@
 <div>
   <form method="get" id="filter-form">
   <select id="status" name="status">
-  <option value="">All Status</option>
-  <option {{ $filter['status']==0?'selected' :'' }} value="0">Draft</option>
+  <option {{ $filter['status']==''?'selected' :'' }} value="">All Status</option>
+  <option {{ $filter['status']=='0'?'selected' :'' }} value="0">Draft</option>
   <option {{ $filter['status']==1?'selected' :'' }}  value="1">Processing</option>
   <option {{ $filter['status']==2?'selected' :'' }}  value="2">Done</option>
 </select>
@@ -61,7 +61,7 @@
 <select id="user_id" name="user_id">
   <option  value="">All Accounts?</option>
   @foreach(\App\Models\User::select()->orderby('name', 'asc')->get() as $user)
-    <option {{ $filter['user_id']==$user->id?'selected' :'' }}  value="{{ $user->id }}">{{ $user->name }}</option>
+    <option {{ $filter['user_id']==$user->id?'selected' :'' }}  value="{{ $user->id }}">{{ $user->name }}({{ $user->campaigns()->count() }})</option>
   @endforeach
 </select>
 @endif
@@ -70,6 +70,10 @@
   <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
   <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
   <option  {{ $filter['sortby']=='title'?'selected' :'' }}  value="title">Title - Alphabetically</option>
+  <option  {{ $filter['sortby']=='ctr_desc'?'selected' :'' }}  value="ctr_desc">CTR - Descending</option>
+  <option  {{ $filter['sortby']=='ctr_asc'?'selected' :'' }}  value="ctr_asc">CTR - Ascending</option>
+  <option  {{ $filter['sortby']=='clicks_desc'?'selected' :'' }}  value="clicks_desc">Total Clicks - Descending</option>
+  <option  {{ $filter['sortby']=='clicks_asc'?'selected' :'' }}  value="clicks_asc">Total Clicks - Ascending</option>
 </select>
 <select id="count" name="count">
   <option value="">Count</option>
@@ -90,6 +94,9 @@
                 @endif
 
                 <th class="px-4 py-2">Recipients</th>
+                <th class="px-4 py-2">Sent?</th>
+                <th class="px-4 py-2">Clicked?</th>
+                <th class="px-4 py-2">CTR</th>
                 <th class="px-4 py-2">Status</th>
                 <th class="px-4 py-2">Created At</th>
                 <th class="px-4 py-2">Actions</th>
@@ -107,7 +114,10 @@
                 <td class="border-b border-gray-200 px-4 py-2"><a href="{{ route('accounts.show', $campaign->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
                 {{ $campaign->user->name }}</a></td>
                 @endif
-                <td class="border-b border-gray-200 px-4 py-2">{{ $campaign->recipient_list ? $campaign->recipient_list->contacts()->count():'-' }}</td>
+                <td class="border-b border-gray-200 px-4 py-2">{{ number_format($campaign->total_recipients) }}</td>
+                <th class="px-4 py-2">{{ number_format($campaign->total_recipients_sent_to) }}</th>
+                <th class="px-4 py-2">{{ number_format($campaign->total_recipients_click_thru) }}</th>
+                <th class="px-4 py-2">{{ number_format($campaign->total_ctr, 2) }}%</th>
                 <td class="border-b border-gray-200 px-4 py-2">
                 @switch($campaign->status)
                   @case(\App\Models\Campaign::STATUS_DRAFT)
@@ -116,7 +126,7 @@
                   @case(\App\Models\Campaign::STATUS_PROCESSING)
                     <span class="py-1 px-2.5 border-none rounded bg-yellow-100  text-yellow-800 font-medium">Processing</span>
                   @break
-                  @case(\App\Models\Campaign::STATUS_PROCESSING)
+                  @case(\App\Models\Campaign::STATUS_DONE)
                     <span class="py-1 px-2.5 border-none rounded bg-green-100  text-green-800 font-medium">Done</span>
                     @break
                   @endswitch                  
