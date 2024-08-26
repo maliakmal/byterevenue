@@ -79,8 +79,9 @@ class JobsController extends Controller
             $batch_file = BatchFile::create(['filename' => $filename,
                     'path' => env('DO_SPACES_ENDPOINT') . $filename,
                     'number_of_entries' => $total,
-                    'is_ready'=>0,
-                    'campaign_id' => 0]);
+                    'is_ready'=>0]);
+
+            $batch_file->campaigns()->attach($uniq_campaign_ids);
             
             Log::info('numBatches - '.$numBatches);
             for ($batch = 0; $batch < $numBatches; $batch++) {
@@ -100,6 +101,15 @@ class JobsController extends Controller
 
         $directory = storage_path('app/csv/');
         $files = BatchFile::select()->orderby('id', 'desc')->paginate(15);
+
+        $batches = [];
+        // get individual batches
+        foreach($files as $_file){
+            $batches[] = $_file->getBatchFromFilename();
+        }
+
+        $message_ids = BroadcastLog::whereIn('batch', $batches)->distinct()->pluck('message_id');
+
 
         // get count of all messages in the queue
         $params['total_in_queue'] = BroadcastLog::select()->count();
@@ -155,8 +165,7 @@ class JobsController extends Controller
         $batch_file = BatchFile::create(['filename' => $filename,
                 'path' => env('DO_SPACES_ENDPOINT') . $filename,
                 'number_of_entries' => $total,
-                'is_ready'=>0,
-                'campaign_id' => 0]);
+                'is_ready'=>0]);
         
         Log::info('numBatches - '.$numBatches);
         for ($batch = 0; $batch < $numBatches; $batch++) {

@@ -19,4 +19,10 @@ class BatchFile extends Model
         }        
     }
 
+    public function campaigns()
+    {
+        return $this->belongsToMany(Campaign::class, 'batch_file_campaign');
+    }
+
+
 }

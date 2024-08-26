@@ -93,6 +93,7 @@
           <tr class="bg-gray-100">
             <th class="px-4 py-2">Filename</th>
             <th class="px-4 py-2">No. Entries</th>
+            <th class="px-4 py-2">Campaigns</th>
             <th class="px-4 py-2">Created At</th>
             <th class="px-4 py-2">Operation</th>
           </tr>
@@ -101,10 +102,18 @@
             @foreach ($params['files'] as $file)
               <tr>
                 <td class="border-b border-gray-200 px-4 py-2">
-                  <a href="/download/{{$file['id'] }}">{{ $file['filename'] }}</a>
+                  <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv</a>
+                  @if(strstr($file['filename'], 'regen'))
+                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN</span>
+
+                  @else
+                  @endif
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                 {{ $file['number_of_entries'] }}
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                {{ count($file['campaigns']) }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                   <a href="/download/{{$file['id'] }}">
@@ -115,18 +124,11 @@
                   </a>
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
-                    <div class="inline-flex">
-
-
-                    <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                        <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12a7.5 7.5 0 0115 0m0 0H15m4.5 0l-1.5-1.5M4.5 12H9m-4.5 0l1.5 1.5"/>
-                        </svg>
-                        Refresh
+                  <div class="inline-flex">
+                    <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                        Regen Unsent
                     </a>
-
-
-                    </div>
+                  </div>
                 </td>
               </tr>
             @endforeach
@@ -159,12 +161,12 @@
             </div>
             <!-- Modal body -->
             <form action="/jobs/regenerate" method="post">
+            @csrf
             <div class="p-4 md:p-5 space-y-4">
                 <p>This will generate a unique csv list with regenerated messages using the selected short domain below. As of now this would create a csv with all unsent messages from the original batch. Once done the messages would be removed from the original csv and shifted to a new csv for download. Proceed if this is what you intend to do.</p>
                 <br/>
                 <div class="form-group">
                     <label>Domain: </label>
-                    @csrf
                     <select name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         @foreach($params['urlShorteners'] as $vv)
                             <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
