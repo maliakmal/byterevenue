@@ -58,7 +58,7 @@
     @include('partials.alerts')
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 py-7 sm:px-20 bg-white border-b border-gray-200">
-          
+
           <form action="/recipient_lists/{{ $recipientsList->id }}" enctype="multipart/form-data" method="post">
           @csrf
             @method('PUT')
@@ -66,6 +66,10 @@
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name of List</label>
               <input type="text" value="{{ $recipientsList->name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name"  >
             </div>
+              <div class="mb-4 mt-4">
+                  <label for="source" class="block text-gray-700 text-sm font-bold mb-2">Source</label>
+                  <input type="text" value="{{ $recipientsList->source }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="source" name="source"  >
+              </div>
             <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Update Recipient List</button>
           </form>
         </div>

@@ -44,6 +44,9 @@ class RecipientsListController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'source' => 'nullable|string|min:1|max:100'
+        ]);
         if(auth()->user()->show_introductory_screen == true){
             User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
         }
@@ -119,6 +122,7 @@ FROM contacts
 WHERE file_tag='$newFileName'");
 
 $recipientsList->is_imported = true;
+$recipientsList->source = $request->source;
                 $recipientsList->save();
 
                             DB::commit();
@@ -228,12 +232,14 @@ $recipientsList->is_imported = true;
     {
         $request->validate([
             'name' => 'string|max:255',
+            'source' => 'nullable|string|max:255',
         ]);
 
         $recipientsList = RecipientsList::findOrFail($id);
 
         $recipientsList->update([
             'name' => $request->name,
+            'source' => $request->source,
         ]);
 
         return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');

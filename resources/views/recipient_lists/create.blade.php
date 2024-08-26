@@ -56,7 +56,11 @@
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name of List</label>
               <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="name" name="name" >
               <input type="hidden" class="" id="total_columns" name="total_columns" >
-              
+
+            </div>
+            <div class="mb-4 mt-4">
+              <label for="source" class="block text-gray-700 text-sm font-bold mb-2">Source</label>
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="source" name="source" >
             </div>
             <div class="mb-4">
               <livewire:toggle-contacts-textarea-fileinput radio-input-change="changeRadioButton()" on-change="changeCSV()" textarea-name="numbers" selector-name="entry_type" file-input-name="csv_file" />
@@ -206,7 +210,7 @@
              var data = options[i];
              option_tag += "<option value='"+i+"'>"+data+"</option>";
          }
-         
+
          $('#name_column').empty();
          $('#email_column').empty();
          $('#phone_column').empty();
@@ -221,7 +225,7 @@
          $.LoadingOverlay("hide");
 
      }
-     
+
      function submitForm(){
 
         if(!$('#phone_column').val() || $('#phone_column').val() == '-1' ){
