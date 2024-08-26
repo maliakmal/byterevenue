@@ -196,66 +196,46 @@
       <br/>
       <ul role="list" class="grid grid-cols-1 gap-6">
         <li class="divide-y divide-gray-200 rounded-lg bg-white shadow">
-            <div class="mt-5">
-              <div class="  p-6 sm:rounded-lg">
-                <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Active Accounts</h1>
-                  <table  class="mt-5 table-auto w-full ">
-                    <thead>
-                      <tr class="bg-gray-100">
-                        <th class="px-4 py-2">Name</th>
-                        <th class="px-4 py-2">Campaigns</th>
-                        <th class="px-4 py-2">Campaigns in Queue</th>
-                        <th class="px-4 py-2">Latest Campaign CTR</th>
-                        <th class="px-4 py-2">Email</th>
-                        <th class="px-4 py-2">Tokens</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @forelse ($accounts as $account)
-                        <tr>
-                          <td class="border border-gray-200 px-4 py-2"><a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
-                          <td class="border border-gray-200 px-4 py-2">
-                            <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}">{{ $account->campaigns()->count() }}</a>
-                          </td>
-                          <td class="border border-gray-200 px-4 py-2">
-                            <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}&status=1">{{ $account->processing_campaign_count }}</td>
-                          <td class="border border-gray-200 px-4 py-2">
-                            @if($account->latestCampaign)
-                                {{ number_format($account->latestCampaign->CTR, 2) }}
-                            @else
-                                No campaigns
-                            @endif
-                          </td>
-                          <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
-                          <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>
-                        </tr>
-                      @empty
-                        <tr>
-                          <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No accounts found') }}</td>
-                        </tr>
-                      @endforelse
-                    </tbody>
-                  </table>
-              </div>
-            </div>
-        </li>
-        <li class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
-            <div class="p-6 m-6">
-                <div class="">
-                    <div class="">
-                    <h2 class="truncate font-bold  text-gray-900 ">
-                        Running Campaigns by User
-                      </h2>                    
-                    <div class="  ">
-                      @foreach($params['users_campaigns'] as $user)
-                      <p><a href="/campaigns?user_id={{ $user->id }}">{{ $user->name }}({{ $user->campaigns_count }})</a></p>
-                      @endforeach
-                      
-                    </div>
-
-                    </div>
-                </div>
-            </div>
+          <div class="p-6 sm:rounded-lg">
+            <h1 class="text-2xl text-slate-800 dark:text-slate-100 font-bold mb-1">Running Campaigns by User</h1>
+              <table  class="mt-5 table-auto w-full ">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="px-4 py-2">Name</th>
+                    <th class="px-4 py-2">Campaigns</th>
+                    <th class="px-4 py-2">Campaigns in Queue</th>
+                    <th class="px-4 py-2">Latest Campaign CTR</th>
+                    <th class="px-4 py-2">Email</th>
+                    <th class="px-4 py-2">Tokens</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @forelse ($accounts as $account)
+                    <tr>
+                      <td class="border border-gray-200 px-4 py-2"><a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
+                      <td class="border border-gray-200 px-4 py-2">
+                        <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}">{{ $account->campaigns()->count() }}</a>
+                      </td>
+                      <td class="border border-gray-200 px-4 py-2">
+                        <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}&status=1">{{ $account->processing_campaign_count }}</td>
+                      <td class="border border-gray-200 px-4 py-2">
+                        @if($account->latestCampaign)
+                            {{ number_format($account->latestCampaign->CTR, 2) }}
+                        @else
+                            No campaigns
+                        @endif
+                      </td>
+                      <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
+                      <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No accounts found') }}</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+          </div>
         </li>
       </ul>
       @endif
