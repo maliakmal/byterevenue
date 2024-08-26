@@ -60,7 +60,12 @@
             </div>
             <div class="mb-4 mt-4">
               <label for="source" class="block text-gray-700 text-sm font-bold mb-2">Source</label>
-              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="source" name="source" >
+              <input list="sources" type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="source" name="source" >
+                <datalist id="sources">
+                    @foreach($sources as $source)
+                        <option value="{{$source}}" />
+                    @endforeach
+                </datalist>
             </div>
             <div class="mb-4">
               <livewire:toggle-contacts-textarea-fileinput radio-input-change="changeRadioButton()" on-change="changeCSV()" textarea-name="numbers" selector-name="entry_type" file-input-name="csv_file" />

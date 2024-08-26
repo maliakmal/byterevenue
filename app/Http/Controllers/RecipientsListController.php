@@ -36,7 +36,8 @@ class RecipientsListController extends Controller
      */
     public function create()
     {
-        return view('recipient_lists.create');
+        $sources = $this->getSourceForUser(auth()->id());
+        return view('recipient_lists.create', compact('sources'));
     }
 
     /**
@@ -221,8 +222,9 @@ $recipientsList->source = $request->source;
      */
     public function edit($id)
     {
+        $sources = $this->getSourceForUser(auth()->id());
         $recipientsList = RecipientsList::findOrFail($id);
-        return view('recipient_lists.edit', compact('recipientsList'));
+        return view('recipient_lists.edit', compact('recipientsList', 'sources'));
     }
 
     /**
@@ -258,5 +260,18 @@ $recipientsList->source = $request->source;
         $item->delete();
 
         return redirect()->route('recipient_lists.index')->with('success', 'List deleted successfully.');
+    }
+
+    /**
+     * @param $userID
+     * @return array
+     */
+    private function getSourceForUser($userID) : array
+    {
+        return RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
+            ->where('user_id', $userID)
+            ->whereNotNull('source')
+            ->get()->pluck('source')->toArray();
+
     }
 }
