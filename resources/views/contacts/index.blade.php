@@ -45,82 +45,132 @@
     @include('partials.alerts')
     <div class=" sm:rounded-lg">
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 bg-white border-b border-gray-200">
-
-        <div class="">
-        <table  class="mt-5 ">
-          <thead >
-                    <tr class="bg-gray-100">
-                    <th class="px-4 py-4">Contact Name</th>
-                    @if(auth()->user()->hasRole('admin'))
-                <th class="px-4 py-2">Account</th>
-                @endif
-                            <th  class="px-4 py-3">Email</th>
-                            <th   class="px-4 py-3">Phone</th>
-                            <th class="px-4 py-3">
-                              Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        @forelse ($contacts as $contact)
-
-                        <tr class="border-b dark:border-gray-700">
-                            <td class="border-b border-gray-200 px-4 py-2">{{ $contact->name }}</td>
-                            @if(auth()->user()->hasRole('admin'))
-                            <td class="border-b border-gray-200 px-4 py-2">{{ $contact->user->name }}</td>
-                            @endif
-                            <td class="border-b border-gray-200 px-4 py-2">{{ $contact->email }}</td>
-                            <td class="border-b border-gray-200 px-4 py-2">{{ $contact->phone }}</td>
-                            <td class="border-b border-gray-200 px-4 py-2">
-                            <div class="flex w-0 flex-1">
-            <a href="{{ route('data-source.edit', $contact->id) }}" class="relative   flex-1 items-center justify-center gap-x-3  py-4 text-sm font-semibold text-gray-900">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
-              </svg>
-            </a>
-          </div>
-          <div class="flex w-0 flex-1">
-            <form action="{{ route('data-source.destroy', $contact->id) }}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
-              @csrf
-              @method('DELETE')
-              <button type="submit"  class="w-full flex items-center justify-center gap-x-3   py-4 text-sm font-semibold text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                  <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
-                </svg>
-
-              </button>
-            </form>
-          </div>
-
-                            </td>
-                        </tr>
-
-              @empty
-              <tr class="border-b dark:border-gray-700">
-                <th colspan="4" scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  {{ __('No contacts found') }}
-                </th>
-              </tr>
-              @endforelse
-
-                    </tbody>
-                </table>
-            </div>
+        <div id="card-container" class="p-6 bg-white border-b border-gray-200">
 
 
+            @forelse ($contacts as $index=> $contact)
+                <div style="height:300px;width: 30%;float: left" class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+                    <div class="flex justify-end px-4 pt-4">
+                        <button>
 
+                        </button>
+                    </div>
+                    <div class="flex flex-col items-center pb-10">
+                        <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
+                        <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">{{ $contact->name }}</h5>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ $contact->email }}</span>
+                        <div class="flex mt-4 md:mt-6">
+                            <a href="{{ route('data-source.edit', $contact->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
+                                 Details
+                            </a>
+                            <form action="{{ route('data-source.destroy', $contact->id) }}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="py-2 px-4 ms-2 text-sm font-medium text-red-900 focus:outline-none bg-white rounded-lg border border-red-200 hover:bg-red-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-700 dark:bg-red-800 dark:text-red-400 dark:border-red-600 dark:hover:text-white dark:hover:bg-red-700">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
 
-
-
-          <br/>
-          <div class="p-4 pagination">
-            {{ $contacts->links() }}
-          </div>
+                    </div>
+                </div>
+                @endforeach
 
         </div>
+          <div style="clear: both"></div>
+          <div style="margin-top: 20px">
+              <button id="loadDataButton" style="margin: 0 auto" type="submit"  class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                  Load More ...
+              </button>
+          </div>
       </div>
     </div>
   </div>
+
 </x-app-layout>
+
+@push('scripts')
+<script>
+    var page = 1;
+
+    $(document).ready(function() {
+        var myEl = document.getElementById('loadDataButton');
+
+        myEl.addEventListener('click', function() {
+            $.LoadingOverlay("show");
+            page++;
+                var url = "{!! route('data-source.index') !!}" +"?output=json&page="+page;
+                $.get(url, function(data){
+                    if(data.data.last_page <= page){
+                        $('#loadDataButton').remove();
+                    }
+                    var elements = data.data.data;
+                    console.log(elements);
+                    var str = "";
+                    var i = 0;
+                    for(i=0;i<elements.length;i++){
+                        str += getElementString(elements[i]);
+                    }
+                    console.log(str);
+                    $('#card-container').append(str);
+                    $.LoadingOverlay("hide");
+
+                });
+
+        });
+        function getElementString(ele){
+            var edit = "{!!  route('data-source.edit', 'id') !!}" ;
+            var del = "{!!  route('data-source.destroy', 'id') !!}" ;
+            edit = edit.replace('id', ele.id);
+            del = del.replace('id', ele.id);
+            return `<div style="height:300px;width: 30%;float: left" class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex justify-end px-4 pt-4">
+                <button id="dropdownButton${ele.id}" data-dropdown-toggle="dropdown${ele.id}" class="inline-block text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-1.5" type="button">
+                <span class="sr-only">Open dropdown</span>
+
+        </button>
+            <!-- Dropdown menu -->
+            <div id="dropdown${ele.id}" class="z-10 hidden text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                <ul class="py-2" aria-labelledby="dropdownButton">
+                    <li>
+                        <a href="${edit}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Edit</a>
+                    </li>
+                    <li>
+                        <form action="${del}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"  class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                            Delete
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+            <div class="flex flex-col items-center pb-10">
+                <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
+                <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">${ele.name}</h5>
+                <span class="text-sm text-gray-500 dark:text-gray-400">${ele.email}</span>
+                <div class="flex mt-4 md:mt-6">
+                    <a href="${edit}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
+                        More Details
+                    </a>
+
+
+                    <form action="${del}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
+                                @csrf
+            @method('DELETE')
+            <button type="submit" class="py-2 px-4 ms-2 text-sm font-medium text-red-900 focus:outline-none bg-white rounded-lg border border-red-200 hover:bg-red-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-700 dark:bg-red-800 dark:text-red-400 dark:border-red-600 dark:hover:text-white dark:hover:bg-red-700">
+                Delete
+            </button>
+        </form>
+
+
+</div>
+
+</div>
+</div>`;
+        }
+    });
+
+</script>

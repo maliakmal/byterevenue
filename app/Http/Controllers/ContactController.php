@@ -13,12 +13,16 @@ class ContactController extends Controller
 
     public function index()
     {
+        $perPage = \request()->input('per_page', 12);
         if(auth()->user()->hasRole('admin')):
-            $contacts = Contact::select()->orderby('id', 'desc')->paginate(50);
+            $contacts = Contact::select()->orderby('id', 'desc')->paginate($perPage);
         else:
-            $contacts = auth()->user()->contacts()->latest()->paginate(50);
+            $contacts = auth()->user()->contacts()->orderby('id', 'desc')->paginate($perPage);
         endif;
 
+        if(\request()->input('output') == 'json'){
+            return response()->success(null, $contacts);
+        }
         return view('contacts.index', compact('contacts'));
     }
 
