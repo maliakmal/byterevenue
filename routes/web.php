@@ -30,7 +30,7 @@ Route::middleware([
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
     Route::get('/tokens', [AccountsController::class, 'tokens'])->name('accounts.tokens');
 
-    Route::resource('contacts', ContactController::class);
+    Route::resource('data-source', ContactController::class);
     Route::resource('simcards', SimcardController::class);
     Route::resource('clients', ClientController::class);
     Route::resource('campaigns', CampaignController::class);

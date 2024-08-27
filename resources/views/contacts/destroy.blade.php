@@ -14,7 +14,7 @@
             <p class="text-gray-700 mb-2">Email: {{ $contact->email }}</p>
             <p class="text-gray-700">Phone: {{ $contact->phone }}</p>
             <div class="mt-4">
-              <form action="{{ route('contacts.destroy', $contact->id) }}" method="post">
+              <form action="{{ route('data-source.destroy', $contact->id) }}" method="post">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete Contact</button>
