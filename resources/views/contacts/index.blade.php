@@ -58,7 +58,13 @@
                     <div class="flex flex-col items-center pb-10">
                         <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
                         <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">{{ $contact->name }}</h5>
-                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ $contact->email }}</span>
+                        <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
+                            <b>Email: </b>   {{ $contact->email }}
+                        </span>
+                        <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
+                            <b>Phone: </b>
+                            {{ $contact->phone }}
+                        </span>
                         <div class="flex mt-4 md:mt-6">
                             <a href="{{ route('data-source.edit', $contact->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
                                  Details
@@ -150,9 +156,15 @@
             <div class="flex flex-col items-center pb-10">
                 <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
                 <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">${ele.name}</h5>
-                <span class="text-sm text-gray-500 dark:text-gray-400">${ele.email}</span>
-                <div class="flex mt-4 md:mt-6">
-                    <a href="${edit}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
+                <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
+                            <b>Email: </b>  ${ele.email}
+            </span>
+            <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
+                <b>Phone: </b>
+${ele.phone}
+            </span>
+    <div class="flex mt-4 md:mt-6">
+        <a href="${edit}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
                         Details
                     </a>
 
