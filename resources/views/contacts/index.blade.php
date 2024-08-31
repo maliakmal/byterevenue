@@ -42,13 +42,59 @@
     </header>
 
     <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
-    @include('partials.alerts')
+        @include('partials.alerts')
     <div class=" sm:rounded-lg">
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div id="card-container" class="p-6 bg-white border-b border-gray-200">
+            <form method="get" id="filter-form" action="{{route('data-source.index')}}">
+                <div class="flex flex-wrap -mx-3 mb-2" style="margin-bottom: 25px">
+                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                            Province
+                        </label>
+                        <div class="relative">
+                            <select name="province" style="width: 100%" id="province-filter">
+                                <option value="">Select a province ...</option>
+                                @foreach($area_data['provinces'] as $area)
+                                    <option value="{{$area->province}}">{{$area->province}}</option>
+                                @endforeach
+                            </select>
 
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
+                            City
+                        </label>
+                        <select name="area_code" class="bg-gray-50  text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" style="width: 100%" id="city-filter">
+                            <option value="">Select a city ...</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
+                            Phone
+                        </label>
+                       <input value="{{$_GET['phone']??''}}" name="phone" id="phone" type="number" style="height: 30px" class="border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700
+                       dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+                       dark:focus:border-blue-500" />
+                    </div>
+                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
+                            Name
+                        </label>
+                        <input value="{{$_GET['name']??''}}" name="name" id="name"  style="height: 30px" class="border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700
+                       dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+                       dark:focus:border-blue-500" />
+                    </div>
+                    <div style="padding: 10px" class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Submit</button>
+                    </div>
+                </div>
+            </form>
 
-            @forelse ($contacts as $index=> $contact)
+        @forelse ($contacts as $index=> $contact)
                 <div style="height:300px;width: 30%;float: left" class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
                     <div class="flex justify-end px-4 pt-4">
                         <button>
@@ -97,33 +143,83 @@
 
 @push('scripts')
 <script>
+    var cities = {!! $area_data['cities'] !!};
     var page = 1;
 
     $(document).ready(function() {
-        var myEl = document.getElementById('loadDataButton');
+        $('#province-filter').select2({
+            width: '100%',
+            height: '500px',
+        });
+        $('#city-filter').select2({
+            width: '100%',
+            height: '500px',
+        });
 
+        var province_filter = '{{$_GET['province'] ?? ''}}';
+        var city_filter = '{{$_GET['area_code'] ?? ''}}';
+        if(province_filter){
+            $('#province-filter').val(province_filter).trigger('change');
+            loadCitites(province_filter);
+            if(area_code_filter){
+                $('#city-filter').val(area_code_filter).trigger('change');
+
+            }
+        }
+        var area_code_filter = '{{$_GET['area_code'] ?? ''}}';
+        if(area_code_filter){
+            $('#area_code-filter').val(area_code_filter).trigger('change');
+        }
+
+        var myEl = document.getElementById('loadDataButton');
         myEl.addEventListener('click', function() {
             $.LoadingOverlay("show");
+            var area_code = $('#city-filter').val();
+            var phone = $('#phone').val();
+            var name = $('#name').val();
             page++;
-                var url = "{!! route('data-source.index') !!}" +"?output=json&page="+page;
+                var url = "{!! route('data-source.index') !!}" +"?output=json&page="+page+"&phone="+phone+"&area_code="+area_code+"&name="+name;
                 $.get(url, function(data){
                     if(data.data.last_page <= page){
                         $('#loadDataButton').remove();
                     }
                     var elements = data.data.data;
-                    console.log(elements);
                     var str = "";
                     var i = 0;
                     for(i=0;i<elements.length;i++){
                         str += getElementString(elements[i]);
                     }
-                    console.log(str);
                     $('#card-container').append(str);
                     $.LoadingOverlay("hide");
 
                 });
 
         });
+
+        $('#province-filter').on('select2:select', function (e) {
+            var province = $('#province-filter').val();
+            loadCitites(province);
+
+        });
+
+        function loadCitites(province){
+            var i;
+            $('#city-filter').html("");
+            $.LoadingOverlay("show");
+            for(i=0; i<cities.length;i++){
+                if(cities[i].province == province){
+                    var data = {
+                        id: cities[i].code,
+                        text: cities[i].city_name+" (+"+cities[i].code+")"
+                    };
+                    var newOption = new Option(data.text, data.id, false, false);
+                    $('#city-filter').append(newOption);
+                }
+            }
+            $('#city-filter').trigger('change');
+            $.LoadingOverlay("hide");
+        }
+
         function getElementString(ele){
             var edit = "{!!  route('data-source.edit', 'id') !!}" ;
             var del = "{!!  route('data-source.destroy', 'id') !!}" ;
