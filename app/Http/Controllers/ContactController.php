@@ -26,6 +26,7 @@ class ContactController extends Controller
         else {
             $contacts = auth()->user()->contacts();
         }
+        $contacts = $contacts->withCount(['campaigns', 'sentMessages', 'recipientLists', 'blackListNumber']);
         $area_code = \request('area_code', '');
         $phone = \request('phone', '');
         if(!empty($area_code) || !empty($phone)){

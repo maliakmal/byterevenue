@@ -45,7 +45,7 @@
         @include('partials.alerts')
     <div class=" sm:rounded-lg">
       <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div id="card-container" class="p-6 bg-white border-b border-gray-200">
+        <div id="card-container" class="p-6 bg-white">
             <form method="get" id="filter-form" action="{{route('data-source.index')}}">
                 <div class="flex flex-wrap -mx-3 mb-2" style="margin-bottom: 25px">
                     <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
@@ -70,7 +70,7 @@
                             <option value="">Select a city ...</option>
                         </select>
                     </div>
-                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                    <div class="w-full md:w-1/6 px-3 mb-6 md:mb-0">
                         <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
                             Phone
                         </label>
@@ -79,7 +79,7 @@
                        dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
                        dark:focus:border-blue-500" />
                     </div>
-                    <div class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+                    <div class="w-full md:w-1/6 px-3 mb-6 md:mb-0">
                         <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
                             Name
                         </label>
@@ -88,46 +88,41 @@
                        dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
                        dark:focus:border-blue-500" />
                     </div>
-                    <div style="padding: 10px" class="w-full md:w-1/4 px-3 mb-6 md:mb-0">
+
+                    <div class="w-full md:w-1/6 px-3 mb-6 md:mb-0" style="padding: 10px" >
                         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Submit</button>
                     </div>
                 </div>
             </form>
 
-        @forelse ($contacts as $index=> $contact)
-                <div style="height:300px;width: 30%;float: left" class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                    <div class="flex justify-end px-4 pt-4">
-                        <button>
 
-                        </button>
+            <ul role="list" class="divide-y divide-gray-100">
+                @foreach ($contacts as $index=> $contact)
+
+                <li class="flex justify-between gap-x-6 py-5">
+                    <div class="flex min-w-0 gap-x-4">
+                        <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
+                        <div class="min-w-0 flex-auto">
+                            <p class="text-sm font-semibold leading-6 text-gray-900"> {{$contact->name ?? "{".$contact->phone."}"}}</p>
+                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{$contact->phone}}  |  {{$contact->email}}</p>
+                        </div>
                     </div>
-                    <div class="flex flex-col items-center pb-10">
-                        <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
-                        <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">{{ $contact->name }}</h5>
-                        <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
-                            <b>Email: </b>   {{ $contact->email }}
-                        </span>
-                        <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
-                            <b>Phone: </b>
-                            {{ $contact->phone }}
-                        </span>
-                        <div class="flex mt-4 md:mt-6">
-                            <a href="{{ route('data-source.edit', $contact->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
-                                 Details
-                            </a>
-                            <form action="{{ route('data-source.destroy', $contact->id) }}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="py-2 px-4 ms-2 text-sm font-medium text-red-900 focus:outline-none bg-white rounded-lg border border-red-200 hover:bg-red-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-700 dark:bg-red-800 dark:text-red-400 dark:border-red-600 dark:hover:text-white dark:hover:bg-red-700">
-                                    Delete
-                                </button>
-                            </form>
+                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                        <div class="mt-1 flex items-center gap-x-1.5">
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <div class="flex-none rounded-full @if($contact->black_list_number_count >= 1) bg-red-200 @else bg-emerald-500/20 @endif p-1">
+                                    <div class="h-1.5 w-1.5 rounded-full @if($contact->black_list_number_count >= 1) bg-red-500 @else  bg-emerald-500  @endif"></div>
+                                </div>
+                                <p class="text-xs leading-5 text-gray-500">@if($contact->black_list_number_count >=1 ) Blocked @else Available @endif</p>
+                            </div>
                         </div>
 
-                    </div>
-                </div>
-                @endforeach
+                        <p class="mt-1 text-xs leading-5 text-gray-500"> {{$contact->sent_messages_count}}  sent  message | {{$contact->recipient_lists_count}} recipients | {{$contact->campaigns_count}} campaigns</p>
 
+                    </div>
+                </li>
+                @endforeach
+            </ul>
         </div>
           <div style="clear: both"></div>
           <div style="margin-top: 20px">
@@ -225,59 +220,31 @@
             var del = "{!!  route('data-source.destroy', 'id') !!}" ;
             edit = edit.replace('id', ele.id);
             del = del.replace('id', ele.id);
-            return `<div style="height:300px;width: 30%;float: left" class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-            <div class="flex justify-end px-4 pt-4">
-                <button id="dropdownButton${ele.id}" data-dropdown-toggle="dropdown${ele.id}" class="inline-block text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-1.5" type="button">
-                <span class="sr-only">Open dropdown</span>
-
-        </button>
-            <!-- Dropdown menu -->
-            <div id="dropdown${ele.id}" class="z-10 hidden text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                <ul class="py-2" aria-labelledby="dropdownButton">
-                    <li>
-                        <a href="${edit}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Edit</a>
-                    </li>
-                    <li>
-                        <form action="${del}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"  class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
-                            Delete
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-            <div class="flex flex-col items-center pb-10">
-                <img class="w-24 h-24 mb-3 rounded-full shadow-lg" src="/images/Sample_User_Icon.png" alt="Bonnie image"/>
-                <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">${ele.name}</h5>
-                <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
-                            <b>Email: </b>  ${ele.email}
-            </span>
-            <span style="margin-top: 5px" class="text-sm text-gray-500 dark:text-gray-400">
-                <b>Phone: </b>
-${ele.phone}
-            </span>
-    <div class="flex mt-4 md:mt-6">
-        <a href="${edit}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-green-800">
-                        Details
-                    </a>
 
 
-                    <form action="${del}" method="post" class="relative -ml-px inline-flex flex-1 items-center justify-center">
-                                @csrf
-            @method('DELETE')
-            <button type="submit" class="py-2 px-4 ms-2 text-sm font-medium text-red-900 focus:outline-none bg-white rounded-lg border border-red-200 hover:bg-red-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-700 dark:bg-red-800 dark:text-red-400 dark:border-red-600 dark:hover:text-white dark:hover:bg-red-700">
-                Delete
-            </button>
-        </form>
+            return `
+            <li class="flex justify-between gap-x-6 py-5">
+                    <div class="flex min-w-0 gap-x-4">
+                        <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
+                        <div class="min-w-0 flex-auto">
+                            <p class="text-sm font-semibold leading-6 text-gray-900"> ${ele.name || "{"+ele.phone+"}"}</p>
+                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">${ele.phone +" | "+ ele.email}</p>
+                        </div>
+                    </div>
+                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                        <div class="mt-1 flex items-center gap-x-1.5">
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <div class="flex-none rounded-full ${ele.black_list_number_count >=1 ? "bg-red-200" : "bg-emerald-500/20"}  p-1">
+                                    <div class="h-1.5 w-1.5 rounded-full  ${ele.black_list_number_count >=1 ? "bg-red-500" : "bg-emerald-500"}"></div>
+                                </div>
+                                <p class="text-xs leading-5 text-gray-500">${ele.black_list_number_count >=1 ? "Blocked" : "Available"}</p>
+                            </div>
+                        </div>
 
+                        <p class="mt-1 text-xs leading-5 text-gray-500">${ele.sent_messages_count} sent  message | ${ele.recipient_lists_count} recipients | ${ele.campaigns_count} campaigns</p>
 
-</div>
-
-</div>
-</div>`;
+                    </div>
+                </li>`;
         }
     });
 

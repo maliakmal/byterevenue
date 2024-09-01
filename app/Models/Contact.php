@@ -17,7 +17,20 @@ class Contact extends Model
 
     public function recipientLists()
     {
-        return $this->belongsToMany(RecipientList::class, 'contact_recipient_list', 'contact_id', 'recipients_list_id');
+        return $this->belongsToMany(RecipientsList::class, 'contact_recipient_list', 'contact_id', 'recipients_list_id');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(BroadcastLog::class, 'contact_id', 'id')->where('is_sent', true);
+    }
+    public function campaigns()
+    {
+        return $this->hasMany(BroadcastLog::class, 'contact_id', 'id')->groupBy('campaign_id');
+    }
+    public function blackListNumber()
+    {
+        return $this->hasMany(BlackListNumber::class, 'phone_number', 'phone');
     }
 
 
