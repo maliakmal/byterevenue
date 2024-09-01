@@ -109,17 +109,30 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
      }
 
 
-     public function getUniqueCampaignsIDs($limit){
-        $query = $this->model->newQuery()->select('campaign_id')->distinct();
-        $query = $query->whereNull('batch');
+     public function getUniqueCampaignsIDs($limit = null){
+        $query = $this->model->newQuery()->select('campaign_id');
+        //$query = $query->whereNull('batch');
+        if(!is_null($limit)){
+            $query = $query->take($limit);
+        }
 
-        $query = $query->limit($limit);
-
-        return $query->pluck('campaign_id');
+        return $query->pluck('campaign_id')->unique()->values();
      }
 
      public function getTotalSentAndClicksByCampaign($campaign_id){
         $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->select(
+            [
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ]
+        )->first();
+
+        return $totals;
+     }
+     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no){
+        $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->where('batch', $batch_no)->select(
             [
                 DB::raw('COUNT(id) as total'),
                 DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),

@@ -6,4 +6,6 @@ use App\Repositories\Contract\BaseRepositoryInterface;
 
 interface BatchFileRepositoryInterface extends BaseRepositoryInterface
 {
+    public function getByCampaignId($campaign_id);
+
 }

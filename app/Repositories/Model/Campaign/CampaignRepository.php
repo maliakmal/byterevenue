@@ -26,8 +26,17 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         return $this->model->where('user_id', $userID)->get();
     }
 
+    public function getUnsentByIds(array $ids){
+        $ids = is_array($ids)?$ids:[];
+        $ids[] = 0; // hack in case someone passes an empty array
+
+        return $this->model->whereIn('id', $ids)->whereIn('status', [Campaign::STATUS_PROCESSING])->get();
+
+    }
+
+
     public function getPendingCampaigns(array $params){
-        $fiveDaysAgo = Carbon::now()->subDays(5);
+        $fiveDaysAgo = Carbon::now()->subDays(35);
         return $this->model->whereIn('status', [Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE])->where('submitted_at', '>=', $fiveDaysAgo)->get();
     }
 
