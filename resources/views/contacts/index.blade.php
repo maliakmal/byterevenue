@@ -100,14 +100,44 @@
                 @foreach ($contacts as $index=> $contact)
 
                 <li class="flex justify-between gap-x-6 py-5">
+
+
+
                     <div class="flex min-w-0 gap-x-4">
                         <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
                         <div class="min-w-0 flex-auto">
+
                             <p class="text-sm font-semibold leading-6 text-gray-900"> {{$contact->name ?? "{".$contact->phone."}"}}</p>
                             <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{$contact->phone}}  |  {{$contact->email}}</p>
                         </div>
                     </div>
                     <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+
+
+                        <button id="dropdownDefaultButton{{$index}}" data-dropdown-toggle="dropdown{{$index}}" class="" type="button">
+                            <svg style="color:gainsboro" class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown menu -->
+                        <div id="dropdown{{$index}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton{{$index}}">
+                                <li>
+                                    <a href="{{route('data-source.edit', $contact->id) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                                </li>
+                                <li>
+                                    <form method="post" action="{{route('data-source.destroy', $contact->id) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button href="{{route('data-source.destroy', $contact->id) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Delete</button>
+                                    </form>
+                                </li>
+
+                            </ul>
+                        </div>
+
+
                         <div class="mt-1 flex items-center gap-x-1.5">
                             <div class="mt-1 flex items-center gap-x-1.5">
                                 <div class="flex-none rounded-full @if($contact->black_list_number_count >= 1) bg-red-200 @else bg-emerald-500/20 @endif p-1">
@@ -118,6 +148,7 @@
                         </div>
 
                         <p class="mt-1 text-xs leading-5 text-gray-500"> {{$contact->sent_messages_count}}  sent  message | {{$contact->recipient_lists_count}} recipients | {{$contact->campaigns_count}} campaigns</p>
+
 
                     </div>
                 </li>
