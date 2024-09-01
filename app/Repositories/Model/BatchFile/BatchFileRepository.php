@@ -12,5 +12,7 @@ class BatchFileRepository extends BaseRepository implements BatchFileRepositoryI
     {
         $this->model = $model;
     }
+    public function getByCampaignId($campaign_id){
+    }
 
 }

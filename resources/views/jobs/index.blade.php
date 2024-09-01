@@ -45,16 +45,8 @@
   </div>
 
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="col-span-2 divide-y divide-gray-200 rounded-lg bg-white shadow">
-        <div class="p-6 m-6">
-          <div class="p-6 m-6">
-            <div class="p-6 m-6">
-              <div class="text-3xl font-bold text-slate-800 dark:text-slate-100 mr-2">{{$params['total_not_downloaded_in_queue']}} / {{$params['total_in_queue']}}</div>
-              <small>Messages in Queue</small>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div style="font-size: 6rem" class=" font-bold text-slate-800 dark:text-slate-100 mr-2">{{number_format($params['total_not_downloaded_in_queue']) }} / {{ number_format($params['total_in_queue']) }}</div>
+              <p>Messages in Queue</p>
 
       <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
@@ -77,6 +69,7 @@
                 <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
                   @endforeach
                 </select>
+                <input type="hidden" name="type" value="fifo" />
               </div>
               <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Download</button>
             </form>
@@ -126,7 +119,7 @@
                 <td class="border-b border-gray-200 px-4 py-2">
                   <div class="inline-flex">
                     <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
-                        Regen Unsent
+                        Regen
                     </a>
                   </div>
                 </td>

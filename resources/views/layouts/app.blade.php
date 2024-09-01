@@ -14,6 +14,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.growl@1.3.5/stylesheets/jquery.growl.min.css">
         <style type="text/css">
             .daterangepicker{
                 font-family:sans-serif;
@@ -84,7 +85,8 @@
         <script src="https://cdn.datatables.net/2.1.3/js/dataTables.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery.growl@1.3.5/javascripts/jquery.growl.min.js"></script>
     <!-- Include Chart.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         @stack('other-scripts')

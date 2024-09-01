@@ -32,6 +32,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $batch_no = null;
     protected $batch_file = null;
     protected $is_last = false;
+    protected $type = 'fifo';
+    protected $type_id = null;
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignRepository = null;
@@ -40,7 +42,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct( $offset, $batchSize, $url_shortener = null, $batch_no, $batch_file, $is_last,         
+    public function __construct( $offset, $batchSize, $url_shortener = null, $batch_no, $batch_file, $is_last, $type = 'fifo', $type_id = null         
                                     
     )
     {
@@ -49,6 +51,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->url_shortener = $url_shortener != null ? $url_shortener:$this->url_shortener ;
         $this->campaign_service = new CampaignService();
         $this->batch_no = $batch_no;
+        $this->type = $type;
+        $this->type_id = $type_id;
         $this->offset = $offset;
         $this->batchSize = $batchSize;
         $this->batch_file = $batch_file;
@@ -62,6 +66,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     {
         $unique_campaigns = collect();
         $unique_campaign_map = [];
+        \DB::enableQueryLog();
 
         $new_campaigns = collect();
         $campaign_service = $this->campaign_service;
@@ -70,7 +75,16 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-        $this->logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+        if($this->type == 'fifo'){
+            $this->logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+        }
+        if($this->type == 'campaign'){
+            $this->logs = BroadcastLog::select()->whereNull('batch')->where('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+        }
+        $lastQuery = DB::getQueryLog();
+        $lastQuery = end($lastQuery);
+        Log::info($lastQuery);
+
         Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
         $ids = [0];
         $cases = ["WHEN 0 THEN ''"];

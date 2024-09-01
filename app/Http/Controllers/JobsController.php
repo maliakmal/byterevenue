@@ -34,6 +34,25 @@ class JobsController extends Controller
     {
     }
 
+
+    public function campaigns(Request $request){
+        // get all campaigns which have messages ready to be sent 
+        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+        $campaigns = $this->campaignRepository->getUnsentByIds($uniq_campaign_ids->toArray());
+
+        $urlShorteners = UrlShortener::select()->onlyRegistered()->orderby('id', 'desc')->get();
+
+        $params = [];
+        $params['total_in_queue'] = BroadcastLog::select()->count();
+        $params['campaigns'] = $campaigns;
+        $params['files'] = [];
+        $params['urlShorteners'] = $urlShorteners;
+        $params['total_not_downloaded_in_queue'] = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
+
+        return view('jobs.campaigns', compact('params'));
+
+    }
+
     public function index(Request $request){
 
         $download_me = null;
@@ -50,9 +69,12 @@ class JobsController extends Controller
             $campaign_service = new CampaignService();
             $campaign_short_urls = [];
             $batchSize = 100;
-            $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($total);
+            $type = 'fifo';
+            $type_id = null;
 
-            foreach($uniq_campaign_ids as $uniq_campaign_id):
+            if($request->type == 'campaign'){
+
+                $uniq_campaign_id = $request->campaign_id;
                 if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
                     $alias_for_campaign = uniqid();
                     $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
@@ -61,13 +83,41 @@ class JobsController extends Controller
                         'campaign_id' => $uniq_campaign_id,
                         'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                         'campaign_alias' => $alias_for_campaign,
-                        'url_shortener_id'=>$_url_shortener->id
+                        'url_shortener_id'=>$_url_shortener->id,
+                        'deleted_on_keitaro'=>false
                     ]);
                     $campaign_short_urls[] = $_campaign_short_url;
-    
                 }
+                $type = 'campaign';
+                $type_id = $uniq_campaign_id;
+                $uniq_campaign_ids = [$uniq_campaign_id];
 
-            endforeach;
+            }else{
+                $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($total);
+
+                $_uniq_campaign_ids = array_filter($uniq_campaign_ids->toArray(), function($value) {
+                    return $value !== 0 && !empty($value);
+                });
+                $uniq_campaign_ids = $_uniq_campaign_ids;
+                foreach($uniq_campaign_ids as $uniq_campaign_id):
+                    if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
+                        $alias_for_campaign = uniqid();
+                        $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+    
+                        $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                            'campaign_id' => $uniq_campaign_id,
+                            'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                            'campaign_alias' => $alias_for_campaign,
+                            'url_shortener_id'=>$_url_shortener->id,
+                            'deleted_on_keitaro'=>false
+                        ]);
+                        $campaign_short_urls[] = $_campaign_short_url;
+        
+                    }
+    
+                endforeach;
+    
+            }
 
 
             $numBatches = ceil($total / $batchSize);
@@ -88,14 +138,17 @@ class JobsController extends Controller
                 $offset = $batch * $batchSize;
                 $is_last = $batch ==($numBatches+1)?true:false;
                 Log::info('BATCH number - '.$batch);
-                dispatch(new ProcessCsvQueueBatch($offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last));
+                dispatch(new ProcessCsvQueueBatch($offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last, $type, $type_id));
 
             }
             
             $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
             dispatch(new CreateCampaignsOnKeitaro($params));
-
-            return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+            if($request->ajax()){
+                return response()->json(['data'=>$batch_file]);
+            }else{
+                return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+            }
         }
 
 
@@ -139,9 +192,11 @@ class JobsController extends Controller
         $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch'=>$batch]);
         $total = count($unsent_logs);
         $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($batch);
+        $type = 'fifo';
+        $type_id = null;
+        if($request->type == 'campaign'){
 
-        foreach($uniq_campaign_ids as $uniq_campaign_id):
-            // if there is no existing keitaro camp id for this campaign + url combo - create one
+            $uniq_campaign_id = $request->campaign_id;
             if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
                 $alias_for_campaign = uniqid();
                 $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
@@ -150,12 +205,35 @@ class JobsController extends Controller
                     'campaign_id' => $uniq_campaign_id,
                     'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                     'campaign_alias' => $alias_for_campaign,
-                    'url_shortener_id'=>$_url_shortener->id
+                    'url_shortener_id'=>$_url_shortener->id,
+                    'deleted_on_keitaro'=>false
                 ]);
                 $campaign_short_urls[] = $_campaign_short_url;
             }
+            $type = 'campaign';
+            $type_id = $uniq_campaign_id;
+            $uniq_campaign_ids = [$uniq_campaign_id];
 
-        endforeach;
+        }else{
+
+            foreach($uniq_campaign_ids as $uniq_campaign_id):
+                // if there is no existing keitaro camp id for this campaign + url combo - create one
+                if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
+                    $alias_for_campaign = uniqid();
+                    $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+
+                    $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                        'campaign_id' => $uniq_campaign_id,
+                        'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                        'campaign_alias' => $alias_for_campaign,
+                        'url_shortener_id'=>$_url_shortener->id,
+                        'deleted_on_keitaro'=>false
+                    ]);
+                    $campaign_short_urls[] = $_campaign_short_url;
+                }
+
+            endforeach;
+    }
 
         $numBatches = ceil($total / $batchSize);
         $campaign_short_url_map = []; // maps campaign_id -> short url
@@ -172,7 +250,7 @@ class JobsController extends Controller
             $offset = $batch * $batchSize;
             $is_last = $batch ==($numBatches+1)?true:false;
             Log::info('BATCH number - '.$batch);
-            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last));
+            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last, $type, $type_id));
         }
         
         $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
@@ -185,7 +263,11 @@ class JobsController extends Controller
             $original_batch_file->save();
         }
 
-        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+        if($request->ajax()){
+            return response()->json(['data'=>$batch_file]);
+        }else{
+            return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+        }
 
     }
 

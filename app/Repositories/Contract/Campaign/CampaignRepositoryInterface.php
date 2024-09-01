@@ -12,5 +12,7 @@ interface CampaignRepositoryInterface extends BaseRepositoryInterface
 
     public function markCampaignAsDone($campaign_id);
 
+    public function getUnsentByIds(array $ids);
+
     public function reportCampaigns(array $inputs, array $selectColumns = [], bool $paginate = true);
 }
