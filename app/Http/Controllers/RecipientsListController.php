@@ -36,7 +36,8 @@ class RecipientsListController extends Controller
      */
     public function create()
     {
-        return view('recipient_lists.create');
+        $sources = $this->getSourceForUser(auth()->id());
+        return view('recipient_lists.create', compact('sources'));
     }
 
     /**
@@ -44,6 +45,9 @@ class RecipientsListController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'source' => 'nullable|string|min:1|max:100'
+        ]);
         if(auth()->user()->show_introductory_screen == true){
             User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
         }
@@ -119,6 +123,7 @@ FROM contacts
 WHERE file_tag='$newFileName'");
 
 $recipientsList->is_imported = true;
+$recipientsList->source = $request->source;
                 $recipientsList->save();
 
                             DB::commit();
@@ -217,8 +222,9 @@ $recipientsList->is_imported = true;
      */
     public function edit($id)
     {
+        $sources = $this->getSourceForUser(auth()->id());
         $recipientsList = RecipientsList::findOrFail($id);
-        return view('recipient_lists.edit', compact('recipientsList'));
+        return view('recipient_lists.edit', compact('recipientsList', 'sources'));
     }
 
     /**
@@ -228,12 +234,14 @@ $recipientsList->is_imported = true;
     {
         $request->validate([
             'name' => 'string|max:255',
+            'source' => 'nullable|string|max:255',
         ]);
 
         $recipientsList = RecipientsList::findOrFail($id);
 
         $recipientsList->update([
             'name' => $request->name,
+            'source' => $request->source,
         ]);
 
         return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');
@@ -252,5 +260,18 @@ $recipientsList->is_imported = true;
         $item->delete();
 
         return redirect()->route('recipient_lists.index')->with('success', 'List deleted successfully.');
+    }
+
+    /**
+     * @param $userID
+     * @return array
+     */
+    private function getSourceForUser($userID) : array
+    {
+        return RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
+            ->where('user_id', $userID)
+            ->whereNotNull('source')
+            ->get()->pluck('source')->toArray();
+
     }
 }
