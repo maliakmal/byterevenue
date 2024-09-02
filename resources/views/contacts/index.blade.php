@@ -100,9 +100,13 @@
                 @foreach ($contacts as $index=> $contact)
 
                 <li class="flex justify-between gap-x-6 py-5">
+
+
+
                     <div class="flex min-w-0 gap-x-4">
                         <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
                         <div class="min-w-0 flex-auto">
+
                             <p class="text-sm font-semibold leading-6 text-gray-900"> {{$contact->name ?? "{".$contact->phone."}"}}</p>
                             <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{$contact->phone}}  |  {{$contact->email}}</p>
                         </div>
@@ -115,9 +119,25 @@
                                 </div>
                                 <p class="text-xs leading-5 text-gray-500">@if($contact->black_list_number_count >=1 ) Blocked @else Available @endif</p>
                             </div>
+                            <span class="text-xs">|</span>
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <a href="{{route('data-source.edit', $contact->id) }}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
+                            </div>
+                            <span class="text-xs">|</span>
+                                <form method="post" action="{{route('data-source.destroy', $contact->id) }}">
+                                    <div class="mt-1 flex items-center gap-x-1.5">
+
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="text-xs leading-5 " style="color:darkred"  href="{{route('data-source.destroy', $contact->id) }}">DELETE</button>
+                                    </div>
+
+                                </form>
+
                         </div>
 
                         <p class="mt-1 text-xs leading-5 text-gray-500"> {{$contact->sent_messages_count}}  sent  message | {{$contact->recipient_lists_count}} recipients | {{$contact->campaigns_count}} campaigns</p>
+
 
                     </div>
                 </li>
@@ -232,13 +252,30 @@
                         </div>
                     </div>
                     <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                        <div class="mt-1 flex items-center gap-x-1.5">
+
+
+                <div class="mt-1 flex items-center gap-x-1.5">
                             <div class="mt-1 flex items-center gap-x-1.5">
-                                <div class="flex-none rounded-full ${ele.black_list_number_count >=1 ? "bg-red-200" : "bg-emerald-500/20"}  p-1">
-                                    <div class="h-1.5 w-1.5 rounded-full  ${ele.black_list_number_count >=1 ? "bg-red-500" : "bg-emerald-500"}"></div>
+                                <div class="flex-none rounded-full ${ele.black_list_number_count >=1 ? "bg-red-200" : "bg-emerald-500/20" } p-1">
+                                    <div class="h-1.5 w-1.5 rounded-full ${ele.black_list_number_count >=1 ? "bg-red-500" : "bg-emerald-500" }"></div>
                                 </div>
-                                <p class="text-xs leading-5 text-gray-500">${ele.black_list_number_count >=1 ? "Blocked" : "Available"}</p>
+                                <p class="text-xs leading-5 text-gray-500">${ele.black_list_number_count >=1  ? "Blocked" : "Available" }</p>
                             </div>
+                            <span class="text-xs">|</span>
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <a href="${edit}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
+                            </div>
+                            <span class="text-xs">|</span>
+                                <form method="post" action="${del}">
+                                    <div class="mt-1 flex items-center gap-x-1.5">
+
+                                    @csrf
+            @method('DELETE')
+            <button class="text-xs leading-5 " style="color:darkred">DELETE</button>
+                                    </div>
+
+                                </form>
+
                         </div>
 
                         <p class="mt-1 text-xs leading-5 text-gray-500">${ele.sent_messages_count} sent  message | ${ele.recipient_lists_count} recipients | ${ele.campaigns_count} campaigns</p>
