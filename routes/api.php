@@ -21,6 +21,7 @@ Route::get('/user', function (Request $request) {
     });
     Route::prefix('jobs')->group(function (){
         Route::post('/generate-csv', [\App\Http\Controllers\JobsController::class, 'index']);
+        Route::post('/regenerate-csv', [\App\Http\Controllers\JobsController::class, 'regenerateUnsent']);
     });
 
     Route::prefix('batch_files')->group(function (){

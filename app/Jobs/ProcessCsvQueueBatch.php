@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
+use App\Models\Message;
 use App\Models\CampaignShortUrl;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
@@ -34,6 +35,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $is_last = false;
     protected $type = 'fifo';
     protected $type_id = null;
+    protected $message_id = null;
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignRepository = null;
@@ -42,7 +44,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct( $offset, $batchSize, $url_shortener = null, $batch_no, $batch_file, $is_last, $type = 'fifo', $type_id = null         
+    public function __construct( $offset, $batchSize, $url_shortener = null, $batch_no, $batch_file, $is_last, $type = 'fifo', $type_id = null, $message_id = null         
                                     
     )
     {
@@ -53,6 +55,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batch_no = $batch_no;
         $this->type = $type;
         $this->type_id = $type_id;
+        $this->message_id = $message_id;
         $this->offset = $offset;
         $this->batchSize = $batchSize;
         $this->batch_file = $batch_file;
@@ -108,6 +111,12 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     $message = $log->message;
                 }
             }
+
+            if($this->message_id != null){
+                $message = Message::find($this->message_id);
+            }
+
+
             if ($message) {
                 // check if there an existing URL for this campaign with the same domain
                 if(isset($campaign_short_url_map[$campaign->id])){
@@ -155,7 +164,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
                         'campaign_id' => $campaign->id,
                         'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                         'campaign_alias' => $alias_for_campaign,
-                        'url_shortener_id'=>$_url_shortener->id
+                        'url_shortener_id'=>$_url_shortener->id,
+                        'deleted_on_keitaro'=>false
                     ]);
 
                     $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
@@ -185,8 +195,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             }
             $ids[] =  $log->id;
 
-
-        
             // $log->is_downloaded_as_csv = 1;
             // $log->batch = $batch_no;
             // $log->save();
@@ -236,7 +244,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         SET `message_body` = CASE `id` 
             {$caseList} 
         END,
-
+        ".($this->message_id != null ? " `message_id` = '$this->message_id', ":"")."
         `is_downloaded_as_csv` = 1,
         `batch` = '$batch',
         `updated_at` = NOW()

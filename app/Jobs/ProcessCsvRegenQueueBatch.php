@@ -11,6 +11,7 @@ use App\Models\BroadcastLog;
 use App\Models\CampaignShortUrl;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
+use App\Models\Message;
 use App\Services\Campaign\CampaignService;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 
@@ -33,6 +34,9 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
     protected $original_batch_no = null;
     protected $batch_file = null;
     protected $is_last = false;
+    protected $type = 'fifo';
+    protected $type_id = null;
+    protected $message_id = null;
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignRepository = null;
@@ -41,7 +45,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct( $offset, $batchSize, $url_shortener = null, $original_batch_no, $batch_no, $batch_file, $is_last,         
+    public function __construct( $offset, $batchSize, $url_shortener = null, $original_batch_no, $batch_no, $batch_file, $is_last, $type = 'fifo', $type_id = null, $message_id = null        
                                     
     )
     {
@@ -55,6 +59,9 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         $this->batchSize = $batchSize;
         $this->batch_file = $batch_file;
         $this->is_last = $is_last;
+        $this->type = $type;
+        $this->type_id = $type_id;
+        $this->message_id = $message_id;
     }
 
     /**
@@ -73,7 +80,14 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         $original_batch_no = $this->original_batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-        $this->logs = BroadcastLog::select()->where('batch', $this->original_batch_no)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+
+        if($this->type == 'fifo'){
+            $this->logs = BroadcastLog::select()->where('batch', $this->original_batch_no)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+        }
+        if($this->type == 'campaign'){
+            $this->logs = BroadcastLog::select()->where('batch', $this->original_batch_no)->where('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+        }
+
         Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
         $ids = [0];
         $cases = ["WHEN 0 THEN ''"];
@@ -97,6 +111,11 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
                     $message = $log->message;
                 }
             }
+
+            if($this->message_id != null){
+                $message = Message::find($this->message_id);
+            }
+
             if ($message) {
                 // check if there an existing URL for this campaign with the same domain
                 if(isset($campaign_short_url_map[$campaign->id])){
@@ -144,7 +163,8 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
                         'campaign_id' => $campaign->id,
                         'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                         'campaign_alias' => $alias_for_campaign,
-                        'url_shortener_id'=>$_url_shortener->id
+                        'url_shortener_id'=>$_url_shortener->id,
+                        'deleted_on_keitaro'=>false
                     ]);
 
                     $campaign_short_url_map[$campaign->id] = $_campaign_short_url;

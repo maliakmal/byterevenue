@@ -45,18 +45,12 @@
 
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
 
-  <div id="preloader-overlay" class="absolute hidden bg-white bg-opacity-50 z-10 h-full w-full flex items-center justify-center">
-    <div class="flex items-center">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><radialGradient id="a11" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="#BABABA"></stop><stop offset=".3" stop-color="#BABABA" stop-opacity=".9"></stop><stop offset=".6" stop-color="#BABABA" stop-opacity=".6"></stop><stop offset=".8" stop-color="#BABABA" stop-opacity=".3"></stop><stop offset="1" stop-color="#BABABA" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a11)" stroke-width="15" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="#BABABA" stroke-width="15" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>    </div>
-  </div>
-
-
   <div style="font-size: 6rem" class=" font-bold text-slate-800 dark:text-slate-100 mr-2">{{number_format($params['total_not_downloaded_in_queue']) }} / {{ number_format($params['total_in_queue']) }}</div>
-              <p>Messages in Queue</p>
+    <p>Messages in Queue</p>
         <div class="m-6">
         </div>
 
-      <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg hidden">
+      <div class="mt-5 bg-white overflow-hidden  sm:rounded-lg hidden">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
           <form action="{{ route('jobs.postIndex') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
               @csrf
@@ -72,7 +66,7 @@
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
-                <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
+                <select id="_url_shortener" name="_url_shortener" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
                 @foreach($params['urlShorteners'] as $vv)
                 <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
                   @endforeach
@@ -84,16 +78,16 @@
           </div>
         </div>
 
-<div class="shadow-xl  grid grid-cols-2 gap-4 ">
-    <div class="bg-white rounded-lg  p-4  overflow-y-auto" style="max-height:600px;">
+<div class="  grid grid-cols-2 gap-4 ">
+    <div class="bg-white rounded-lg  p-4  overflow-y-auto" style="max-height:600px;" >
         <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2 mb-4">Campaigns</div>
+        <div class="">
         @foreach($params['campaigns'] as $campaign)
         <div id="campaign-{{ $campaign->id }}" class="bg-gray-100 border-2 border-white p-4 mb-4 hover:bg-white lnk-campaign cursor-pointer" data-id="{{ $campaign->id }}" >
             <h3 class="mb-1 text-slate-900 font-semibold">
                 <span class="mb-1 block text-sm leading-6 text-indigo-500">
                 <a href="/accounts/{{ $campaign->user_id }}">Created by: {{ $campaign->user->name }}</a></span><span class="text-xl">{{ $campaign->title}}</span>
             </h3>
-        
             <span class="group inline-flex items-center h-9 rounded-full text-sm font-semibold whitespace-nowrap px-3 focus:outline-none focus:ring-2 bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900 focus:ring-slate-500 mt-2" >
                 <span class="font-semibold text-gray-700">{{ $campaign->total_recipients }} </span> 
                 <span class="text-gray-500 ms-1">Recipients</span>
@@ -106,11 +100,11 @@
             <span class="font-semibold text-gray-700">{{ $campaign->total_recipients - $campaign->total_recipients_sent_to }} </span> 
                 <span class="text-gray-500 ms-1">Unsent to</span>
             </span>
-
-    </div>
+          </div>
 
 
         @endforeach
+        </div>
     </div>
     <div class="">
     <div id="campaign_box" class="mb-5 bg-white show-when-campaign-clicked hidden shadow-xl sm:rounded-lg ">
@@ -201,14 +195,6 @@
         </div>
         </div>
         </div>
-
-
-      <div class="mt-5 bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-
-
-        </div>
-      </div>
     </div>
   </div>
 </x-app-layout>
@@ -232,7 +218,7 @@
                 </button>
             </div>
             <!-- Modal body -->
-            <form action="/jobs/regenerate" method="post">
+            <form id="frm-regenerate-csv" method="post">
             @csrf
             <div class="p-4 md:p-5 space-y-4">
                 <p>This will generate a unique csv list with regenerated messages using the spintax and selected short domain below.
@@ -266,7 +252,7 @@
             </div>
             <!-- Modal footer -->
             <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Regenerate</button>
+                <button type="button" id="btn-regenerate-csv" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Regenerate</button>
                 <button data-modal-hide="default-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancel</button>
             </div>
             </form>
@@ -395,6 +381,14 @@
           this.modal.show();
         }
 
+        this.hideModal = function(){
+          if(this.modal == null){
+            return;
+          }
+
+          this.modal.hide();
+        }
+
         this.getCampaignObjectID = function(campaign_id){
             return this.campaign_object_id.replace('[id]', campaign_id);
         }
@@ -437,11 +431,14 @@
     };
 
     var showPreloader = function(){
-        $('#preloader-overlay').removeClass('hidden');
+      $.LoadingOverlay("show");
+
+        //$('#preloader-overlay').removeClass('hidden');
     }
 
     var hidePreloader = function(){
-        $('#preloader-overlay').addClass('hidden');
+      $.LoadingOverlay("hide");
+      //$('#preloader-overlay').addClass('hidden');
     }
 
     var campaignServiceManager = new CampaignService();
@@ -482,6 +479,38 @@
       $('#message_body').val(_m.body);
       // $('#default-modal').removeClass('hidden');
       campaignServiceManager.showModal();
+    });
+
+    
+    $('body').on('click', '#btn-regenerate-csv', function(e){
+        e.preventDefault();
+        showPreloader();
+        $.ajax({
+            url: '/api/jobs/regenerate-csv', // Replace with your API endpoint
+            method: 'POST',
+            data: { 
+                campaign_id: campaignServiceManager.selected_campaign, 
+                type:'campaign',
+                message_body: $('#frm-regenerate-csv').find('textarea#message_body').first().val(),
+                batch: $('#frm-regenerate-csv').find('input#modal_batch').first().val(),
+                number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
+                url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+            },
+            success: function(response) {
+
+            campaignServiceManager.hideModal();
+
+            hidePreloader();
+
+            campaignServiceManager.triggerSelectedCampaignClick();
+            $.growl.notice({ message: "CSV has started regenerating" });
+
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error);
+            }
+        });
+
     });
 
     $('body').on('click', '.lnk-campaign', function(e){
