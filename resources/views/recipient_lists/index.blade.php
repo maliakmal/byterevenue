@@ -46,140 +46,180 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
     @include('partials.alerts')
     <div class=" sm:rounded-lg">
-    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 bg-white border-b border-gray-200">
+    <div  class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+        <div id="card-container" class="p-6 bg-white border-b border-gray-200">
+            <form method="get" id="filter-form" action="{{route('recipient_lists.index')}}">
+                <div class="flex flex-wrap -mx-3 mb-2" style="margin-bottom: 25px">
+
+                    <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
+                            Name
+                        </label>
+                        <input value="{{$_GET['name']??''}}" name="name" id="name_filter" type="text" style="height: 40px" class="border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700
+                       dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+                       dark:focus:border-blue-500" />
+                    </div>
+                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-zip">
+                            Is Imported
+                        </label>
+                        <select name="is_imported" id="is_imported_filter"  style="height: 40px" class="border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700
+                       dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+                       dark:focus:border-blue-500">
+                            <option value="">Choose</option>
+                            <option @if(($_GET['is_imported']??'') == '1') selected @endif  value="1">Yes</option>
+                            <option @if(($_GET['is_imported']??'') == '0') selected @endif value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="w-full md:w-1/6 px-3 mb-6 md:mb-0" style="padding: 10px" >
+                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Submit</button>
+                    </div>
+                </div>
+            </form>
 
 
+            <ul id="list-container" role="list" class="divide-y divide-gray-100">
+                @foreach ($recipient_lists as $index=> $item)
 
+                    <li class="flex justify-between gap-x-6 py-5">
+                        <div class="flex min-w-0 gap-x-4">
+                            <img class="h-12 w-12 flex-none bg-gray-50" src="/images/recipient.png" alt="">
+                            <div class="min-w-0 flex-auto">
+                                <p class="text-sm font-semibold leading-6 text-gray-900"> {{$item->name ?? "{NO NAME}"}}</p>
+                                <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                                @if(auth()->user()->hasRole('admin'))
+                                    <a href="{{ route('accounts.show', $item->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
+                                            {{ $item->user?->name }}
+                                    </a>
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <div class="mt-1 flex items-center gap-x-1.5">
+                                    <div class="flex-none rounded-full @if($item->is_imported == false) bg-yellow-100 @else bg-emerald-500/20 @endif p-1">
+                                        <div class="h-1.5 w-1.5 rounded-full @if($item->is_imported == false) bg-yellow-500 @else  bg-emerald-500  @endif"></div>
+                                    </div>
+                                    <p class="text-xs leading-5 text-gray-500">@if($item->is_imported == false ) Import In Progress @else Import Completed @endif</p>
+                                </div>
 
+                                <span class="text-xs">|</span>
+                                <div class="mt-1 flex items-center gap-x-1.5">
+                                    <a href="{{route('recipient_lists.edit', $item->id) }}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
+                                </div>
+                                <span class="text-xs">|</span>
+                                <form method="post" action="{{route('recipient_lists.destroy', $item->id) }}">
+                                    <div class="mt-1 flex items-center gap-x-1.5">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-xs leading-5 " style="color:darkred"  href="{{route('recipient_lists.destroy', $item->id) }}">DELETE</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <p class="mt-1 text-xs leading-5 text-gray-500"> {{$item->contacts_count}}  Num Recipients | {{$item->campaigns_count}} Campaigns Used | {{$item->source ?? "..." }} source</p>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
 
-
-
-      @if(count($recipient_lists)>0)
-
-      <table  class="mt-5 table-auto w-full">
-        <thead>
-        <tr class="bg-gray-100">
-        <th class="px-4 py-2">ID</th>
-                <th class="px-4 py-2">Name</th>
-                @if(auth()->user()->hasRole('admin'))
-                <th class="px-4 py-2">User</th>
-                @endif
-                <th class="px-4 py-2">Num. Recipients</th>
-                <th class="px-4 py-2">Campaigns Used</th>
-                <th class="px-4 py-2">Imported?</th>
-                <th class="px-4 py-2">Source</th>
-                <th class="px-4 py-2">Created At</th>
-                <th class="px-4 py-2">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-
-      @foreach ($recipient_lists as $recipient_list)
-
-      <tr>
-                <td class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->id }}</td>
-                <td class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->name }}</td>
-
-                @if(auth()->user()->hasRole('admin'))
-                <td class="border-b border-gray-200 px-4 py-2"><a href="{{ route('accounts.show', $recipient_list->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
-                {{ $recipient_list->user->name }}</a></td>
-                @endif
-                <td class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->contacts()->count() }}</td>
-                <td class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->campaigns()->count() }}</td>
-                <td class="border-b border-gray-200 px-4 py-2">
-
-                @if($recipient_list->is_imported == 1)
-          <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">Import Complete</span>
-
-          @else
-          <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-yellow-300 border border-yellow-300">Import in Progress</span>
-          @endif
-
-                </td>
-          <td class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->source }}</td>
-                <td title="{{ $recipient_list->created_at }}" class="border-b border-gray-200 px-4 py-2">{{ $recipient_list->created_at->diffForHumans() }}</td>
-                <td class="border-b border-gray-200 px-4 py-2">
-
-                <div class="-mt-px flex divide-x divide-gray-200">
-        <div class="flex w-0 flex-1">
-          <a href="{{ route('recipient_lists.show', $recipient_list->id) }}" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border-none py-4 text-sm font-semibold text-gray-900">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-              <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clip-rule="evenodd" />
-            </svg>
-          </a>
+</div>
+        <div style="margin-top: 20px">
+            <button id="loadDataButton" style="margin: 0 auto" type="submit"  class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                Load More ...
+            </button>
         </div>
-
-          <div class="flex w-0 flex-1">
-            <a href="{{ route('recipient_lists.edit', $recipient_list->id) }}" class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3  py-4 text-sm font-semibold text-gray-900">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
-              </svg>
-            </a>
-          </div>
-          @if($recipient_list->canBeDeleted())
-
-          <div class="flex w-0 flex-1">
-
-          <form action="{{ route('recipient_lists.destroy', $recipient_list->id) }}" method="post" class="relative -ml-px inline-flex w-0 flex-1 items-center justify-center">
-          @csrf
-          @method('DELETE')
-          <button type="submit"  class="w-full flex items-center justify-center gap-x-3   py-4 text-sm font-semibold text-gray-900">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                  <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
-                </svg>
-
-
-          </button>
-        </form>
-
-          </div>
-        @endif
-      </div>
-
-                </td>
-            </tr>
-
-
-
-
-          @endforeach
-            <!-- Add more rows as needed -->
-            </tbody>
-    </table>
-<br/>
-
-
-
-
-
-
-
-
-
-
-<br/>
-{{ $recipient_lists->links()}}
-@else
-<div class="flex w-full items-center  space-x-6 p-6">
-  <div class="flex-1 truncate">
-    <div class="flex items-center space-x-3">
-      <h3 class="truncate text-sm font-medium text-gray-900">No Recipient List found</h3>
-
-    </div>
-  </div>
-  <span class="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-blue-600 ring-1 hidden ring-inset ring-green-600/20">Creator</span>
-</div>
-
-@endif
-
-
-
-
-</div>
     </div>
     </div>
     </div>
   </div>
 </x-app-layout>
+
+@push('scripts')
+    <script>
+        var page = 1;
+
+        $(document).ready(function() {
+            var myEl = document.getElementById('loadDataButton');
+            myEl.addEventListener('click', function () {
+                $.LoadingOverlay("show");
+                // var area_code = $('#city-filter').val();
+                // var phone = $('#phone').val();
+                var name = $('#name_filter').val();
+                var isImported = $('#is_imported_filter').val();
+                page++;
+                {{--var url = "{!! route('recipient_lists.index') !!}" + "?output=json&page=" + page + "&phone=" + phone + "&area_code=" + area_code + "&name=" + name;--}}
+                var url = "{!! route('recipient_lists.index') !!}" + "?output=json&page=" + page + "&name=" + name+ "&is_imported=" + isImported ;
+                $.get(url, function (data) {
+                    if (data.data.last_page <= page) {
+                        $('#loadDataButton').remove();
+                    }
+                    var elements = data.data.data;
+                    var str = "";
+                    var i = 0;
+                    for (i = 0; i < elements.length; i++) {
+                        str += getElementString(elements[i]);
+                    }
+                    $('#list-container').append(str);
+                    $.LoadingOverlay("hide");
+
+                });
+
+            });
+
+
+            function getElementString(ele){
+                var edit = "{!!  route('recipient_lists.edit', 'id') !!}" ;
+                var del = "{!!  route('recipient_lists.destroy', 'id') !!}" ;
+                var account_link = "{!! route('accounts.show', 'user_id') !!}" ;
+                edit = edit.replace('id', ele.id);
+                del = del.replace('id', ele.id);
+                account_link = account_link.replace('user_id', ele.user_id);
+
+
+                return `
+                <li class="flex justify-between gap-x-6 py-5">
+                        <div class="flex min-w-0 gap-x-4">
+                            <img class="h-12 w-12 flex-none bg-gray-50" src="/images/recipient.png" alt="">
+                            <div class="min-w-0 flex-auto">
+                                <p class="text-sm font-semibold leading-6 text-gray-900"> ${ele.name || "{NO NAME}"}</p>
+                                <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+
+                <a href="${account_link}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
+                                            ${ ele?.user?.name || "" }
+                </a>
+                </p>
+            </div>
+        </div>
+        <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+            <div class="mt-1 flex items-center gap-x-1.5">
+                <div class="mt-1 flex items-center gap-x-1.5">
+                    <div class="flex-none rounded-full ${ele.is_imported == false ? "bg-yellow-100" : "bg-emerald-500/20"} p-1">
+                                        <div class="h-1.5 w-1.5 rounded-full ${ele.is_imported == false ? "bg-yellow-500" :  "bg-emerald-500"}" ></div>
+                                    </div>
+                                    <p class="text-xs leading-5 text-gray-500">${ele.is_imported == false ? "Import In Progress" : "Import Completed"}</p>
+                                </div>
+
+                                <span class="text-xs">|</span>
+                                <div class="mt-1 flex items-center gap-x-1.5">
+                                    <a href="${edit}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
+                                </div>
+                                <span class="text-xs">|</span>
+                                <form method="post" action="${del}">
+                                    <div class="mt-1 flex items-center gap-x-1.5">
+                                        @csrf
+                @method('DELETE')
+                <button class="text-xs leading-5 " style="color:darkred">DELETE</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <p class="mt-1 text-xs leading-5 text-gray-500"> ${ele.contacts_count}  Num Recipients | ${ele.campaigns_count} Campaigns Used | ${ele.source || "..." } source</p>
+                        </div>
+                    </li>`;
+            }
+
+        });
+    </script>

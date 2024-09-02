@@ -21,13 +21,26 @@ class RecipientsListController extends Controller
      */
     public function index()
     {
+        $per_page = 12;
+        $recipient_lists = null;
         if(auth()->user()->hasRole('admin')):
-            $recipient_lists = RecipientsList::select()->orderby('id', 'desc')->paginate(10);
+            $recipient_lists = RecipientsList::select()->with('user')->withCount(['contacts', 'campaigns']);
         else:
-            $recipient_lists = auth()->user()->recipientLists()->latest()->paginate(10);
+            $recipient_lists = auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
         endif;
 
+        if(\request()->input('name')){
+            $recipient_lists = $recipient_lists->where('name', 'like', '%'.\request()->input('name').'%');
+        }
+        if(is_numeric(\request()->input('is_imported', ''))){
+            $recipient_lists = $recipient_lists->where('is_imported', \request()->input('is_imported'));
+        }
 
+        $recipient_lists = $recipient_lists->orderby('id', 'desc')->paginate($per_page);
+
+        if(\request()->input('output') == 'json'){
+            return response()->success(null, $recipient_lists);
+        }
         return view('recipient_lists.index', compact('recipient_lists'));
     }
 
