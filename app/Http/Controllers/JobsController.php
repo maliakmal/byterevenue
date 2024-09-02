@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use App\Models\BroadcastLog;
+use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
@@ -194,7 +195,18 @@ class JobsController extends Controller
         $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($batch);
         $type = 'fifo';
         $type_id = null;
+        $message_id = null;
+
         if($request->type == 'campaign'){
+
+            $campaign = Campaign::find($request->campaign_id);
+            if($campaign->message->body != $request->message_body){
+                $new_message = $campaign->message->replicate();
+                $new_message->body = $request->message_body;
+                $new_message->save();
+                $message_id = $new_message->id;
+            }
+
 
             $uniq_campaign_id = $request->campaign_id;
             if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
@@ -244,13 +256,14 @@ class JobsController extends Controller
                 'path' => env('DO_SPACES_ENDPOINT') . $filename,
                 'number_of_entries' => $total,
                 'is_ready'=>0]);
-        
+        $batch_file->campaigns()->attach($uniq_campaign_ids);
+
         Log::info('numBatches - '.$numBatches);
         for ($batch = 0; $batch < $numBatches; $batch++) {
             $offset = $batch * $batchSize;
             $is_last = $batch ==($numBatches+1)?true:false;
             Log::info('BATCH number - '.$batch);
-            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last, $type, $type_id));
+            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last, $type, $type_id, $message_id));
         }
         
         $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
