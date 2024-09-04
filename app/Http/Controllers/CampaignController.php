@@ -30,7 +30,7 @@ class CampaignController extends Controller
                 'status'=> request('status')!=''?request('status'):null,
                 'user_id'=> request('user_id')?request('user_id'):null,
                 'sortby'=> request('sortby')?request('sortby'):'id_desc',
-                'count'=> request('count')?request('count'):5,
+                'count'=> 12,
             );
 
 
@@ -39,6 +39,7 @@ class CampaignController extends Controller
             }
 
             if(auth()->user()->hasRole('admin')){
+                $campaigns = $campaigns->with(['user']);
 
                 if(!empty($filter['user_id'])){
                     $campaigns->where('user_id', $filter['user_id']);
@@ -74,6 +75,9 @@ class CampaignController extends Controller
                 }
             }
             $campaigns = $campaigns->paginate($filter['count']);
+            if(\request()->input('output') == 'json'){
+                return response()->success(null, $campaigns);
+            }
 
             return view('campaigns.index', compact('campaigns', 'filter'));
         }
@@ -277,7 +281,7 @@ class CampaignController extends Controller
          */
         public function destroy(Campaign $campaign)
         {
-            $client->delete();
+            $campaign->delete();
 
             return redirect()->route('campaigns.index')->with('success', 'Campaign deleted successfully.');
         }

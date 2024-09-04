@@ -22,7 +22,7 @@
                   <svg class="h-5 w-5 flex-shrink-0 text-gray-400" x-description="Heroicon name: mini/chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"></path>
                   </svg>
-                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Campaign: {{ $campaign->title }}</a> 
+                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Campaign: {{ $campaign->title }}</a>
                 </div>
               </li>
             </ol>
@@ -38,7 +38,7 @@
                     <span class="py-1 px-2.5 border-none rounded bg-green-100 text-xl text-green-800 font-medium">Done</span>
                     @break
                   @endswitch
-                  </h1> 
+                  </h1>
           <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
             {{ $campaign->description }}
           </div>
@@ -119,12 +119,12 @@
                 <tr>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $log->recipient_phone }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">
-                  
+
                     <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-white flex flex-col relative speech-bubble-left">
                       <p>{{ $log->message_body }}</p>
                     </div>
-                  
-                  
+
+
                   </td>
                   <td class="py-4 px-6 border-b border-gray-200">{{ $log->created_at }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">UNDER PROCESS</td>
@@ -157,9 +157,9 @@
                   <td class="py-4 px-6 border-b border-gray-200">{{ $contact->phone }}</td>
                   <td class="py-4 px-6 border-b border-gray-200">
                   <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-blue-100 flex flex-col relative speech-bubble-left">
-                      <p>{{ $message->getParsedMessage() }}</p>
+                      <p>{{ $message?->getParsedMessage() }}</p>
                     </div>
- 
+
                   </td>
                   <td class="py-4 px-6 border-b border-gray-200"></td>
                 </tr>

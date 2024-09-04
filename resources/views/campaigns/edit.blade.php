@@ -70,7 +70,7 @@
             </div>
             <div class="mb-4">
               <label for="message_body" class="block text-gray-700 text-sm font-bold mb-2">Message Body</label>
-              <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" >{{ $campaign->message->body }}</textarea>
+              <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" >{{ $campaign?->message?->body }}</textarea>
               <small>Enter content as spintax. <a href="javascript:void(0)" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-1 px-1  font-medium text-gray-700 shadow-sm hover:bg-gray-50 " id="lnk-spintax-preview">Preview</a></small>
             </div>
             <div class="mb-4 hidden" id="spintax-holder">
@@ -84,7 +84,7 @@
             </div>
             <div class="mb-4">
               <label for="message_target_url" class="block text-gray-700 text-sm font-bold mb-2">Message Target Url</label>
-              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_target_url" value="{{ $campaign->message->target_url }}" name="message_target_url" >
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_target_url" value="{{ $campaign?->message?->target_url }}" name="message_target_url" >
             </div>
             <input type="hidden" id="message_subject" name="message_subject" value="Subject-{{ time() }}" >
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">Update Campaign</button>
