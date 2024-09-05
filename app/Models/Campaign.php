@@ -134,16 +134,5 @@ class Campaign extends Model
         return $this->belongsToMany(BatchFile::class, 'batch_file_campaign');
     }
 
-    public function statusString()
-    {
-        switch($this->status) {
-            case(\App\Models\Campaign::STATUS_DRAFT):
-                return "Draft";
-            case(\App\Models\Campaign::STATUS_PROCESSING):
-                return "Processing";
-            case(\App\Models\Campaign::STATUS_DONE):
-                    return "Done";
-        }
-        return "";
-    }
+
 }
