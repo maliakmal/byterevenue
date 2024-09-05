@@ -49,20 +49,20 @@ class DashboardController extends Controller
                       ->where('status', [Campaign::STATUS_PROCESSING]);
             }, 'processing_campaign_count')->having('campaign_count', '>', 0)->orderBy('campaign_count', 'desc')->orderby('updated_at', 'desc')->get()->take(10);
 
-            $params['total_in_queue'] = BroadcastLog::select()->count();
-            $params['total_not_downloaded_in_queue'] = BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
+            $params['total_in_queue'] = BroadcastLog::select('id')->count();
+            $params['total_not_downloaded_in_queue'] = BroadcastLog::select('id')->where('is_downloaded_as_csv', 0)->count();
             $startDate = Carbon::createFromFormat('m/d/Y', $start_date);
             $endDate = Carbon::createFromFormat('m/d/Y', $end_date);
 
-            $params['total_campaigns'] = Campaign::select()->whereBetween('created_at', [$startDate, $endDate])->count();
-            $params['total_num_sent'] = BroadcastLog::select()->where('is_sent', 1)->whereBetween('sent_at', [$startDate, $endDate])->count();
-            $params['total_num_clicks'] = BroadcastLog::select()->where('is_click', 1)->whereBetween('clicked_at', [$startDate, $endDate])->count();
+            $params['total_campaigns'] = Campaign::select('id')->whereBetween('created_at', [$startDate, $endDate])->count();
+            $params['total_num_sent'] = BroadcastLog::select('id')->where('is_sent', 1)->whereBetween('sent_at', [$startDate, $endDate])->count('id');
+            $params['total_num_clicks'] = BroadcastLog::select('id')->where('is_click', 1)->whereBetween('clicked_at', [$startDate, $endDate])->count();
             $params['ctr'] = $params['total_num_sent'] == 0 || $params['total_num_clicks'] == 0 ? 0 : ($params['total_num_clicks'] / $params['total_num_sent']) * 100;
             $params['start_date'] = $start_date;
             $params['end_date'] = $end_date;
 
-            $params['campaigns_remaining_in_queue'] = BroadcastLog::select('campaign_id')->distinct()->where('is_sent', 0)->get()->count();
-            $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->distinct()->get()->count();
+            $params['campaigns_remaining_in_queue'] = BroadcastLog::select('campaign_id')->where('is_sent', 0)->groupby('campaign_id')->get()->count();
+            $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->groupby('campaign_id')->get()->count('id');
             $params['campaigns_completed_from_queue'] = $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
             $params['users_campaigns'] = User::withCount('campaigns')->having('campaigns_count', '>', 0)->orderBy('campaigns_count', 'desc')->get()->take(10);
 

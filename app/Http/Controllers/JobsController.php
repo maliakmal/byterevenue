@@ -39,11 +39,18 @@ class JobsController extends Controller
     public function campaigns(Request $request){
         // get all campaigns which have messages ready to be sent 
         $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
-        $campaigns = $this->campaignRepository->getUnsentByIds($uniq_campaign_ids->toArray());
+        $user_id = $request->filter_client?$request->filter_client:null;
+        if($user_id > 0){
+            $campaigns = $this->campaignRepository->getUnsentByIdsOfUser($uniq_campaign_ids->toArray(), $user_id);
+        }else{
+            $campaigns = $this->campaignRepository->getUnsentByIds($uniq_campaign_ids->toArray());
+        }
 
         $urlShorteners = UrlShortener::select()->onlyRegistered()->orderby('id', 'desc')->get();
 
         $params = [];
+        $params['clients'] = \App\Models\User::all();
+        $params['selected_client'] = $user_id;
         $params['total_in_queue'] = BroadcastLog::select()->count();
         $params['campaigns'] = $campaigns;
         $params['files'] = [];
@@ -75,23 +82,31 @@ class JobsController extends Controller
 
             if($request->type == 'campaign'){
 
-                $uniq_campaign_id = $request->campaign_id;
-                if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
-                    $alias_for_campaign = uniqid();
-                    $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+                $uniq_campaign_ids = $request->campaign_ids;
 
-                    $_campaign_short_url = $this->campaignShortUrlRepository->create([
-                        'campaign_id' => $uniq_campaign_id,
-                        'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
-                        'campaign_alias' => $alias_for_campaign,
-                        'url_shortener_id'=>$_url_shortener->id,
-                        'deleted_on_keitaro'=>false
-                    ]);
-                    $campaign_short_urls[] = $_campaign_short_url;
-                }
+                $_uniq_campaign_ids = array_filter($uniq_campaign_ids, function($value) {
+                    return $value !== 0 && !empty($value);
+                });
+                $uniq_campaign_ids = $_uniq_campaign_ids;
+                foreach($uniq_campaign_ids as $uniq_campaign_id):
+
+                    if(!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $url_shortener)){
+                        $alias_for_campaign = uniqid();
+                        $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
+
+                        $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                            'campaign_id' => $uniq_campaign_id,
+                            'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                            'campaign_alias' => $alias_for_campaign,
+                            'url_shortener_id'=>$_url_shortener->id,
+                            'deleted_on_keitaro'=>false
+                        ]);
+                        $campaign_short_urls[] = $_campaign_short_url;
+                    }
+                endforeach;
                 $type = 'campaign';
-                $type_id = $uniq_campaign_id;
-                $uniq_campaign_ids = [$uniq_campaign_id];
+                $type_id = $uniq_campaign_ids;
+                //$uniq_campaign_ids = [$uniq_campaign_id];
 
             }else{
                 $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($total);

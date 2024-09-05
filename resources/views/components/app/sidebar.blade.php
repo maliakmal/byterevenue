@@ -291,7 +291,7 @@
                     <path class="fill-current @if(in_array(Request::segment(1), ['jobs'])){{ 'text-indigo-500' }}@else{{ 'text-slate-600' }}@endif" d="M10.034 13.997a11.011 11.011 0 0 1-2.551-3.862L4.595 13.02a2.513 2.513 0 0 0-.4 2.645 6.668 6.668 0 0 0 1.64 2.532 5.525 5.525 0 0 0 3.643 1.824 2.1 2.1 0 0 0 1.534-.587l2.883-2.882a11.156 11.156 0 0 1-3.861-2.556Z" />
                     <path class="fill-current @if(in_array(Request::segment(1), ['jobs'])){{ 'text-indigo-300' }}@else{{ 'text-slate-400' }}@endif" d="M21.554 2.471A8.958 8.958 0 0 0 18.167.276a3.105 3.105 0 0 0-3.295.467L9.715 5.888c-1.41 1.408-.665 4.275 1.733 6.668a8.958 8.958 0 0 0 3.387 2.196c.459.157.94.24 1.425.246a2.559 2.559 0 0 0 1.87-.715l5.156-5.146c1.415-1.406.666-4.273-1.732-6.666Zm.318 5.257c-.148.147-.594.2-1.256-.018A7.037 7.037 0 0 1 18.016 6c-1.73-1.728-2.104-3.475-1.73-3.845a.671.671 0 0 1 .465-.129c.27.008.536.057.79.146a7.07 7.07 0 0 1 2.6 1.711c1.73 1.73 2.105 3.472 1.73 3.846Z" />
                 </svg>
-                <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Queues</span>
+                <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Global Queue</span>
             </div>
             <!-- Icon -->
             <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
@@ -305,12 +305,12 @@
         <ul class="pl-9 mt-1 @if(!in_array(Request::segment(1), ['jobs'])){{ 'hidden' }}@endif" :class="open ? '!block' : 'hidden'">
             <li class="mb-1 last:mb-0">
                 <a class="block text-slate-400 hover:text-slate-200 transition duration-150 truncate @if(Route::is('jobs.index')){{ '!text-indigo-500' }}@endif" href="{{route('jobs.index')}}">
-                    <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">FIFO</span>
+                    <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Process as FIFO</span>
                 </a>
             </li>
             <li class="mb-1 last:mb-0">
                 <a class="block text-slate-400 hover:text-slate-200 transition duration-150 truncate @if(Route::is('jobs.campaigns')){{ '!text-indigo-500' }}@endif" href="{{route('jobs.campaigns')}}">
-                    <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Campaigns</span>
+                    <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Process by Campaigns</span>
                 </a>
             </li>
         </ul>

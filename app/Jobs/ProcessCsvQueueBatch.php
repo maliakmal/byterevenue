@@ -82,11 +82,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $this->logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
         if($this->type == 'campaign'){
-            $this->logs = BroadcastLog::select()->whereNull('batch')->where('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $this->logs = BroadcastLog::select()->whereNull('batch')->whereIn('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
         $lastQuery = DB::getQueryLog();
         $lastQuery = end($lastQuery);
         Log::info($lastQuery);
+        Log::info('this->type_id');
+        Log::info($this->type_id);
 
         Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
         $ids = [0];

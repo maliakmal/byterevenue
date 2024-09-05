@@ -79,67 +79,87 @@
         </div>
 
 <div class="  grid grid-cols-2 gap-4 ">
-    <div class="bg-white rounded-lg  p-4  overflow-y-auto" style="max-height:600px;" >
+<div class="bg-white  rounded-lg " >
+        <div id="card-container" class="p-6 bg-white">
+
         <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2 mb-4">Campaigns</div>
-        <div class="">
-        @foreach($params['campaigns'] as $campaign)
-        <div id="campaign-{{ $campaign->id }}" class="bg-gray-100 border-2 border-white p-4 mb-4 hover:bg-white lnk-campaign cursor-pointer" data-id="{{ $campaign->id }}" >
-            <h3 class="mb-1 text-slate-900 font-semibold">
-                <span class="mb-1 block text-sm leading-6 text-indigo-500">
-                <a href="/accounts/{{ $campaign->user_id }}">Created by: {{ $campaign->user->name }}</a></span><span class="text-xl">{{ $campaign->title}}</span>
-            </h3>
-            <span class="group inline-flex items-center h-9 rounded-full text-sm font-semibold whitespace-nowrap px-3 focus:outline-none focus:ring-2 bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900 focus:ring-slate-500 mt-2" >
-                <span class="font-semibold text-gray-700">{{ $campaign->total_recipients }} </span> 
-                <span class="text-gray-500 ms-1">Recipients</span>
-            </span>
-            <span class="group inline-flex items-center h-9 rounded-full text-sm font-semibold whitespace-nowrap px-3 focus:outline-none focus:ring-2 bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900 focus:ring-slate-500 mt-2" >
-                <span class="font-semibold text-gray-700">{{ $campaign->total_recipients_sent_to }} </span> 
-                <span class="text-gray-500 ms-1">Sent to</span>
-            </span>
-            <span class="group inline-flex items-center h-9 rounded-full text-sm font-semibold whitespace-nowrap px-3 focus:outline-none focus:ring-2 bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900 focus:ring-slate-500 mt-2" >
-            <span class="font-semibold text-gray-700">{{ $campaign->total_recipients - $campaign->total_recipients_sent_to }} </span> 
-                <span class="text-gray-500 ms-1">Unsent to</span>
-            </span>
-          </div>
+
+        <form method="get" id="filter-form">
+                <div class="flex flex-wrap -mx-3 mb-2" style="margin-bottom: 25px">
+                    <div class="w-full md:w-3/4 px-3 mb-6 md:mb-0">
+                        <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                            Clients
+                        </label>
+                        <div class="relative">
+                            <select name="filter_client" style="width: 100%" id="filter_client">
+                                <option value="">Select a client ...</option>
+                                @foreach($params['clients'] as $client)
+                                    <option {{ $params['selected_client'] == $client->id?'selected':'' }} value="{{$client->id}}">{{$client->id}} - {{$client->name}}</option>
+                                @endforeach
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/4 px-3" style="padding: 10px" >
+                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Filter</button>
+                    </div>
+                </div>
+            </form>
 
 
-        @endforeach
-        </div>
+        <div class="overflow-y-auto overflow-hidden" style="max-height:600px;">
+        <ul role="list" class="divide-y divide-gray-100  mr-2">
+            @foreach($params['campaigns'] as $campaign)
+
+                <li class="flex justify-between gap-x-6 py-5"  id="campaign-{{ $campaign->id }}" data-id="{{ $campaign->id }}">
+
+
+
+                    <div class="flex min-w-0 gap-x-3">
+                    <input type="checkbox" class="flex-col  selectable-campaigns mt-2" value="{{ $campaign->id }}" name="selected_campaigns[]">
+                    <div class="min-w-0 flex-auto">
+
+
+                            <p class="text-sm font-semibold leading-6 text-gray-900">{{ $campaign->id}}:{{ $campaign->title}}</p>
+                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                            <a href="/accounts/{{ $campaign->user_id }}">Created by: {{ $campaign->user->name }}</a>
+                              
+
+                            </p>
+                        </div>
+                    </div>
+                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                        <div class="mt-1 flex items-center gap-x-1.5">
+                            <div class="mt-1 flex items-center gap-x-1.5">
+                                <a href="javascript:alert('WIP');" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">IGNORE</a>
+                            </div>
+                        </div>
+
+                        <p class="mt-1 text-xs leading-5 text-gray-500"> {{ $campaign->total_recipients_sent_to }}   sent  message | {{ $campaign->total_recipients }}  recipients | {{ $campaign->total_recipients - $campaign->total_recipients_sent_to }} unsent</p>
+
+
+                    </div>
+                </li>
+                @endforeach
+            </ul>
+
+
+
+        </div>    
+      </div>
     </div>
     <div class="">
     <div id="campaign_box" class="mb-5 bg-white show-when-campaign-clicked hidden shadow-xl sm:rounded-lg ">
     <div class="p-4   bg-white border-b border-gray-200">
-    <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Campaign: <span id="_campaign_id"></span></div>
-        <dl class="">
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700 w-1/2">Name</dt>
-        <dd class="ml-4 text-gray-600  w-1/2" id="campaign_name" ></dd>
+    <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2"><span id="total_selected_campaigns"></span> Campaign(s) selected</div>
+    <div class="text-xl pt-5 font-semibold text-slate-800 dark:text-slate-100 mr-2">
+      <span id="total_recipients"></span> Recipients, 
+      <span id="total_exported"></span> Messages Exported, 
+      <span id="total_pending_export"></span> Messages Pending Export,
+      <span id="total_sent"></span> Messages sent,
+      <span id="total_clicked"></span> Messages Clicked
     </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">User</dt>
-        <dd class="ml-4 text-gray-600  w-1/2"><a href="" id="campaign_user"></a></dd>
-    </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">Total Recipients</dt>
-        <dd class="ml-4 text-gray-600 w-1/2" id="campaign_total_recipients"></dd>
-    </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">Total Messages Exported</dt>
-        <dd class="ml-4 text-gray-600 w-1/2" id="campaign_total_exported"></dd>
-    </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">Total Messages Pending Export</dt>
-        <dd class="ml-4 text-gray-600 w-1/2" id="campaign_total_pending_export"></dd>
-    </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">Total Messages Sent</dt>
-        <dd class="ml-4 text-gray-600 w-1/2" id="campaign_total_sent"></dd>
-    </div>
-    <div class="flex ">
-        <dt class="font-semibold text-gray-700  w-1/2">Total Messages Clicked</dt>
-        <dd class="ml-4 text-gray-600 w-1/2" id="campaign_total_clicked"></dd>
-    </div>
-</dl>
 
 
       </div>
@@ -225,7 +245,7 @@
                   Once done the messages would be removed from the original csv and shifted to a new csv for download. 
                   Proceed if this is what you intend to do.</p>
 
-                <div class="form-group">
+                <div class="form-group hideable-message-edit">
               <label for="message_body" class="block text-gray-700 text-sm font-bold mb-2">Message Body</label>
               <textarea style="min-height:150px" class="shadow appearance-none border h-50 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" ></textarea>
               <small>Enter content as spintax. <a href="javascript:void(0)" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-1 px-1  font-medium text-gray-700 shadow-sm hover:bg-gray-50 " id="lnk-spintax-preview">Preview</a></small>
@@ -313,7 +333,7 @@
             url: '/api/jobs/generate-csv', // Replace with your API endpoint
             method: 'POST',
             data: { 
-                campaign_id: campaignServiceManager.selected_campaign, 
+                campaign_ids: campaignServiceManager.selected_campaign, 
                 type:'campaign',
                 number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
                 url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
@@ -323,7 +343,6 @@
 
             hidePreloader();
 
-            campaignServiceManager.triggerSelectedCampaignClick();
             $.growl.notice({ message: "CSV has started generating" });
 
             },
@@ -359,6 +378,8 @@
 
     var CampaignService = function(){
         this.selected_campaign = null;
+        this.selected_campaigns = [];
+        this.selected_campaign_ids = [];
         this.campaign_message = null;
         this.selected_class = '';
         this.selectable_campaign_class = 'lnk-campaign';
@@ -373,6 +394,13 @@
           this.modal = new Modal(document.getElementById('default-modal'));
         }
 
+        this.showModalEditMessage = function(){
+          $('.hideable-message-edit').removeClass('hidden');
+        }
+        this.hideModalEditMessage = function(){
+          $('.hideable-message-edit').addClass('hidden');
+        }
+
         this.showModal = function(){
           if(this.modal == null){
             return;
@@ -380,6 +408,139 @@
 
           this.modal.show();
         }
+
+        this.getCampaignIds = function(){
+          var campaign_ids = [];
+          console.log({ss:this.selected_campaigns});
+          for(let i =0; i< this.selected_campaigns.length; i++){
+            campaign_ids.push(this.selected_campaigns[i]['id']);
+          }          
+          let result = campaign_ids.filter((value, index, self) => self.indexOf(value) === index);
+
+
+          return result;
+        }
+
+
+        this.refreshCampaignsAndBatchFiles = function(){
+          var campaign_ids = this.getCampaignIds();
+          if(campaign_ids.length == 0){
+            return;
+          }
+
+          this.getCampaignsAndBatchFiles(campaign_ids);
+        }
+
+        
+        this.getCampaignsAndBatchFiles = function(campaign_ids){
+          var _this = this;
+
+          showPreloader();
+          // AJAX POST request
+          $.ajax({
+              url: '/api/batch_files', // Replace with your API endpoint
+              method: 'POST',
+              data: { campaign_ids: campaign_ids },
+              success: function(response) {
+                campaignServiceManager.initializeModal();
+                
+                  var template = $('#files-template').html();
+                
+                // Clear previous content
+                $('#data-table').find('tbody').empty();
+                
+                // Set Mustache.js delimiters
+                Mustache.tags = ['[[', ']]'];
+                hidePreloader();
+
+                var vals = [];
+
+                let attribs = ['id', 'title', 'username', 'user_id', 'total_recipients', 'recipients_in_process', 'total_recipients_sent_to', 'total_recipients_click_thru', 'total_recipients_in_process'] ;
+                for(let i = 0; i< attribs.length; i++){
+                  vals[attribs[i]] = [];
+                }
+                vals['pending_export'] = [];
+                _this.selected_campaigns = [];
+                for(let i = 0; i < response.data.campaigns.length; i++){
+                  _this.selected_campaigns.push(response.data.campaigns[i]);
+                  for(let j = 0; j < attribs.length; j++){
+                    let idx = attribs[j];
+                    vals[idx].push(response.data.campaigns[i][idx]);
+                  }
+                  vals['pending_export'].push(response.data.campaigns[i]['total_recipients'] - response.data.campaigns[i]['total_recipients_in_process']);
+
+                }
+                console.log({vals:vals});
+                campaignServiceManager.toggleCampaignAssetsDisplayOnClick();
+                campaignServiceManager.setMessage(response.data.message);
+                $('#total_selected_campaigns').html(campaign_ids.length);
+                let total_recipients = vals['total_recipients'].reduce(function (x, y) {
+                    return x + y;
+                }, 0);
+                $('#total_recipients').html(total_recipients.toLocaleString());
+
+                let total_exported = vals['total_recipients_in_process'].reduce(function (x, y) {
+                    return x + y;
+                }, 0);  
+                $('#total_exported').html(total_exported.toLocaleString());
+                $('#total_pending_export').html(vals['pending_export'].reduce(function (x, y) {
+                    return x + y;
+                }, 0));
+                $('#total_sent').html(vals['total_recipients_sent_to'].reduce(function (x, y) {
+                    return x + y;
+                }, 0));
+                $('#total_clicked').html(vals['total_recipients_click_thru'].reduce(function (x, y) {
+                    return x + y;
+                }, 0));
+
+                if(total_recipients == total_exported 
+                    && ((total_recipients + total_exported) > 0)){
+                  $('.show-if-no-exportable').removeClass('hidden');
+                  $('.show-if-exportable').addClass('hidden');
+                }else{
+                  $('.show-if-no-exportable').addClass('hidden');
+                  $('.show-if-exportable').removeClass('hidden');
+                }
+
+                // Process each post and generate HTML
+                response.data.files.forEach(function(file) {
+                    // Render the template with data
+                    var html = Mustache.render(template, file);
+                    // Append the generated HTML to the posts container
+                    $('#data-table').find('tbody').append(html);
+                });
+
+              },
+              error: function(xhr, status, error) {
+                  console.error('An error occurred:', error);
+              }
+          });
+
+
+        }
+
+        this.selectCampaign = function(id){
+          var campaign_ids  = this.getCampaignIds();
+          campaign_ids.push(id);
+
+          this.getCampaignsAndBatchFiles(campaign_ids);
+        }
+
+        this.getNumCampaigns = function(){
+          return this.selected_campaigns.length;
+        }
+
+        this.unselectCampaign = function(id){
+          for(let i = 0; i< this.selected_campaigns.length; i++){
+            if(this.selected_campaigns[i].id ==  id){
+              this.selected_campaigns.splice(i, 1);
+            }
+          }
+          var campaign_ids  = this.getCampaignIds();
+          this.getCampaignsAndBatchFiles(campaign_ids);
+        }
+
+
 
         this.hideModal = function(){
           if(this.modal == null){
@@ -401,32 +562,13 @@
           return this.campaign_message;
         }
 
-        this.triggerSelectedCampaignClick = function(){
-            if(this.selected_campaign == null){
-                return;
-            }
 
-            $('#'+ this.getCampaignObjectID(this.selected_campaign)).trigger('click');
-        }
-
-        this.selectCampaign = function(campaign_id){
-            this.unmarkAllCampaignObjects();
-            this.selected_campaign = campaign_id;
-            this.markSelectedCampaign(campaign_id);
-        }
-
-        this.markSelectedCampaign = function(campaign_id){
-            $('#'+this.getCampaignObjectID(campaign_id)).removeClass(this.unselected_class);
-            $('#'+this.getCampaignObjectID(campaign_id)).addClass(this.selected_class);
-        }
-
-        this.unmarkAllCampaignObjects = function(){
-            $('.'+this.selectable_campaign_class).removeClass(this.selected_class);
-            $('.'+this.selectable_campaign_class).addClass(this.unselected_class);
-        }
-
-        this.toggleCampaignAssetsDisplayOnClick = function(campaign_id){
+        this.toggleCampaignAssetsDisplayOnClick = function(){
+          if(this.getNumCampaigns()>0){
             $('.'+this.selectable_on_camp_click).removeClass('hidden');
+          }else{
+            $('.'+this.selectable_on_camp_click).addClass('hidden');
+          }
         }
     };
 
@@ -442,7 +584,13 @@
     }
 
     var campaignServiceManager = new CampaignService();
-
+    $('body').on('change', '.selectable-campaigns', function() {
+                if ($(this).is(':checked')) {
+                  campaignServiceManager.selectCampaign($(this).val());
+                } else {
+                  campaignServiceManager.unselectCampaign($(this).val());
+                }
+              });
 
     $('body').on('click', '#btn-generate-csv', function(e){
         e.preventDefault();
@@ -451,7 +599,7 @@
             url: '/api/jobs/generate-csv', // Replace with your API endpoint
             method: 'POST',
             data: { 
-                campaign_id: campaignServiceManager.selected_campaign, 
+                campaign_ids: campaignServiceManager.getCampaignIds(), 
                 type:'campaign',
                 number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
                 url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
@@ -461,7 +609,6 @@
 
             hidePreloader();
 
-            campaignServiceManager.triggerSelectedCampaignClick();
             $.growl.notice({ message: "CSV has started generating" });
 
             },
@@ -473,10 +620,19 @@
     });
 
 
+
+
     $('body').on('click','.btn-batch-regenerate', function(){
       $('#modal_batch').val($(this).data('batch_id'));
-      let _m = campaignServiceManager.getMessage();
-      $('#message_body').val(_m.body);
+      if(campaignServiceManager.getNumCampaigns()==1){
+        let _m = campaignServiceManager.getMessage();
+        $('#message_body').val(_m.body);
+        campaignServiceManager.showModalEditMessage();
+      }else{
+        $('#message_body').val('');
+        campaignServiceManager.hideModalEditMessage();
+
+      }
       // $('#default-modal').removeClass('hidden');
       campaignServiceManager.showModal();
     });
@@ -518,7 +674,6 @@
         // Get the data-id attribute
         var id = $(this).data('id');
 
-        console.log({campaignServiceManager:campaignServiceManager});
         campaignServiceManager.selectCampaign(id);
         showPreloader();
         // AJAX POST request

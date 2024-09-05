@@ -26,6 +26,14 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         return $this->model->where('user_id', $userID)->get();
     }
 
+    public function getUnsentByIdsOfUser(array $ids, $user_id = null){
+        $ids = is_array($ids)?$ids:[];
+        $ids[] = 0; // hack in case someone passes an empty array
+
+        return $this->model->whereIn('id', $ids)->where('user_id', $user_id)->whereIn('status', [Campaign::STATUS_PROCESSING])->get();
+    }
+
+
     public function getUnsentByIds(array $ids){
         $ids = is_array($ids)?$ids:[];
         $ids[] = 0; // hack in case someone passes an empty array
