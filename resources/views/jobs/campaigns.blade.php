@@ -620,8 +620,8 @@
             hidePreloader();
             $(_this).parents('.campaign-list-item').first().addClass('ignore-campaign');
             $.growl.notice({ message: "Campaign has been ignored" });
-            $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
-            $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
+            $('#span-total-in-queue').html(response.total_in_queue.toLocaleString());
+            $('#span-total-not-downloaded-in-queue').html(response.total_not_downloaded_in_queue.toLocaleString());
           },
           error: function(xhr, status, error) {
               console.error('An error occurred:', error);
@@ -643,8 +643,8 @@
               hidePreloader();
               $(_this).parents('.campaign-list-item').first().removeClass('ignore-campaign');
               $.growl.notice({ message: "Campaign has been ignored" });
-              $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
-              $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
+              $('#span-total-in-queue').html(response.total_in_queue.toLocaleString());
+              $('#span-total-not-downloaded-in-queue').html(response.total_not_downloaded_in_queue.toLocaleString());
             },
             error: function(xhr, status, error) {
                 console.error('An error occurred:', error);
