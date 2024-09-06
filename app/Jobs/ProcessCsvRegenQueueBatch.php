@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
 use App\Models\CampaignShortUrl;
+use App\Models\Campaign;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
 use App\Models\Message;
@@ -80,12 +81,12 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         $original_batch_no = $this->original_batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
         if($this->type == 'fifo'){
-            $this->logs = BroadcastLog::select()->where('batch', $this->original_batch_no)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $this->logs = BroadcastLog::select()->whereNotIn('campaign_id', $ignored_campaigns)->where('batch', $this->original_batch_no)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
         if($this->type == 'campaign'){
-            $this->logs = BroadcastLog::select()->where('batch', $this->original_batch_no)->where('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $this->logs = BroadcastLog::select()->whereNotIn('campaign_id', $ignored_campaigns)->where('batch', $this->original_batch_no)->where('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
 
         Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);

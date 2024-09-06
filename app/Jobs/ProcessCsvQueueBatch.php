@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
 use App\Models\Message;
+use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
@@ -78,11 +79,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
+
         if($this->type == 'fifo'){
-            $this->logs = BroadcastLog::select()->whereNull('batch')->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $this->logs = BroadcastLog::select()->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
         if($this->type == 'campaign'){
-            $this->logs = BroadcastLog::select()->whereNull('batch')->whereIn('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $this->logs = BroadcastLog::select()->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)->whereIn('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
         }
         $lastQuery = DB::getQueryLog();
         $lastQuery = end($lastQuery);

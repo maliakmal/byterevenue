@@ -45,7 +45,7 @@
 
   <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
 
-  <div style="font-size: 6rem" class=" font-bold text-slate-800 dark:text-slate-100 mr-2">{{number_format($params['total_not_downloaded_in_queue']) }} / {{ number_format($params['total_in_queue']) }}</div>
+  <div style="font-size: 6rem" class=" font-bold text-slate-800 dark:text-slate-100 mr-2"><span id="span-total-not-downloaded-in-queue">{{number_format($params['total_not_downloaded_in_queue']) }}</span> / <span id="span-total-in-queue">{{ number_format($params['total_in_queue']) }}</span></div>
     <p>Messages in Queue</p>
         <div class="m-6">
         </div>
@@ -112,12 +112,12 @@
         <ul role="list" class="divide-y divide-gray-100  mr-2">
             @foreach($params['campaigns'] as $campaign)
 
-                <li class="flex justify-between gap-x-6 py-5"  id="campaign-{{ $campaign->id }}" data-id="{{ $campaign->id }}">
+                <li class="flex justify-between gap-x-6 campaign-list-item py-5 {{ $campaign->is_ignored_on_queue?' ignore-campaign ':'' }} "  id="campaign-{{ $campaign->id }}" data-id="{{ $campaign->id }}">
 
 
 
                     <div class="flex min-w-0 gap-x-3">
-                    <input type="checkbox" class="flex-col  selectable-campaigns mt-2" value="{{ $campaign->id }}" name="selected_campaigns[]">
+                    <input type="checkbox" class="flex-col hide-on-ignore selectable-campaigns mt-2" value="{{ $campaign->id }}" name="selected_campaigns[]">
                     <div class="min-w-0 flex-auto">
 
 
@@ -132,7 +132,8 @@
                     <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                         <div class="mt-1 flex items-center gap-x-1.5">
                             <div class="mt-1 flex items-center gap-x-1.5">
-                                <a href="javascript:alert('WIP');" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">IGNORE</a>
+                            <a href="javascript:void(0);" style="color: dodgerblue" data-id="{{ $campaign->id }}" class="hide-on-ignore lnk-ignore text-xs leading-5 text-gray-500">IGNORE</a>
+                            <a href="javascript:void(0);" style="color: dodgerblue" data-id="{{ $campaign->id }}"  class="show-on-ignore lnk-unignore text-xs leading-5 text-gray-500">UNIGNORE</a>
                             </div>
                         </div>
 
@@ -262,7 +263,7 @@
                 
                 <div class="form-group">
                     <label>Domain: </label>
-                    <select name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <select name="url_shortener"  id="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         @foreach($params['urlShorteners'] as $vv)
                             <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
                         @endforeach
@@ -606,11 +607,61 @@
             },
             success: function(response) {
 
+              hidePreloader();
 
-            hidePreloader();
+              $.growl.notice({ message: "CSV has started generating" });
+              var html = Mustache.render(template, response.data);
+              $('#data-table').find('tbody').append(html);
 
-            $.growl.notice({ message: "CSV has started generating" });
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error);
+            }
+        });
 
+    });
+
+    $('body').on('click','.lnk-ignore', function(e){
+      e.preventDefault();
+      showPreloader();
+      var _this = this;
+      $(this).parents('.campaign-list-item').first().find('input').first().prop('checked', false);
+        $.ajax({
+            url: '/api/campaigns/ignore', // Replace with your API endpoint
+            method: 'POST',
+            data: { 
+                campaign_id: $(this).data('id'), 
+            },
+            success: function(response) {
+              hidePreloader();
+              $(_this).parents('.campaign-list-item').first().addClass('ignore-campaign');
+              $.growl.notice({ message: "Campaign has been ignored" });
+              $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
+              $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error);
+            }
+        });
+
+    });
+
+    $('body').on('click','.lnk-unignore', function(e){
+      e.preventDefault();
+      showPreloader();
+      var _this = this;
+        $.ajax({
+            url: '/api/campaigns/unignore', // Replace with your API endpoint
+            method: 'POST',
+            data: { 
+                campaign_id: $(this).data('id'), 
+            },
+            success: function(response) {
+              hidePreloader();
+              $(_this).parents('.campaign-list-item').first().removeClass('ignore-campaign');
+              $.growl.notice({ message: "Campaign has been ignored" });
+              $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
+              $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
             },
             error: function(xhr, status, error) {
                 console.error('An error occurred:', error);
@@ -645,21 +696,21 @@
             url: '/api/jobs/regenerate-csv', // Replace with your API endpoint
             method: 'POST',
             data: { 
-                campaign_id: campaignServiceManager.selected_campaign, 
+                campaign_ids: campaignServiceManager.getCampaignIds(), 
                 type:'campaign',
-                message_body: $('#frm-regenerate-csv').find('textarea#message_body').first().val(),
-                batch: $('#frm-regenerate-csv').find('input#modal_batch').first().val(),
-                number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
-                url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+                message_body: $('#default-modal').find('textarea#message_body').first().val(),
+                batch: $('#default-modal').find('input#modal_batch').first().val(),
+                url_shortener: $('#default-modal').find('select#url_shortener').first().val(), 
             },
             success: function(response) {
 
-            campaignServiceManager.hideModal();
+              campaignServiceManager.hideModal();
 
-            hidePreloader();
+              hidePreloader();
 
-            campaignServiceManager.triggerSelectedCampaignClick();
-            $.growl.notice({ message: "CSV has started regenerating" });
+              $.growl.notice({ message: "CSV has started regenerating" });
+              var html = Mustache.render(template, response.data);
+              $('#data-table').find('tbody').append(html);
 
             },
             error: function(xhr, status, error) {

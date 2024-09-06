@@ -21,6 +21,30 @@
                 font-family:sans-serif;
             }
 
+            .ignore-campaign input {
+                visibility: hidden;
+            }
+
+            .ignore-campaign {
+                opacity: 0.5;
+            }
+
+            .show-on-ignore {
+                display: none !important;
+            }
+
+            .ignore-campaign .show-on-ignore {
+                display: inline-block !important;
+            }
+
+            .hide-on-ignore {
+                display: inline-block !important;
+            }
+
+            .ignore-campaign .hide-on-ignore {
+                display: none !important;
+            }
+
         </style>
 
         <!-- Scripts -->

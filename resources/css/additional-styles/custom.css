@@ -1,0 +1,23 @@
+.ignored-campaign a {
+    display: none;
+}
+
+.ignored-campaign input {
+    visibility: hidden;
+}
+
+.ignored-campaign {
+    opacity: 0.5;
+}
+
+.show-when-ignored {
+    display: none;
+}
+
+.ignored-campaign .show-when-ignored {
+    display: inline-block;
+}
+
+.ignored-campaign .hide-when-ignored {
+    display: none;
+}

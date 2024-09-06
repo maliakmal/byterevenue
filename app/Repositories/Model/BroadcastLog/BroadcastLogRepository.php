@@ -82,7 +82,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
       */
 
      public function getUnsent(array $inputs){
-        $query = $this->model->newQuery();
+        $query = $this->model->newQuery()->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
+                                                ->where('campaigns.is_ignored_on_queue', '=', 0);
         $query = $query->where('is_sent', '0');
 
         if(!empty($inputs['campaign_id'])){
@@ -116,8 +117,19 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             $query = $query->take($limit);
         }
 
-        return $query->pluck('campaign_id')->unique()->values();
+        return $query->groupby('campaign_id')->pluck('campaign_id')->values();
      }
+
+
+     public function getQueueStats(){
+        $result = [];
+
+        $result['total_in_queue'] = $this->model->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
+                                                ->where('campaigns.is_ignored_on_queue', '=', 0)->count();
+        $result['total_not_downloaded_in_queue'] = $this->model->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
+                                                ->where('campaigns.is_ignored_on_queue', '=', 0)->where('is_downloaded_as_csv', 0)->count();
+        return $result;
+    }
 
      public function getTotalSentAndClicksByCampaign($campaign_id){
         $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->select(

@@ -23,6 +23,10 @@ Route::get('/user', function (Request $request) {
         Route::post('/generate-csv', [\App\Http\Controllers\JobsController::class, 'index']);
         Route::post('/regenerate-csv', [\App\Http\Controllers\JobsController::class, 'regenerateUnsent']);
     });
+    Route::prefix('campaigns')->group(function (){
+        Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
+        Route::post('/unignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsNotIgnoreFromQueue']);
+    });
 
     Route::prefix('batch_files')->group(function (){
         Route::post('/', [\App\Http\Controllers\Api\BatchFileController::class, 'index']);
