@@ -135,8 +135,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
                     }else{
                         $alias_for_campaign = $campaign_short_url->url_shortener;
                     }
-                    Log::info('campaign_short_url existed in the database');
-                    Log::info($campaign_short_url->toArray());
+
                     // hack in case we have an entry but no keitaro reference
                     if(!$campaign_short_url->keitaro_campaign_id){
                         $_new_campaign = [
@@ -154,7 +153,6 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
                 }else{
                     // there is no campaign entry
                     $alias_for_campaign = uniqid();
-                    Log::info('campaign_short_url generated from uniqid ');
 
                     // make a spoof entry for campaign url
                     $_url_shortener = $this->urlShortenerRepository->search(['name'=>$url_shortener]);
@@ -169,7 +167,6 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
                     ]);
 
                     $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
-                    Log::info((array)$campaign_short_url_map[$campaign->id]->toArray());
 
                     $_new_campaign = [
                         'campaign_short_url_id'=>$_campaign_short_url->id,
@@ -254,7 +251,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         ";
 
         DB::statement($sql);
-        Log::info('new_campaigns ', $new_campaigns->toArray());
+
 
         /* $new_campaigns->each(function($_item) use ($campaign_service, $domain_id){
             $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['alias']);

@@ -89,9 +89,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
         }
         $lastQuery = DB::getQueryLog();
         $lastQuery = end($lastQuery);
-        Log::info($lastQuery);
-        Log::info('this->type_id');
-        Log::info($this->type_id);
 
         Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
         $ids = [0];
@@ -140,8 +137,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     }else{
                         $alias_for_campaign = $campaign_short_url->url_shortener;
                     }
-                    Log::info('campaign_short_url existed in the database');
-                    Log::info($campaign_short_url->toArray());
+
                     // hack in case we have an entry but no keitaro reference
                     if(!$campaign_short_url->keitaro_campaign_id){
                         $_new_campaign = [
@@ -174,7 +170,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     ]);
 
                     $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
-                    Log::info((array)$campaign_short_url_map[$campaign->id]->toArray());
 
                     $_new_campaign = [
                         'campaign_short_url_id'=>$_campaign_short_url->id,
@@ -257,7 +252,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
         ";
 
         DB::statement($sql);
-        Log::info('new_campaigns ', $new_campaigns->toArray());
 
         /* $new_campaigns->each(function($_item) use ($campaign_service, $domain_id){
             $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['alias']);

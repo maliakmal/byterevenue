@@ -351,274 +351,258 @@
                 console.error('An error occurred:', error);
             }
         });
-        
-
-
       }
     }
 
     var $targetEL = document.getElementById('default-modal');
     const modal_options = {
-    placement: 'bottom-right',
-    backdrop: 'dynamic',
-    backdropClasses:
-        'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40',
-    closable: true,
-    onHide: () => {
-        console.log('modal is hidden');
-    },
-    onShow: () => {
-        console.log('modal is shown');
-    },
-    onToggle: () => {
-        console.log('modal has been toggled');
-    },
-};
-    console.log({mo:$targetEL});
+      placement: 'bottom-right',
+      backdrop: 'dynamic',
+      backdropClasses:
+          'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40',
+      closable: true,
+      onHide: () => {
+          console.log('modal is hidden');
+      },
+      onShow: () => {
+          console.log('modal is shown');
+      },
+      onToggle: () => {
+          console.log('modal has been toggled');
+      },
+    };
+
     var regenModal = null;
 
     var CampaignService = function(){
-        this.selected_campaign = null;
-        this.selected_campaigns = [];
-        this.selected_campaign_ids = [];
-        this.campaign_message = null;
-        this.selected_class = '';
-        this.selectable_campaign_class = 'lnk-campaign';
-        this.campaign_object_id = 'campaign-[id]';
-        this.selectable_on_camp_click = 'show-when-campaign-clicked';
-        this.unselected_class = 'border-white';
+      this.selected_campaign = null;
+      this.selected_campaigns = [];
+      this.selected_campaign_ids = [];
+      this.campaign_message = null;
+      this.selected_class = '';
+      this.selectable_campaign_class = 'lnk-campaign';
+      this.campaign_object_id = 'campaign-[id]';
+      this.selectable_on_camp_click = 'show-when-campaign-clicked';
+      this.unselected_class = 'border-white';
 
-        this.modal = null;
+      this.modal = null;
+      this.initializeModal = function(){
+        this.modal = new Modal(document.getElementById('default-modal'));
+      }
 
+      this.showModalEditMessage = function(){
+        $('.hideable-message-edit').removeClass('hidden');
+      }
+      this.hideModalEditMessage = function(){
+        $('.hideable-message-edit').addClass('hidden');
+      }
 
-        this.initializeModal = function(){
-          this.modal = new Modal(document.getElementById('default-modal'));
+      this.showModal = function(){
+        if(this.modal == null){
+          return;
         }
 
-        this.showModalEditMessage = function(){
-          $('.hideable-message-edit').removeClass('hidden');
-        }
-        this.hideModalEditMessage = function(){
-          $('.hideable-message-edit').addClass('hidden');
-        }
+        this.modal.show();
+      }
 
-        this.showModal = function(){
-          if(this.modal == null){
-            return;
-          }
+      this.getCampaignIds = function(){
+        var campaign_ids = [];
 
-          this.modal.show();
+        for(let i =0; i< this.selected_campaigns.length; i++){
+          campaign_ids.push(this.selected_campaigns[i]['id']);
         }
 
-        this.getCampaignIds = function(){
-          var campaign_ids = [];
-          console.log({ss:this.selected_campaigns});
-          for(let i =0; i< this.selected_campaigns.length; i++){
-            campaign_ids.push(this.selected_campaigns[i]['id']);
-          }          
-          let result = campaign_ids.filter((value, index, self) => self.indexOf(value) === index);
+        let result = campaign_ids.filter((value, index, self) => self.indexOf(value) === index);
 
+        return result;
+      }
 
-          return result;
+      this.refreshCampaignsAndBatchFiles = function(){
+        var campaign_ids = this.getCampaignIds();
+        if(campaign_ids.length == 0){
+          return;
         }
 
-
-        this.refreshCampaignsAndBatchFiles = function(){
-          var campaign_ids = this.getCampaignIds();
-          if(campaign_ids.length == 0){
-            return;
-          }
-
-          this.getCampaignsAndBatchFiles(campaign_ids);
-        }
+        this.getCampaignsAndBatchFiles(campaign_ids);
+      }
 
         
-        this.getCampaignsAndBatchFiles = function(campaign_ids){
-          var _this = this;
+      this.getCampaignsAndBatchFiles = function(campaign_ids){
+        var _this = this;
 
-          showPreloader();
-          // AJAX POST request
-          $.ajax({
-              url: '/api/batch_files', // Replace with your API endpoint
-              method: 'POST',
-              data: { campaign_ids: campaign_ids },
-              success: function(response) {
-                campaignServiceManager.initializeModal();
-                
-                  var template = $('#files-template').html();
-                
-                // Clear previous content
-                $('#data-table').find('tbody').empty();
-                
-                // Set Mustache.js delimiters
-                Mustache.tags = ['[[', ']]'];
-                hidePreloader();
-
-                var vals = [];
-
-                let attribs = ['id', 'title', 'username', 'user_id', 'total_recipients', 'recipients_in_process', 'total_recipients_sent_to', 'total_recipients_click_thru', 'total_recipients_in_process'] ;
-                for(let i = 0; i< attribs.length; i++){
-                  vals[attribs[i]] = [];
-                }
-                vals['pending_export'] = [];
-                _this.selected_campaigns = [];
-                for(let i = 0; i < response.data.campaigns.length; i++){
-                  _this.selected_campaigns.push(response.data.campaigns[i]);
-                  for(let j = 0; j < attribs.length; j++){
-                    let idx = attribs[j];
-                    vals[idx].push(response.data.campaigns[i][idx]);
-                  }
-                  vals['pending_export'].push(response.data.campaigns[i]['total_recipients'] - response.data.campaigns[i]['total_recipients_in_process']);
-
-                }
-                console.log({vals:vals});
-                campaignServiceManager.toggleCampaignAssetsDisplayOnClick();
-                campaignServiceManager.setMessage(response.data.message);
-                $('#total_selected_campaigns').html(campaign_ids.length);
-                let total_recipients = vals['total_recipients'].reduce(function (x, y) {
-                    return x + y;
-                }, 0);
-                $('#total_recipients').html(total_recipients.toLocaleString());
-
-                let total_exported = vals['total_recipients_in_process'].reduce(function (x, y) {
-                    return x + y;
-                }, 0);  
-                $('#total_exported').html(total_exported.toLocaleString());
-                $('#total_pending_export').html(vals['pending_export'].reduce(function (x, y) {
-                    return x + y;
-                }, 0));
-                $('#total_sent').html(vals['total_recipients_sent_to'].reduce(function (x, y) {
-                    return x + y;
-                }, 0));
-                $('#total_clicked').html(vals['total_recipients_click_thru'].reduce(function (x, y) {
-                    return x + y;
-                }, 0));
-
-                if(total_recipients == total_exported 
-                    && ((total_recipients + total_exported) > 0)){
-                  $('.show-if-no-exportable').removeClass('hidden');
-                  $('.show-if-exportable').addClass('hidden');
-                }else{
-                  $('.show-if-no-exportable').addClass('hidden');
-                  $('.show-if-exportable').removeClass('hidden');
-                }
-
-                // Process each post and generate HTML
-                response.data.files.forEach(function(file) {
-                    // Render the template with data
-                    var html = Mustache.render(template, file);
-                    // Append the generated HTML to the posts container
-                    $('#data-table').find('tbody').append(html);
-                });
-
-              },
-              error: function(xhr, status, error) {
-                  console.error('An error occurred:', error);
-              }
-          });
-
-
-        }
-
-        this.selectCampaign = function(id){
-          var campaign_ids  = this.getCampaignIds();
-          campaign_ids.push(id);
-
-          this.getCampaignsAndBatchFiles(campaign_ids);
-        }
-
-        this.getNumCampaigns = function(){
-          return this.selected_campaigns.length;
-        }
-
-        this.unselectCampaign = function(id){
-          for(let i = 0; i< this.selected_campaigns.length; i++){
-            if(this.selected_campaigns[i].id ==  id){
-              this.selected_campaigns.splice(i, 1);
-            }
-          }
-          var campaign_ids  = this.getCampaignIds();
-          this.getCampaignsAndBatchFiles(campaign_ids);
-        }
-
-
-
-        this.hideModal = function(){
-          if(this.modal == null){
-            return;
-          }
-
-          this.modal.hide();
-        }
-
-        this.getCampaignObjectID = function(campaign_id){
-            return this.campaign_object_id.replace('[id]', campaign_id);
-        }
-
-        this.setMessage = function(message){
-          this.campaign_message = message;
-        }
-
-        this.getMessage  = function(){
-          return this.campaign_message;
-        }
-
-
-        this.toggleCampaignAssetsDisplayOnClick = function(){
-          if(this.getNumCampaigns()>0){
-            $('.'+this.selectable_on_camp_click).removeClass('hidden');
-          }else{
-            $('.'+this.selectable_on_camp_click).addClass('hidden');
-          }
-        }
-    };
-
-    var showPreloader = function(){
-      $.LoadingOverlay("show");
-
-        //$('#preloader-overlay').removeClass('hidden');
-    }
-
-    var hidePreloader = function(){
-      $.LoadingOverlay("hide");
-      //$('#preloader-overlay').addClass('hidden');
-    }
-
-    var campaignServiceManager = new CampaignService();
-    $('body').on('change', '.selectable-campaigns', function() {
-                if ($(this).is(':checked')) {
-                  campaignServiceManager.selectCampaign($(this).val());
-                } else {
-                  campaignServiceManager.unselectCampaign($(this).val());
-                }
-              });
-
-    $('body').on('click', '#btn-generate-csv', function(e){
-        e.preventDefault();
         showPreloader();
+        // AJAX POST request
         $.ajax({
-            url: '/api/jobs/generate-csv', // Replace with your API endpoint
+            url: '/api/batch_files', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                campaign_ids: campaignServiceManager.getCampaignIds(), 
-                type:'campaign',
-                number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
-                url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
-            },
+            data: { campaign_ids: campaign_ids },
             success: function(response) {
-
+              campaignServiceManager.initializeModal();
+              
+                var template = $('#files-template').html();
+              
+              // Clear previous content
+              $('#data-table').find('tbody').empty();
+              
+              // Set Mustache.js delimiters
+              Mustache.tags = ['[[', ']]'];
               hidePreloader();
 
-              $.growl.notice({ message: "CSV has started generating" });
-              var html = Mustache.render(template, response.data);
-              $('#data-table').find('tbody').append(html);
+              var vals = [];
+
+              let attribs = ['id', 'title', 'username', 'user_id', 'total_recipients', 'recipients_in_process', 'total_recipients_sent_to', 'total_recipients_click_thru', 'total_recipients_in_process'] ;
+              for(let i = 0; i< attribs.length; i++){
+                vals[attribs[i]] = [];
+              }
+              vals['pending_export'] = [];
+              _this.selected_campaigns = [];
+              for(let i = 0; i < response.data.campaigns.length; i++){
+                _this.selected_campaigns.push(response.data.campaigns[i]);
+                for(let j = 0; j < attribs.length; j++){
+                  let idx = attribs[j];
+                  vals[idx].push(response.data.campaigns[i][idx]);
+                }
+                vals['pending_export'].push(response.data.campaigns[i]['total_recipients'] - response.data.campaigns[i]['total_recipients_in_process']);
+
+              }
+
+              campaignServiceManager.toggleCampaignAssetsDisplayOnClick();
+              campaignServiceManager.setMessage(response.data.message);
+              $('#total_selected_campaigns').html(campaign_ids.length);
+              let total_recipients = vals['total_recipients'].reduce(function (x, y) {
+                  return x + y;
+              }, 0);
+              $('#total_recipients').html(total_recipients.toLocaleString());
+
+              let total_exported = vals['total_recipients_in_process'].reduce(function (x, y) {
+                  return x + y;
+              }, 0);  
+              $('#total_exported').html(total_exported.toLocaleString());
+              $('#total_pending_export').html(vals['pending_export'].reduce(function (x, y) {
+                  return x + y;
+              }, 0));
+              $('#total_sent').html(vals['total_recipients_sent_to'].reduce(function (x, y) {
+                  return x + y;
+              }, 0));
+              $('#total_clicked').html(vals['total_recipients_click_thru'].reduce(function (x, y) {
+                  return x + y;
+              }, 0));
+
+              if(total_recipients == total_exported 
+                  && ((total_recipients + total_exported) > 0)){
+                $('.show-if-no-exportable').removeClass('hidden');
+                $('.show-if-exportable').addClass('hidden');
+              }else{
+                $('.show-if-no-exportable').addClass('hidden');
+                $('.show-if-exportable').removeClass('hidden');
+              }
+
+              // Process each post and generate HTML
+              response.data.files.forEach(function(file) {
+                  // Render the template with data
+                  var html = Mustache.render(template, file);
+                  // Append the generated HTML to the posts container
+                  $('#data-table').find('tbody').append(html);
+              });
 
             },
             error: function(xhr, status, error) {
                 console.error('An error occurred:', error);
             }
         });
+      }
 
+      this.selectCampaign = function(id){
+        var campaign_ids  = this.getCampaignIds();
+        campaign_ids.push(id);
+
+        this.getCampaignsAndBatchFiles(campaign_ids);
+      }
+
+      this.getNumCampaigns = function(){
+        return this.selected_campaigns.length;
+      }
+
+      this.unselectCampaign = function(id){
+        for(let i = 0; i< this.selected_campaigns.length; i++){
+          if(this.selected_campaigns[i].id ==  id){
+            this.selected_campaigns.splice(i, 1);
+          }
+        }
+        var campaign_ids  = this.getCampaignIds();
+        this.getCampaignsAndBatchFiles(campaign_ids);
+      }
+
+      this.hideModal = function(){
+        if(this.modal == null){
+          return;
+        }
+
+        this.modal.hide();
+      }
+
+      this.getCampaignObjectID = function(campaign_id){
+          return this.campaign_object_id.replace('[id]', campaign_id);
+      }
+
+      this.setMessage = function(message){
+        this.campaign_message = message;
+      }
+
+      this.getMessage  = function(){
+        return this.campaign_message;
+      }
+
+
+      this.toggleCampaignAssetsDisplayOnClick = function(){
+        if(this.getNumCampaigns()>0){
+          $('.'+this.selectable_on_camp_click).removeClass('hidden');
+        }else{
+          $('.'+this.selectable_on_camp_click).addClass('hidden');
+        }
+      }
+    };
+
+    var showPreloader = function(){
+      $.LoadingOverlay("show");
+    }
+
+    var hidePreloader = function(){
+      $.LoadingOverlay("hide");
+    }
+
+    var campaignServiceManager = new CampaignService();
+    $('body').on('change', '.selectable-campaigns', function() {
+      if ($(this).is(':checked')) {
+        campaignServiceManager.selectCampaign($(this).val());
+      } else {
+        campaignServiceManager.unselectCampaign($(this).val());
+      }
+    });
+
+    $('body').on('click', '#btn-generate-csv', function(e){
+      e.preventDefault();
+      showPreloader();
+      $.ajax({
+        url: '/api/jobs/generate-csv', // Replace with your API endpoint
+        method: 'POST',
+        data: { 
+          campaign_ids: campaignServiceManager.getCampaignIds(), 
+          type:'campaign',
+          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
+          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+        },
+        success: function(response) {
+          hidePreloader();
+
+          $.growl.notice({ message: "CSV has started generating" });
+          var html = Mustache.render(template, response.data);
+          $('#data-table').find('tbody').append(html);
+        },
+        error: function(xhr, status, error) {
+          console.error('An error occurred:', error);
+        }
+      });
     });
 
     $('body').on('click','.lnk-ignore', function(e){
@@ -627,23 +611,22 @@
       var _this = this;
       $(this).parents('.campaign-list-item').first().find('input').first().prop('checked', false);
         $.ajax({
-            url: '/api/campaigns/ignore', // Replace with your API endpoint
-            method: 'POST',
-            data: { 
-                campaign_id: $(this).data('id'), 
-            },
-            success: function(response) {
-              hidePreloader();
-              $(_this).parents('.campaign-list-item').first().addClass('ignore-campaign');
-              $.growl.notice({ message: "Campaign has been ignored" });
-              $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
-              $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
-            },
-            error: function(xhr, status, error) {
-                console.error('An error occurred:', error);
-            }
-        });
-
+          url: '/api/campaigns/ignore', // Replace with your API endpoint
+          method: 'POST',
+          data: { 
+              campaign_id: $(this).data('id'), 
+          },
+          success: function(response) {
+            hidePreloader();
+            $(_this).parents('.campaign-list-item').first().addClass('ignore-campaign');
+            $.growl.notice({ message: "Campaign has been ignored" });
+            $('#span-total-in-queue').html(response.data.total_in_queue.toLocaleString());
+            $('#span-total-not-downloaded-in-queue').html(response.data.total_not_downloaded_in_queue.toLocaleString());
+          },
+          error: function(xhr, status, error) {
+              console.error('An error occurred:', error);
+          }
+      });
     });
 
     $('body').on('click','.lnk-unignore', function(e){
@@ -670,9 +653,6 @@
 
     });
 
-
-
-
     $('body').on('click','.btn-batch-regenerate', function(){
       $('#modal_batch').val($(this).data('batch_id'));
       if(campaignServiceManager.getNumCampaigns()==1){
@@ -687,7 +667,6 @@
       // $('#default-modal').removeClass('hidden');
       campaignServiceManager.showModal();
     });
-
     
     $('body').on('click', '#btn-regenerate-csv', function(e){
         e.preventDefault();
@@ -729,56 +708,56 @@
         showPreloader();
         // AJAX POST request
         $.ajax({
-            url: '/api/batch_files', // Replace with your API endpoint
-            method: 'POST',
-            data: { campaign_id: id },
-            success: function(response) {
-              campaignServiceManager.initializeModal();
-              
-                var template = $('#files-template').html();
-                        
-                        // Clear previous content
-                        $('#data-table').find('tbody').empty();
-                        
-                        // Set Mustache.js delimiters
-                        Mustache.tags = ['[[', ']]'];
-                        hidePreloader();
-                        campaignServiceManager.toggleCampaignAssetsDisplayOnClick(id);
-                        campaignServiceManager.setMessage(response.data.message);
+          url: '/api/batch_files', // Replace with your API endpoint
+          method: 'POST',
+          data: { campaign_id: id },
+          success: function(response) {
+            campaignServiceManager.initializeModal();
+            
+            var template = $('#files-template').html();
+                      
+            // Clear previous content
+            $('#data-table').find('tbody').empty();
+            
+            // Set Mustache.js delimiters
+            Mustache.tags = ['[[', ']]'];
+            hidePreloader();
+            campaignServiceManager.toggleCampaignAssetsDisplayOnClick(id);
+            campaignServiceManager.setMessage(response.data.message);
 
-                        $('#_campaign_id').html(response.data.campaign.id);
-                        $('#campaign_name').html(response.data.campaign.title);
-                        
-                        $('#campaign_user').html(response.data.campaign.username);
-                        $('#campaign_user').prop('href', '/accounts/'+ response.data.campaign.user_id);
-                        $('#campaign_total_recipients').html(response.data.campaign.total_recipients.toLocaleString());
-                        $('#campaign_total_exported').html(response.data.campaign.total_recipients_in_process.toLocaleString());
+            $('#_campaign_id').html(response.data.campaign.id);
+            $('#campaign_name').html(response.data.campaign.title);
+            
+            $('#campaign_user').html(response.data.campaign.username);
+            $('#campaign_user').prop('href', '/accounts/'+ response.data.campaign.user_id);
+            $('#campaign_total_recipients').html(response.data.campaign.total_recipients.toLocaleString());
+            $('#campaign_total_exported').html(response.data.campaign.total_recipients_in_process.toLocaleString());
 
-                        if(response.data.campaign.total_recipients_in_process == response.data.campaign.total_recipients){
-                          $('.show-if-no-exportable').removeClass('hidden');
-                          $('.show-if-exportable').addClass('hidden');
-                        }else{
-                          $('.show-if-no-exportable').addClass('hidden');
-                          $('.show-if-exportable').removeClass('hidden');
-                        }
-
-                        $('#campaign_total_pending_export').html(response.data.campaign.total_recipients - response.data.campaign.total_recipients_in_process);
-                        $('#campaign_total_sent').html(response.data.campaign.total_recipients_sent_to.toLocaleString());
-                        $('#campaign_total_clicked').html(response.data.campaign.total_recipients_click_thru.toLocaleString());
-
-                        // Process each post and generate HTML
-                        response.data.files.forEach(function(file) {
-                            // Render the template with data
-                            var html = Mustache.render(template, file);
-                            console.log({html:html, file:file});
-                            // Append the generated HTML to the posts container
-                            $('#data-table').find('tbody').append(html);
-                        });
-
-            },
-            error: function(xhr, status, error) {
-                console.error('An error occurred:', error);
+            if(response.data.campaign.total_recipients_in_process == response.data.campaign.total_recipients){
+              $('.show-if-no-exportable').removeClass('hidden');
+              $('.show-if-exportable').addClass('hidden');
+            }else{
+              $('.show-if-no-exportable').addClass('hidden');
+              $('.show-if-exportable').removeClass('hidden');
             }
+
+            $('#campaign_total_pending_export').html(response.data.campaign.total_recipients - response.data.campaign.total_recipients_in_process);
+            $('#campaign_total_sent').html(response.data.campaign.total_recipients_sent_to.toLocaleString());
+            $('#campaign_total_clicked').html(response.data.campaign.total_recipients_click_thru.toLocaleString());
+
+            // Process each post and generate HTML
+            response.data.files.forEach(function(file) {
+                // Render the template with data
+                var html = Mustache.render(template, file);
+
+                // Append the generated HTML to the posts container
+                $('#data-table').find('tbody').append(html);
+            });
+
+          },
+          error: function(xhr, status, error) {
+              console.error('An error occurred:', error);
+          }
         });
     });
   });
