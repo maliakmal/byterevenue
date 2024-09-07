@@ -1,194 +1,282 @@
 <x-app-layout>
 <header class="bg-gray-50 py-8">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:flex xl:items-center xl:justify-between">
-        <div class="min-w-0 flex-1">
-          <nav class="flex" aria-label="Breadcrumb">
-            <ol role="list" class="flex items-center space-x-4">
-              <li>
-                <div>
-                  <a href="/" class="text-sm font-medium text-gray-500 hover:text-gray-700">Dashboard</a>
-                </div>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="h-5 w-5 flex-shrink-0 text-gray-400" x-description="Heroicon name: mini/chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"></path>
-                  </svg>
-                  <a href="/campaigns" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Campaigns</a>
-                </div>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="h-5 w-5 flex-shrink-0 text-gray-400" x-description="Heroicon name: mini/chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"></path>
-                  </svg>
-                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Campaign: {{ $campaign->title }}</a>
-                </div>
-              </li>
-            </ol>
-          </nav>
-          <h1 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Campaign: {{ $campaign->title }}     @switch($campaign->status)
-                  @case(\App\Models\Campaign::STATUS_DRAFT)
-                    <span class="py-1 px-2.5 border-none rounded bg-blue-100 text-xl text-blue-800 font-medium">Draft</span>
-                  @break
-                  @case(\App\Models\Campaign::STATUS_PROCESSING)
-                    <span class="py-1 px-2.5 border-none rounded bg-yellow-100 text-xl text-yellow-800 font-medium">Processing</span>
-                  @break
-                  @case(\App\Models\Campaign::STATUS_PROCESSING)
-                    <span class="py-1 px-2.5 border-none rounded bg-green-100 text-xl text-green-800 font-medium">Done</span>
-                    @break
+
+    <main class="py-6 px-12 space-y-12 bg-gray-100 min-h-screen w-full">
+        <div class="flex flex-col h-full w-full mx-auto  space-y-6">
+            <section class="flex flex-col mx-auto bg-white rounded-lg p-6 shadow-md space-y-6 w-full">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full min-w-0">
+                    <!-- In use -->
+                    <div class="flex flex-col px-6 py-2 bg-white shadow rounded-lg overflow-hidden">
+                        <div class="flex flex-col items-center space-y-2">
+                            <div style="font-size: 30px;margin-top: 15px" class=" font-bold tracking-tight leading-none text-black-500"> {{ substr($campaign->title, 0 ,16) }} @if(strlen($campaign->title) > 18) ... @endif</div>
+                            <div style="margin-top: 15px" class="text-lg font-medium text-black-500">Campaign</div>
+                        </div>
+                    </div>
+                    <!-- renovation -->
+                    <div class="flex flex-col px-6 py-2 bg-white shadow rounded-lg overflow-hidden">
+                        <div class="flex flex-col items-center space-y-2">
+                            <div style="font-size: 30px;margin-top: 15px" class="text-center font-bold tracking-tight leading-none  text-black-500">{{ $campaign?->recipient_list?->name }}</div>
+                            <div style="margin-top: 15px" class="text-center  text-lg font-medium  text-black-500">Recipient List</div>
+                        </div>
+                    </div>
+                    <!-- Suspended -->
+                    <div class="flex flex-col px-6 py-2 bg-white shadow rounded-lg overflow-hidden">
+                        <div class="flex flex-col items-center space-y-2">
+                            <div style="font-size: 30px;margin-top: 15px" class="text-center text-6xl font-bold tracking-tight leading-none {{ $campaign->user->tokens >= $campaign->recipient_list->contacts()->count() ? 'text-green-700' : 'text-red-600'}} ">{{ $campaign?->user?->tokens}}</div>
+                            <div style="margin-top: 15px" class="text-lg font-medium">Available Tokens</div>
+                        </div>
+                    </div>
+                    <!-- Closed -->
+                    <div class="flex flex-col px-6 py-2 bg-white shadow rounded-lg overflow-hidden">
+                            @switch($campaign->status)
+                       @case(\App\Models\Campaign::STATUS_DRAFT)
+                         <div style="font-size: 30px;margin-top: 15px"  class=" text-center text-6xl font-bold tracking-tight leading-none text-blue-900">Draft</div>
+                         @break
+                          @case(\App\Models\Campaign::STATUS_PROCESSING)
+                            <div style="font-size: 30px;margin-top: 15px"  class="text-center text-6xl font-bold tracking-tight leading-none text-yellow-800">Processing</div>
+                          @break
+                      @case(\App\Models\Campaign::STATUS_DONE)
+                        <div style="font-size: 30px;margin-top: 15px"  class="text-center text-6xl font-bold tracking-tight leading-none text-green-900">Done</div>
+                        @break
                   @endswitch
-                  </h1>
-          <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
-            {{ $campaign->description }}
-          </div>
-          @if(auth()->user()->hasRole('admin'))
-          <p class="text-gray-700"><b>Unique Folder:</b> {{ $campaign->getUniqueFolder() }}</p>
-          @endif
+                            <div style="margin-top: 15px" class="text-center text-lg font-medium text-primary-900">Status</div>
+                   </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full min-w-0">
+                    <div>
 
-          <p class="text-gray-700"><b>Recipient List:</b> {{ $campaign->recipient_list->name }}({{  $campaign->recipient_list->contacts()->count() }} contacts)</p>
-          <p class="{{ $campaign->user->tokens >= $campaign->recipient_list->contacts()->count() ? 'text-green-700' : 'text-red-700'}}"><b>Available Tokens:<b>{{ $campaign->user->tokens}}</p>
+                        @if($campaign->canBeDeleted())
+
+
+                            <div class="inline-flex rounded-md shadow-sm" role="group">
+                                <a href="{{ route('campaigns.markProcessed', ['id'=>$campaign->id]) }}"  type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                    Process
+                                </a>
+
+                                <a href="{{ route('campaigns.edit', $campaign->id) }}?campaign_id={{ $campaign->id }}" type="button" class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:focus:ring-yellow-900">
+                                    Edit
+                                </a>
+
+                                <form action="{{ route('campaigns.destroy', $campaign->id) }}" method="post">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                                        Delete
+                                    </button>
+                                </form>
+
+
+                            </div>
+
+                        @endif
+
+                    </div>
+                    <div> </div>
+                    <div> </div>
+                    <div>
+                        @if(auth()->user()->hasRole('admin'))
+                            <p class="text-gray-700"><b>Unique Folder:</b> {{ $campaign->getUniqueFolder() }}</p>
+                    </div>
+                    </div>
+
+            @endif
+            </section>
+            <section class="flex flex-col mx-auto bg-white rounded-lg p-6 shadow-md space-y-6 w-full">
+                @if($campaign->isDispatched())
+                    <h1 class="text-2xl">
+                        <b>Messages</b>
+                    </h1>
+                @else
+                    <h1 class="text-2xl"> <b>Contacts</b> </h1>
+                @endif
+                <div style="margin-top: 0px" class="py-12">
+
+                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        @include('partials.alerts')
+                        <ul id="list-message-container" role="list" class="divide-y divide-gray-100">
+                                @if($campaign->isDispatched())
+                                @foreach ($logs  as $log)
+                                <li class="flex justify-between gap-x-6 py-5">
+                                    <div class="flex min-w-0 gap-x-4">
+                                        <img style="border-radius: 50%" class="h-12 w-12 flex-none bg-gray-50" src="/images/msg.png" alt="">
+                                        <div class="min-w-0 flex-auto">
+                                            <p class="text-sm font-semibold leading-6 text-gray-900"> {{ $log->recipient_phone }}</p>
+                                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                                                {{ $log->message_body }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                                        <div class="mt-1 flex items-center gap-x-1.5">
+                                            <div class="mt-1 flex items-center gap-x-1.5">
+                                                <div class="flex-none rounded-full bg-yellow-100  p-1">
+                                                    <div class="h-1.5 w-1.5 rounded-full bg-yellow-500"></div>
+                                                </div>
+                                                <p class="text-xs leading-5 text-gray-500">UNDER PROCESS </p>
+                                            </div>
+
+                                        </div>
+                                        <p class="mt-1 text-xs leading-5 text-gray-500">
+                                            {{ $log->created_at }}
+                                        </p>
+                                    </div>
+                                </li>
+                                @endforeach
+                            </ul>
+                                    </div>
+
+                        <button id="loadLogDataButton" style="margin: 0 auto" type="submit"  class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                            Load More ...
+                        </button>
+                                @else
+                        <ul id="list-container-contact" role="list" class="divide-y divide-gray-100">
+                            @foreach($contacts as $contact)
+                                <li class="flex justify-between gap-x-6 py-5">
+                                    <div class="flex min-w-0 gap-x-4">
+                                        <img style="border-radius: 50%" class="h-12 w-12 flex-none bg-gray-50" src="/images/usr.png" alt="">
+                                        <div class="min-w-0 flex-auto">
+                                            <p class="text-sm font-semibold leading-6 text-gray-900"> {{ $contact->phone }}</p>
+                                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                                                 {{ $message?->getParsedMessage() }}
+
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                                        <div class="mt-1 flex items-center gap-x-1.5">
+                                        </div>
+                                        <p class="mt-1 text-xs leading-5 text-gray-500">
+                                            Name: {{ $contact->name }} | Email: {{ $contact->email }}
+
+                                        </p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                            <button id="loadContactDataButton" style="margin: 0 auto" type="submit"  class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                                Load More ...
+                            </button>
+                                @endif
+                </div>
+            </section>
         </div>
-        <div class="mt-5 flex xl:mt-0 xl:ml-4">
-
-        @if($campaign->canBeDeleted())
-        <span class="ml-3  sm:block">
-                <a href="{{ route('campaigns.markProcessed', ['id'=>$campaign->id]) }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
-                    <svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
-                    </svg>
-                    Process
-                    </a>
-                </span>
-
-        <span class="ml-3  sm:block">
-          <a href="{{ route('campaigns.edit', $campaign->id) }}?campaign_id={{ $campaign->id }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
-            <svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
-              <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
-            </svg>
-            Edit
-            </a>
-          </span>
-
-          <span class="ml-3  sm:block">
-          <span class="flex items-center justify-start text-gray-500">
-            <form action="{{ route('campaigns.destroy', $campaign->id) }}" method="post">
-              @csrf
-              @method('DELETE')
-              <button type="submit" onclick="return confirm('Are you sure')" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
-                <span>
-                  <svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                  </svg>
-                </span>
-                <span class=" md:inline-block">Delete</span>
-              </button>
-            </form>
-
-
-          </span>
-          @endif
-
-
-
-        </div>
-      </div>
-
+    </main>
     </header>
-  <div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-  @include('partials.alerts')
-                  <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-        <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-
-
-        @if($campaign->isDispatched())
-      <div>
-        <table class="w-full table-fixed">
-            <thead>
-              <tr class="bg-gray-100">
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Phone</th>
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Message</th>
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Processed At</th>
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Status</th>
-              </tr>
-
-            </thead>
-            <tbody>
-              @forelse ($logs  as $log)
-                <tr>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->recipient_phone }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">
-
-                    <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-white flex flex-col relative speech-bubble-left">
-                      <p>{{ $log->message_body }}</p>
-                    </div>
-
-
-                  </td>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $log->created_at }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">UNDER PROCESS</td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No logs found') }}</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-
-
-          </div><br/>
-          {{$logs->links()}}
-
-          @else
-          <div>
-        <table class="w-full table-fixed">
-            <thead>
-              <tr class="bg-gray-100">
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Contact</th>
-                  <th class="w-1/4 py-4 px-6 text-left text-gray-600 font-bold uppercase">Message</th>
-              </tr>
-
-            </thead>
-            <tbody>
-              @forelse ($contacts as $contact)
-                <tr>
-                  <td class="py-4 px-6 border-b border-gray-200">{{ $contact->phone }}</td>
-                  <td class="py-4 px-6 border-b border-gray-200">
-                  <div class="mr-auto rounded-lg rounded-tl-none my-1 p-2 text-sm bg-blue-100 flex flex-col relative speech-bubble-left">
-                      <p>{{ $message?->getParsedMessage() }}</p>
-                    </div>
-
-                  </td>
-                  <td class="py-4 px-6 border-b border-gray-200"></td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="4" class="border border-gray-200 px-4 py-2 text-center">{{ __('No contacts found') }}</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-
-
-          </div>
-          <br/>
-          {{$contacts->links()}}
-
-          @endif
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-
-
-    </div>
-  </div>
 </x-app-layout>
+@push('scripts')
+    <script>
+        var contactPage = 1;
+        var logPage = 1;
+
+        $(document).ready(function() {
+
+            var myEl2 = document.getElementById('loadContactDataButton');
+            if(myEl2) {
+                myEl2.addEventListener('click', function () {
+                    $.LoadingOverlay("show");
+                    contactPage++;
+                    var url = "{!! route('campaigns.show', $campaign->id ) !!}" + "?page=" + contactPage + "&output=json";
+                    $.get(url, function (data) {
+                        if (data.data.contacts.last_page <= contactPage) {
+                            $('#loadContactDataButton').remove();
+                        }
+                        var elements = data.data.contacts.data;
+                        var str = "";
+                        var i = 0;
+                        for (i = 0; i < elements.length; i++) {
+                            str += getContactElementString(elements[i], "{{$message?->getParsedMessage()}}");
+                        }
+                        $('#list-container-contact').append(str);
+                        $.LoadingOverlay("hide");
+
+                    });
+
+                });
+            }
+
+            function getContactElementString(ele, parsedMessage){
+                return `
+                 <li class="flex justify-between gap-x-6 py-5">
+                                    <div class="flex min-w-0 gap-x-4">
+                                        <img style="border-radius: 50%" class="h-12 w-12 flex-none bg-gray-50" src="/images/usr.png" alt="">
+                                        <div class="min-w-0 flex-auto">
+                                            <p class="text-sm font-semibold leading-6 text-gray-900"> ${ele.phone}</p>
+                                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                                                 ${parsedMessage}
+
+                </p>
+            </div>
+        </div>
+        <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+            <div class="mt-1 flex items-center gap-x-1.5">
+            </div>
+            <p class="mt-1 text-xs leading-5 text-gray-500">
+                Name: ${ele.name} | Email: ${ele.email}
+
+                </p>
+            </div>
+        </li>
+`;
+            }
+
+
+
+
+            var myEl = document.getElementById('loadLogDataButton');
+            if(myEl) {
+                myEl.addEventListener('click', function () {
+                    $.LoadingOverlay("show");
+                    logPage++;
+                    var url = "{!! route('campaigns.show', $campaign->id ) !!}" + "?page=" + logPage + "&output=json";
+                    $.get(url, function (data) {
+                        if (data.data.logs.last_page <= logPage) {
+                            $('#loadLogDataButton').remove();
+                        }
+                        var elements = data.data.logs.data;
+                        var str = "";
+                        var i = 0;
+                        for (i = 0; i < elements.length; i++) {
+                            str += getLogElementString(elements[i]);
+                        }
+                        $('#list-message-container').append(str);
+                        $.LoadingOverlay("hide");
+
+                    });
+
+                });
+            }
+
+
+            function getLogElementString(ele){
+                return `
+                 <li class="flex justify-between gap-x-6 py-5">
+                                    <div class="flex min-w-0 gap-x-4">
+                                        <img style="border-radius: 50%" class="h-12 w-12 flex-none bg-gray-50" src="/images/msg.png" alt="">
+                                        <div class="min-w-0 flex-auto">
+                                            <p class="text-sm font-semibold leading-6 text-gray-900"> ${ ele.recipient_phone }</p>
+                                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">
+                                                ${ ele.message_body }
+                </p>
+            </div>
+        </div>
+        <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+            <div class="mt-1 flex items-center gap-x-1.5">
+                <div class="mt-1 flex items-center gap-x-1.5">
+                    <div class="flex-none rounded-full bg-yellow-100  p-1">
+                        <div class="h-1.5 w-1.5 rounded-full bg-yellow-500"></div>
+                    </div>
+                    <p class="text-xs leading-5 text-gray-500">UNDER PROCESS </p>
+                </div>
+
+            </div>
+            <p class="mt-1 text-xs leading-5 text-gray-500">
+    ${ ele.created_at }
+                </p>
+            </div>
+        </li>
+`;
+            }
+        });
+
+    </script>
