@@ -131,8 +131,20 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $result;
     }
 
-     public function getTotalSentAndClicksByCampaign($campaign_id){
+    public function getTotalSentAndClicksByCampaign($campaign_id){
         $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->select(
+            [
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ]
+        )->first();
+
+        return $totals;
+     }
+     public function getTotalSentAndClicksByBatch($batch_no){
+        $totals = $this->model->newQuery()->where('batch', $batch_no)->select(
             [
                 DB::raw('COUNT(id) as total'),
                 DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),

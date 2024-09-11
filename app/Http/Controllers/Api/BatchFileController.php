@@ -34,6 +34,35 @@ class BatchFileController extends Controller
         return response()->json($result);
     }
 
+    public function checkStatus(Request $request){
+        $file_ids = isset($_POST['files'])?$_POST['files']:[];
+        $file_ids = is_array($file_ids)?$file_ids:[];
+        $file_ids[] = 0;
+
+        $files = [];
+        foreach(BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file){
+            $one = $file->toArray();
+            $batch_no = $file->getBatchFromFilename();
+            // get all entries with the campaig id and the batch no
+            $specs = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($batch_no);
+            $one['total_entries'] = $specs['total'];
+            $one['total_sent'] =  $specs['total_sent'];
+            $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
+            $one['total_clicked'] = $specs['total_clicked'];
+            
+            $one['created_at_ago'] = $file->created_at->diffForHumans();;
+
+            $files[] = $one;
+        }
+
+
+        $result = array();
+        $result['data'] = $files;
+        $result['ids'] = $request->files;
+
+        return response()->json($result);
+    }
+
 
     public function index(Request $request){
 

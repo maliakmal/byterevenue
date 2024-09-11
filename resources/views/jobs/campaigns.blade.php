@@ -281,8 +281,9 @@
     </div>
 </div>
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js" integrity="sha512-MlEyuwT6VkRXExjj8CdBKNgd+e2H+aYZOCUaCrt9KRk6MlZDOs91V1yK22rwm8aCIsb5Ec1euL8f0g58RKT/Pg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script id="files-template" type="text/x-mustache-template">
-<tr>
+<tr id="batch-file-[[ id ]]">
                 <td class="border-b border-gray-200 px-4 py-2">
                   <a href="/download/[[ id ]]">File [[ id ]].csv</a>
                 </td>
@@ -316,17 +317,68 @@
       this.files_to_observe = [];
       
       this.startService = function(){
-        window.setInterval(this.interval, function(){
+        if(this.is_running == true){
+          return;
+        }
+        if(this.files_to_observe.length == 0){
+          return;
+        }
 
-        })
+        this.is_running = true;
+        var _this = this;
+        window.setInterval( function(){
+          _this.probeObservableFiles();
+        },this.interval);
       }
+
+      this.probeObservableFiles = function(){
+        var _this = this;
+        console.log('ping');
+        var template = $('#files-template').html();
+        $.ajax({
+            url: '/api/batch_files/check-status', // Replace with your API endpoint
+            method: 'POST',
+            data: { 
+                files: this.files_to_observe, 
+            },
+            success: function(response) {
+              if(response.data.length == 0){
+                return;
+              }
+
+              var files_ready = [];
+              for(let i = 0; i< response.data.length; i++){
+                files_ready.push(response.data[i].id);
+                _this.removeBatchFileToObserve(response.data[i].id);
+                // Render the template with data
+                var html = Mustache.render(template, response.data[i]);
+                // Append the generated HTML to the posts container
+                $('#data-table').find('#batch-file-'+response.data[i].id).replaceWith(html);
+                $('#batch-file-'+response.data[i].id).effect("highlight", {}, 3000);
+              }
+
+              $.growl.notice({ message: "CSV file(s) "+(files_ready.join(','))+" are ready" });
+
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error);
+            }
+        });
+
+      }
+
+
 
       this.addBatchFileToObserve = function(file_id){
         this.files_to_observe.push(file_id);
       }
 
+      this.removeBatchFileToObserve = function(file_id){
+        this.files_to_observe.splice(this.files_to_observe.indexOf(file_id), 1);
+      }
+
       this.runService = function(){
-        if(this.is_running == false){
+        if(this.is_running == true){
           return;
         }
 
@@ -353,6 +405,8 @@
         });
       }
     }
+
+    var jobService = new JobService();
 
     var $targetEL = document.getElementById('default-modal');
     const modal_options = {
@@ -582,6 +636,7 @@
 
     $('body').on('click', '#btn-generate-csv', function(e){
       e.preventDefault();
+      var template = $('#files-template').html();
       showPreloader();
       $.ajax({
         url: '/api/jobs/generate-csv', // Replace with your API endpoint
@@ -597,7 +652,10 @@
 
           $.growl.notice({ message: "CSV has started generating" });
           var html = Mustache.render(template, response.data);
-          $('#data-table').find('tbody').append(html);
+          $('#data-table').find('tbody').prepend(html);
+          
+          jobService.addBatchFileToObserve(response.data.id);
+          jobService.startService();
         },
         error: function(xhr, status, error) {
           console.error('An error occurred:', error);
@@ -671,6 +729,7 @@
     $('body').on('click', '#btn-regenerate-csv', function(e){
         e.preventDefault();
         showPreloader();
+        var template = $('#files-template').html();
         $.ajax({
             url: '/api/jobs/regenerate-csv', // Replace with your API endpoint
             method: 'POST',
@@ -689,7 +748,7 @@
 
               $.growl.notice({ message: "CSV has started regenerating" });
               var html = Mustache.render(template, response.data);
-              $('#data-table').find('tbody').append(html);
+              $('#data-table').find('tbody').prepend(html);
 
             },
             error: function(xhr, status, error) {

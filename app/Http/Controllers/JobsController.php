@@ -153,16 +153,42 @@ class JobsController extends Controller
             Log::info('numBatches - '.$numBatches);
             for ($batch = 0; $batch < $numBatches; $batch++) {
                 $offset = $batch * $batchSize;
-                $is_last = $batch ==($numBatches+1)?true:false;
+                $is_last = $batch ==($numBatches-1)?true:false;
                 Log::info('BATCH number - '.$batch);
-                dispatch(new ProcessCsvQueueBatch($offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last, $type, $type_id));
+                Log::info('BATCH number - '.$numBatches);
+                $params = array();
+                $params['offset'] = $offset;
+                $params['batchSize'] = $batchSize;
+                $params['url_shortener'] = $url_shortener;
+                $params['batch_no'] = $batch_no;
+                $params['batch_file'] = $batch_file;
+                $params['is_last'] = $is_last;
+                $params['type'] = $type;
+                $params['type_id'] = $type_id;
+                dispatch(new ProcessCsvQueueBatch($params));//$offset, $batchSize, $url_shortener, $batch_no, $batch_file, $is_last, $type, $type_id));
 
             }
             
             $params = ['campaigns'=>$campaign_short_urls, 'domain_id'=>$domain_id];
             dispatch(new CreateCampaignsOnKeitaro($params));
             if($request->ajax()){
-                return response()->json(['data'=>$batch_file]);
+
+
+                $one = $batch_file->toArray();
+                $_batch_no = $batch_file->getBatchFromFilename();
+                // get all entries with the campaig id and the batch no
+                $specs = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($_batch_no);
+                $one['total_entries'] = $specs['total'];
+                $one['total_sent'] =  $specs['total_sent'];
+                $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
+                $one['total_clicked'] = $specs['total_clicked'];
+                
+                $one['created_at_ago'] = $batch_file->created_at->diffForHumans();;
+    
+    
+
+
+                return response()->json(['data'=>$one]);
             }else{
                 return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
             }

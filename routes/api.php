@@ -30,6 +30,7 @@ Route::get('/user', function (Request $request) {
 
     Route::prefix('batch_files')->group(function (){
         Route::post('/', [\App\Http\Controllers\Api\BatchFileController::class, 'index']);
+        Route::post('/check-status', [\App\Http\Controllers\Api\BatchFileController::class, 'checkStatus']);
         Route::post('/get-form-content-from-campaign', [\App\Http\Controllers\Api\BatchFileController::class, 'getFormContentFromCampaign']);
     });
 //});

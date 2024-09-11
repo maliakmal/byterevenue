@@ -45,10 +45,20 @@ class ProcessCsvQueueBatch implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct( $offset, $batchSize, $url_shortener = null, $batch_no, $batch_file, $is_last, $type = 'fifo', $type_id = null, $message_id = null         
-                                    
-    )
+    public function __construct( $params = [])
     {
+        $offset = isset($params['offset'])?$params['offset']:1;
+        $batchSize = isset($params['batchSize'])?$params['batchSize']:1;
+        $url_shortener = isset($params['url_shortener'])?$params['url_shortener']:null;
+        $batch_no = isset($params['batch_no'])?$params['batch_no']:null;
+        $batch_file = isset($params['batch_file'])?$params['batch_file']:null;
+        $is_last = isset($params['is_last'])?$params['is_last']:false;
+        $type = isset($params['type'])?$params['type']:'fifo';
+        $type_id = isset($params['type_id'])?$params['type_id']:null;
+        $message_id = isset($params['message_id'])?$params['message_id']:null;
+
+        Log::info('params');
+        Log::info($params);
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
         $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
         $this->url_shortener = $url_shortener != null ? $url_shortener:$this->url_shortener ;
@@ -78,6 +88,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $message = '';
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
+        Log::info($url_shortener);
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
 
@@ -271,7 +282,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         });
         */
 
-
+        Log::info('IS THIS THE LAST ONE?');
+        Log::info($this->is_last);
         if($this->is_last == true){
             Log::info('IS THE LAST ONE');
             $this->batch_file->is_ready = 1;
