@@ -143,17 +143,24 @@ class CampaignController extends Controller
      */
     public function show(Campaign $campaign)
     {
+        $per_page = 15;
         $message = $campaign->message;
 
         $recipient_lists = $campaign->recipient_list;
 
         if($campaign->isDraft()){
-            $contacts = $recipient_lists->contacts()->paginate(10);
+            $contacts = $recipient_lists->contacts()->paginate($per_page);
             $logs = [];
 
         }else{
             $contacts = [];
-            $logs = BroadcastLog::select()->where('campaign_id', '=', $campaign->id)->paginate(10);
+            $logs = BroadcastLog::select()->where('campaign_id', '=', $campaign->id)->paginate($per_page);
+        }
+        if(\request()->input('output') == 'json'){
+            return response()->success(null, [
+                'contacts' => $contacts,
+                'logs' => $logs,
+            ]);
         }
         return view('campaigns.show', compact('campaign', 'contacts', 'logs', 'message', 'recipient_lists'));
 

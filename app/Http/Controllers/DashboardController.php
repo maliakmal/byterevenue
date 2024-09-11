@@ -10,6 +10,7 @@ use App\Models\Campaign;
 use App\Models\User;
 use App\Models\BroadcastLog;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -62,7 +63,8 @@ class DashboardController extends Controller
             $params['end_date'] = $end_date;
 
             $params['campaigns_remaining_in_queue'] = BroadcastLog::select('campaign_id')->where('is_sent', 0)->groupby('campaign_id')->get()->count();
-            $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->groupby('campaign_id')->get()->count('id');
+//            $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->groupby('campaign_id')->get()->count('id');
+            $params['campaigns_in_queue'] = DB::selectOne("select count(*) AS ct from (select campaign_id from broadcast_logs group by campaign_id) subq")->ct;
             $params['campaigns_completed_from_queue'] = $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
             $params['users_campaigns'] = User::withCount('campaigns')->having('campaigns_count', '>', 0)->orderBy('campaigns_count', 'desc')->get()->take(10);
 
