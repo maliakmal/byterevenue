@@ -214,7 +214,7 @@
                     <tr>
                       <td class="border border-gray-200 px-4 py-2"><a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="{{ route('accounts.show', $account->id) }}">{{ $account->name.($account->hasRole('admin')?'(administrator)':'') }}</a></td>
                       <td class="border border-gray-200 px-4 py-2">
-                        <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}">{{ $account->campaigns()->count() }}</a>
+                        <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}">{{ $account->campaigns_count }}</a>
                       </td>
                       <td class="border border-gray-200 px-4 py-2">
                         <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}&status=1">{{ $account->processing_campaign_count }}</td>
