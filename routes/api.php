@@ -4,12 +4,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
 
+// User data for livewire
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-//Route::middleware(\App\Http\Middleware\CheckExternalApiToken::class)->group(function () {
+// group auth routes for api
+Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
+Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
+Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
+Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
+Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
+// group routes that require external api token and sanctum auth
+Route::middleware([\App\Http\Middleware\CheckExternalApiToken::class, 'auth:sanctum'])->group(function () {
     Route::prefix('messages')->group(function (){
         Route::post('/update-by-file/sent', [\App\Http\Controllers\Api\BroadcastLogController::class, 'updateSentMessage']);
         Route::post('/update/sent', [JobsController::class, 'updateSentMessage']);
@@ -33,4 +41,4 @@ Route::get('/user', function (Request $request) {
         Route::post('/check-status', [\App\Http\Controllers\Api\BatchFileController::class, 'checkStatus']);
         Route::post('/get-form-content-from-campaign', [\App\Http\Controllers\Api\BatchFileController::class, 'getFormContentFromCampaign']);
     });
-//});
+});
