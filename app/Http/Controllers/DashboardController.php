@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Log;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Campaign;
@@ -39,12 +38,16 @@ class DashboardController extends Controller
         }
         if (auth()->user()->hasRole('admin')):
             $campaigns = Campaign::select()->orderby('id', 'desc')->limit(100)->get();
-            $accounts = User::with('latestCampaign')
-                ->withCount([
+            $accounts = User::withCount([
                     'campaigns',
                     'campaigns as processing_campaign_count' => function ($query) {
                         $query->where('status', Campaign::STATUS_PROCESSING);
                     }
+                ])
+                ->addSelect(['latest_campaign_total_ctr' => Campaign::select('total_ctr')
+                    ->whereColumn('user_id', 'users.id')
+                    ->latest('id')
+                    ->limit(1)
                 ])
                 ->having('campaigns_count', '>', 0)
                 ->orderBy('campaigns_count', 'desc')

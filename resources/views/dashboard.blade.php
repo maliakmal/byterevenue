@@ -219,11 +219,7 @@
                       <td class="border border-gray-200 px-4 py-2">
                         <a class="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400" href="/campaigns?user_id={{ $account->id }}&status=1">{{ $account->processing_campaign_count }}</td>
                       <td class="border border-gray-200 px-4 py-2">
-                        @if($account->latestCampaign)
-                            {{ number_format($account->latestCampaign->CTR, 2) }}
-                        @else
-                            No campaigns
-                        @endif
+                        {{ isset($account->latest_campaign_total_ctr) ? number_format($account->latest_campaign_total_ctr, 2) : 'No campaigns' }}
                       </td>
                       <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
                       <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>

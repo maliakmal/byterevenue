@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Token;
 use App\Models\Campaign;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
 
 class AccountsController extends Controller
 {
     public function index()
     {
         $filter = array(
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):5,
+            'sortby' => request('sortby') ?? 'id_desc',
+            'count' => request('count') ?? 5,
         );
-        $accounts = User::query()->with('latestCampaign')->selectSub(function ($query) {
-                $query->selectRaw('COUNT(*)')
-                    ->from('campaigns')
-                    ->whereColumn('campaigns.user_id', 'users.id');
-            }, 'campaign_count')->selectSub(function ($query) {
-                $query->selectRaw('COUNT(*)')
-                    ->from('campaigns')
-                    ->whereColumn('campaigns.user_id', 'users.id')
-                    ->where('status', [Campaign::STATUS_PROCESSING]);
-            }, 'processing_campaign_count');
+        $accounts = User::withCount([
+            'campaigns',
+            'campaigns as processing_campaign_count' => function ($query) {
+                $query->where('status', Campaign::STATUS_PROCESSING);
+            }
+        ])
+            ->addSelect([
+                'latest_campaign_total_ctr' => Campaign::select('total_ctr')
+                    ->whereColumn('user_id', 'users.id')
+                    ->latest('id')
+                    ->limit(1)
+            ]);
 
-        if(!empty($filter['sortby'])){
-            switch($filter['sortby']){
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
                 case 'id_desc':
                     $accounts->orderby('id', 'desc');
                     break;
@@ -54,73 +56,75 @@ class AccountsController extends Controller
         }
         $accounts = $accounts->paginate($filter['count']);
 
-
         return view('accounts.index', compact('accounts', 'filter'));
     }
 
-    public function show($id){
+    public function show($id)
+    {
         $account = User::find($id);
         $transactions = Transaction::query();
         $filter = array(
-            'type'=> request('type')?request('type'):null,
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):5,
+            'type' => request('type') ?? null,
+            'sortby' => request('sortby') ?? 'id_desc',
+            'count' => request('count') ?? 5,
         );
-            if(!empty($filter['type'])){
-                $transactions->where('type', $filter['type']);
-            }
+        if (!empty($filter['type'])) {
+            $transactions->where('type', $filter['type']);
+        }
 
-            if(!empty($filter['sortby'])){
-                switch($filter['sortby']){
-                    case 'id_desc':
-                        $transactions->orderby('id', 'desc');
-                        break;
-                    case 'id_asc':
-                        $transactions->orderby('id', 'asc');
-                        break;
-                }
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
+                case 'id_desc':
+                    $transactions->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $transactions->orderby('id', 'asc');
+                    break;
             }
-            $transactions = $transactions->get()->all();
+        }
+        $transactions = $transactions->get();
 
-        return view('accounts.show', compact('account','filter','transactions'));
+        return view('accounts.show', compact('account', 'filter', 'transactions'));
     }
 
-    public function tokens(){
+    public function tokens()
+    {
 
         $account = User::find(auth()->user()->id);
         $transactions = Transaction::query();
 
         $filter = array(
-            'type'=> request('type')?request('type'):null,
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):5,
+            'type' => request('type') ?? null,
+            'sortby' => request('sortby') ?? 'id_desc',
+            'count' => request('count') ?? 5,
         );
-            if(!empty($filter['type'])){
-                $transactions->where('type', $filter['type']);
-            }
+        if (!empty($filter['type'])) {
+            $transactions->where('type', $filter['type']);
+        }
 
-            if(!empty($filter['sortby'])){
-                switch($filter['sortby']){
-                    case 'id_desc':
-                        $transactions->orderby('id', 'desc');
-                        break;
-                    case 'id_asc':
-                        $transactions->orderby('id', 'asc');
-                        break;
-                }
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
+                case 'id_desc':
+                    $transactions->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $transactions->orderby('id', 'asc');
+                    break;
             }
-            $transactions = $transactions->get()->all();
+        }
+        $transactions = $transactions->get();
 
-        return view('accounts.tokens', compact('account','filter','transactions'));
+        return view('accounts.tokens', compact('account', 'filter', 'transactions'));
     }
 
-    public function storeTokens(Request $request){
+    public function storeTokens(Request $request)
+    {
         $account = User::find($request->user_id);
         $amount = $request->amount;
         Transaction::create([
-            'user_id'=>$account->id,
-            'amount'=>$amount,
-            'type'=>'purchase',
+            'user_id' => $account->id,
+            'amount' => $amount,
+            'type' => 'purchase',
         ]);
         $account->addTokens($amount);
         $account->save();
