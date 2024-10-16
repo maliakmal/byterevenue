@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RecipientsList;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -15,9 +16,8 @@ use Illuminate\Support\Facades\DB;
 class CampaignController extends Controller
 {
     public function __construct(
-        protected  CampaignRepositoryInterface $campaignRepository
-    )
-    {
+        protected CampaignRepositoryInterface $campaignRepository
+    ) {
     }
 
     /**
@@ -27,29 +27,29 @@ class CampaignController extends Controller
     {
         $campaigns = Campaign::query();
         $filter = array(
-            'status'=> request('status')!=''?request('status'):null,
-            'user_id'=> request('user_id')?request('user_id'):null,
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):5,
+            'status' => request('status') ?? null,
+            'user_id' => request('user_id') ?? null,
+            'sortby' => request('sortby') ?? 'id_desc',
+            'count' => request('count') ?? 5,
         );
 
 
-        if(!is_null($filter['status'])){
+        if (!is_null($filter['status'])) {
             $campaigns->where('status', $filter['status']);
         }
 
-        if(auth()->user()->hasRole('admin')){
+        if (auth()->user()->hasRole('admin')) {
 
-            if(!empty($filter['user_id'])){
+            if (!empty($filter['user_id'])) {
                 $campaigns->where('user_id', $filter['user_id']);
             }
 
-        }else{
-            $campaigns->where('user_id', auth()->user()->id);
+        } else {
+            $campaigns->where('user_id', auth()->id());
         }
 
-        if(!empty($filter['sortby'])){
-            switch($filter['sortby']){
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
                 case 'id_desc':
                     $campaigns->orderby('id', 'desc');
                     break;
@@ -83,9 +83,8 @@ class CampaignController extends Controller
      */
     public function create()
     {
-        $clients = auth()->user()->clients->all();
-        $recipient_lists = auth()->user()->recipientLists()->get()->all();
-        return view('campaigns.create', compact('clients', 'recipient_lists'));
+        $recipient_lists = auth()->user()->recipientLists()->get();
+        return view('campaigns.create', compact('recipient_lists'));
     }
 
     /**
@@ -97,8 +96,7 @@ class CampaignController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
         ]);
-        $inputs = $request->all();
-        try{
+        try {
             DB::beginTransaction();
             $campaign = auth()->user()->campaigns()->create([
                 'title' => $request->title,
@@ -107,34 +105,32 @@ class CampaignController extends Controller
             ]);
             $campaign->generateUniqueFolder();
             $campaign->save();
-            if(auth()->user()->show_introductory_screen == true){
+            if (auth()->user()->show_introductory_screen == true) {
                 User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
             }
-//                $caller = new KeitaroCaller();
+            //                $caller = new KeitaroCaller();
 //                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
 //                $response = $caller->call($create_group_request);
 //                $campaign->keitaro_group_id = $response['id'];
 //                $campaign->keitaro_create_group_response = @json_encode($response);
 //                $campaign->save();
             DB::commit();
-        }
-        catch (RequestException $exception){
+        } catch (RequestException $exception) {
             DB::rollBack();
             return redirect()->route('campaigns.index')->with('error', $exception->getMessage());
-        }
-        catch (\Exception $exception){
+        } catch (\Exception $exception) {
             DB::rollBack();
             report($exception);
             return redirect()->route('campaigns.index')->with('error', 'Error Create Campaign');
         }
         $message_data = [
-            'subject'=>$request->message_subject,
-            'body'=>$request->message_body,
-            'target_url'=>$request->message_target_url,
-            "user_id"=>auth()->user()->id,
-            'campaign_id'=>$campaign->id
+            'subject' => $request->message_subject,
+            'body' => $request->message_body,
+            'target_url' => $request->message_target_url,
+            "user_id" => auth()->id(),
+            'campaign_id' => $campaign->id
         ];
-        $message = Message::create($message_data);
+        Message::create($message_data);
         return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign created successfully.');
     }
 
@@ -148,21 +144,21 @@ class CampaignController extends Controller
 
         $recipient_lists = $campaign->recipient_list;
 
-        if($campaign->isDraft()){
+        if ($campaign->isDraft()) {
             $contacts = $recipient_lists->contacts()->paginate($per_page);
             $logs = [];
 
-        }else{
+        } else {
             $contacts = [];
-            $logs = BroadcastLog::select()->where('campaign_id', '=', $campaign->id)->paginate($per_page);
+            $logs = BroadcastLog::where('campaign_id', $campaign->id)->paginate($per_page);
         }
-        if(\request()->input('output') == 'json'){
+        if (request()->input('output') == 'json') {
             return response()->success(null, [
                 'contacts' => $contacts,
                 'logs' => $logs,
             ]);
         }
-        return view('campaigns.show', compact('campaign', 'contacts', 'logs', 'message', 'recipient_lists'));
+        return view('campaigns.show', compact('campaign', 'contacts', 'logs', 'message'));
 
     }
 
@@ -171,12 +167,18 @@ class CampaignController extends Controller
         return view('campaigns.broadcast-batch.create', compact('campaign', 'recipient_lists'));
     }
 
-    public function markAsProcessed($id){
+    public function markAsProcessed($id)
+    {
         // create message logs against each contact and generate the message acordingly
-        $campaign = Campaign::findOrFail($id);
-        $account = User::find($campaign->user_id);
-        $amount = $campaign->recipient_list->contacts()->count();
-        if($account->tokens < $amount){
+        $campaign = Campaign::with(['user'])->withCount([
+            'recipient_list as recipient_list_contacts_count' => function ($query) {
+                $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
+                    ->join('contact_recipient_list', 'contact_recipient_list.recipients_list_id', '=', 'recipients_lists.id');
+            }
+        ])->findOrFail($id);
+        $account = $campaign->user;
+        $amount = $campaign->recipient_list_contacts_count;
+        if ($account->tokens < $amount) {
             return redirect()->back()->withErrors(['error' => 'You do not have enough tokens to process this campaign.']);
         }
         DB::enableQueryLog();
@@ -184,14 +186,12 @@ class CampaignController extends Controller
         DB::beginTransaction();
 
         try {
-            $campaign = Campaign::findOrFail($id);
-
             //$message = $campaign->message->getParsedMessage();
 
 
             $sql = "INSERT INTO broadcast_logs ";
-            $sql.="(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
-            $sql.="SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
+            $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
+            $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
             //var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
             DB::insert($sql, [auth()->id(), $campaign->recipient_list->id, $campaign->message->id, 0, $campaign->id, $campaign->recipient_list->id]);
 
@@ -218,12 +218,10 @@ class CampaignController extends Controller
             $campaign->markAsProcessed();
             $campaign->save();
 
-            $account = User::find(auth()->user()->id);
-            $amount = $campaign->recipient_list->contacts()->count();
             Transaction::create([
-                'user_id'=>$account->id,
-                'amount'=>$amount,
-                'type'=>'usage',
+                'user_id' => auth()->id(),
+                'amount' => $amount,
+                'type' => 'usage',
             ]);
             $account->deductTokens($amount);
             $account->save();
@@ -236,7 +234,6 @@ class CampaignController extends Controller
             return redirect()->back()->with('success', 'Job is being processed.');
         } catch (\Exception $e) {
             DB::rollback();
-            var_dump($e);die();
             return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
         }
 
@@ -247,8 +244,7 @@ class CampaignController extends Controller
      */
     public function edit(Campaign $campaign)
     {
-        $user = $campaign->user;
-        $recipient_lists = $user->recipientLists()->get()->all();
+        $recipient_lists = RecipientsList::where('user_id',$campaign->user_id)->get();
         return view('campaigns.edit', compact('campaign', 'recipient_lists'));
     }
 
@@ -284,7 +280,7 @@ class CampaignController extends Controller
      */
     public function destroy(Campaign $campaign)
     {
-        $client->delete();
+        $campaign->delete();
 
         return redirect()->route('campaigns.index')->with('success', 'Campaign deleted successfully.');
     }

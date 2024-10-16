@@ -30,7 +30,7 @@ class BroadcastBatchController extends Controller
         $campaign_id = $request->query('campaign_id');
         $campaign = Campaign::find($campaign_id);
 
-        $recipient_lists = RecipientsList::select()->where('user_id', auth()->id())->get();
+        $recipient_lists = RecipientsList::where('user_id', auth()->id())->get();
         return view('broadcast_batch.create', compact('campaign', 'recipient_lists'));
     }
 
@@ -45,22 +45,24 @@ class BroadcastBatchController extends Controller
         //
 
         $message_data = [
-            'subject'=>$request->message_subject,
-            'body'=>$request->message_body,
-            'target_url'=>$request->message_target_url,
-            "user_id"=>auth()->user()->id,
-            'campaign_id'=>$campaign_id
+            'subject' => $request->message_subject,
+            'body' => $request->message_body,
+            'target_url' => $request->message_target_url,
+            "user_id" => auth()->id(),
+            'campaign_id' => $campaign_id,
         ];
 
         $message = Message::create($message_data);
 
         $broadcast_batch_data = [
-            'recipients_list_id' => $request->recipients_list_id, 
-            'user_id'=>auth()->id(),
-            'campaign_id'=>$campaign->id,
-            'message_id'=>$message->id, 'status'=>0];
+            'recipients_list_id' => $request->recipients_list_id,
+            'user_id' => auth()->id(),
+            'campaign_id' => $campaign->id,
+            'message_id' => $message->id,
+            'status' => 0,
+        ];
 
-        $broadcast_batch = BroadcastBatch::create($broadcast_batch_data);
+        BroadcastBatch::create($broadcast_batch_data);
         return redirect()->route('campaigns.show', $campaign)->with('success', 'Broadcast Job created successfully.');
 
     }
@@ -76,11 +78,11 @@ class BroadcastBatchController extends Controller
         $recipient_lists = $broadcastBatch->recipient_list;
         $broadcast_batch = $broadcastBatch;
 
-        if($broadcast_batch->isDraft()){
+        if ($broadcast_batch->isDraft()) {
             $contacts = $recipient_lists->contacts()->paginate(10);
             $logs = [];
 
-        }else{
+        } else {
             $contacts = [];
             $logs = BroadcastLog::select()->where('broadcast_batch_id', '=', $broadcast_batch->id)->paginate(10);
         }
@@ -88,7 +90,8 @@ class BroadcastBatchController extends Controller
 
     }
 
-    public function markAsProcessed($id){
+    public function markAsProcessed($id)
+    {
         // create message logs against each contact and generate the message acordingly
 
         DB::beginTransaction();
@@ -98,19 +101,19 @@ class BroadcastBatchController extends Controller
 
             $message = $broadcast_batch->message->getParsedMessage();
             $data = [
-                'user_id'=>auth()->id(),
-                'recipients_list_id'=>$broadcast_batch->recipient_list->id,
-                'message_id'=>$broadcast_batch->message_id,
-                'message_body'=>$message,
-                'recipient_phone'=>'',
-                'contact_id'=>0,
-                'is_downloaded_as_csv'=>0,
-                'broadcast_batch_id'=>$broadcast_batch->id
+                'user_id' => auth()->id(),
+                'recipients_list_id' => $broadcast_batch->recipient_list->id,
+                'message_id' => $broadcast_batch->message_id,
+                'message_body' => $message,
+                'recipient_phone' => '',
+                'contact_id' => 0,
+                'is_downloaded_as_csv' => 0,
+                'broadcast_batch_id' => $broadcast_batch->id
             ];
 
             $contacts = $broadcast_batch->recipient_list->contacts->all();
 
-            foreach($contacts as $contact){
+            foreach ($contacts as $contact) {
                 $data['recipient_phone'] = $contact->phone;
                 $data['contact_id'] = $contact->id;
                 BroadcastLog::create($data);

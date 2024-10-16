@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\BlackListNumber;
-use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
-use App\Repositories\Contract\Contact\ContactRepositoryInterface;
+use Illuminate\Contracts\View\View;
+use Illuminate\Contracts\View\Factory;
 use App\Services\Unitily\UtilityService;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
+use App\Repositories\Contract\Contact\ContactRepositoryInterface;
+use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
 
 class BlackListNumberController extends Controller
 {
@@ -26,7 +26,7 @@ class BlackListNumberController extends Controller
         public function index(Request $request)
         {
             $filter = array(
-                'count'=> request('count')?request('count'):5,
+                'count'=> request('count') ?? 5,
             );
             $list = $this->blackListNumberRepository->paginate($request->count);
             return view('black_list_number.index', compact('list', 'filter' ));
@@ -102,7 +102,7 @@ class BlackListNumberController extends Controller
     public function getBlackListNumberForUser(Request $request)
     {
         $filter = array(
-            'count'=> request('count')?request('count'):5,
+            'count' => request('count') ? request('count') : 5,
         );
         $user_id = auth()->id();
         $list = $this->contactRepository->getBlockedListUserContacts($user_id, $filter['count']);
