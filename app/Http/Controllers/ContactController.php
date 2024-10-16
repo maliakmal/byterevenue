@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\AreaCode;
 use App\Models\Contact;
 use App\Services\AreaCode\AreaCodeService;
@@ -19,31 +20,35 @@ class ContactController extends Controller
 
     public function index()
     {
-        $perPage = \request()->input('per_page', 12);
-        if(auth()->user()->hasRole('admin')) {
-            $contacts = Contact::select();
-        }
-        else {
-            $contacts = auth()->user()->contacts();
-        }
-        $contacts = $contacts->withCount(['campaigns', 'sentMessages', 'recipientLists', 'blackListNumber']);
-        $area_code = \request('area_code', '');
-        $phone = \request('phone', '');
-        if(!empty($area_code) || !empty($phone)){
-            $filter_phone = $area_code.$phone.'%';
-            if(empty($area_code)){
-                $filter_phone = '%'.$filter_phone;
-            }
-            $contacts = $contacts->where('phone', 'like', $filter_phone);
-        }
-        if(!empty(\request('name'))){
-            $contacts = $contacts->where('name', \request('name'));
-        }
-        $contacts = $contacts->orderby('id', 'desc')->paginate($perPage);
-        if(\request()->input('output') == 'json'){
+        $user       = auth()->user();
+        $perPage    = request('per_page', 12);
+        $name       = request('name');
+        $area_code  = request('area_code', '');
+        $phone      = request('phone', '');
+
+        $filter_phone = $area_code ?: '%';
+        $filter_phone .= ($phone ?: '') .'%';
+
+        $contacts = $user->hasRole('admin') ? Contact::query() : Contact::where('user_id', $user->id);
+        $contacts = $contacts->withCount(['campaigns', 'sentMessages', 'recipientLists', 'blackListNumber'])
+            ->when($phone || $area_code, function ($query) use ($filter_phone) {
+                return $query->where('phone', 'like', $filter_phone);
+            })
+            ->when($name, function ($query, $name) {
+                return $query->where('name', $name);
+            });
+
+        $contacts = $contacts->orderBy('id', 'desc')->paginate($perPage);
+
+        if ('json' === request()->input('output')) {
             return response()->success(null, $contacts);
         }
-        $area_data = $this->areaCodeService->getAreaData();
+
+        $area_data = [
+            'provinces' => $this->areaCodeService->getAllProvinces('true'),
+            //'cities'  => $this->areaCodeService->getAllCities('true') // legacy data
+        ];
+
         return view('contacts.index', compact('contacts', 'area_data'));
     }
 
@@ -55,12 +60,12 @@ class ContactController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'string|max:255',
+            'name'  => 'string|max:255',
             'phone' => 'required|string|max:255',
         ]);
 
         auth()->user()->contacts()->create([
-            'name' => $request->name,
+            'name'  => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
         ]);
@@ -81,12 +86,12 @@ class ContactController extends Controller
     public function update(Request $request, Contact $dataSource)
     {
         $request->validate([
-            'name' => 'string|max:255',
+            'name'  => 'string|max:255',
             'phone' => 'required|string|max:255',
         ]);
 
         $dataSource->update([
-            'name' => $request->name,
+            'name'  => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
         ]);

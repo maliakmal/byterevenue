@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Redundant index needed for $contacts->withCount('campaigns')
+        // in app/Http/Controllers/ContactController.php line 33
+        // Requires creation of a Broadcast_logs->campaigns unique name|count for Contact pivot table.
+
         Schema::table('broadcast_logs', function (Blueprint $table) {
-            $table->index(['is_sent', 'sent_at']);
-            $table->index(['is_click', 'clicked_at']);
-            $table->index(['created_at']);
+            $table->index(['campaign_id', 'contact_id']);
         });
     }
 
@@ -24,9 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('broadcast_logs', function (Blueprint $table) {
-            $table->dropIndex(['is_sent', 'sent_at']);
-            $table->dropIndex(['is_click', 'clicked_at']);
-            $table->dropIndex(['created_at']);
+            $table->dropIndex(['campaign_id', 'contact_id']);
         });
     }
 };

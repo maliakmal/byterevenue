@@ -1,34 +1,44 @@
 <x-app-layout>
-<header class="bg-gray-50 py-8">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:flex xl:items-center xl:justify-between">
-        <div class="min-w-0 flex-1">
-          <nav class="flex" aria-label="Breadcrumb">
-            <ol role="list" class="flex items-center space-x-4">
-              <li>
-                <div>
-                  <a href="/" class="text-sm font-medium text-gray-500 hover:text-gray-700">Dashboard</a>
+    <header class="bg-gray-50 py-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:flex xl:items-center xl:justify-between">
+            <div class="min-w-0 flex-1">
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol role="list" class="flex items-center space-x-4">
+                        <li>
+                            <div>
+                                <a href="/" class="text-sm font-medium text-gray-500 hover:text-gray-700">Dashboard</a>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 flex-shrink-0 text-gray-400"
+                                     x-description="Heroicon name: mini/chevron-right"
+                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                     aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                          clip-rule="evenodd"></path>
+                                </svg>
+                                <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Data-Source</a>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+                <h1 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                    Data-Source</h1>
+                <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
                 </div>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="h-5 w-5 flex-shrink-0 text-gray-400" x-description="Heroicon name: mini/chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"></path>
-                  </svg>
-                  <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Data-Source</a>
-                </div>
-              </li>
-            </ol>
-          </nav>
-          <h1 class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Data-Source</h1>
-          <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-8">
-          </div>
-        </div>
-        <div class="mt-5 flex xl:mt-0 xl:ml-4">
+            </div>
+            <div class="mt-5 flex xl:mt-0 xl:ml-4">
 
           <span class="ml-3 hidden sm:block">
-            <a href="{{ route('data-source.create') }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
-<svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
-  <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
+            <a href="{{ route('data-source.create') }}"
+               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
+<svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+     fill="currentColor">
+  <path fill-rule="evenodd"
+        d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z"
+        clip-rule="evenodd"/>
 </svg>
 
 
@@ -37,8 +47,8 @@
           </span>
 
 
+            </div>
         </div>
-      </div>
     </header>
 
     <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -97,12 +107,9 @@
 
 
             <ul role="list" class="divide-y divide-gray-100">
-                @foreach ($contacts as $index=> $contact)
+                @foreach ($contacts as $index => $contact)
 
                 <li class="flex justify-between gap-x-6 py-5">
-
-
-
                     <div class="flex min-w-0 gap-x-4">
                         <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
                         <div class="min-w-0 flex-auto">
@@ -158,7 +165,7 @@
 
 @push('scripts')
 <script>
-    var cities = {!! $area_data['cities'] !!};
+    var cities = [];
     var page = 1;
 
     $(document).ready(function() {
@@ -173,7 +180,7 @@
 
         var province_filter = '{{$_GET['province'] ?? ''}}';
         var city_filter = '{{$_GET['area_code'] ?? ''}}';
-        if(province_filter){
+        if (province_filter){
             $('#province-filter').val(province_filter).trigger('change');
             loadCitites(province_filter);
             if(area_code_filter){
@@ -182,7 +189,7 @@
             }
         }
         var area_code_filter = '{{$_GET['area_code'] ?? ''}}';
-        if(area_code_filter){
+        if (area_code_filter){
             $('#area_code-filter').val(area_code_filter).trigger('change');
         }
 
@@ -193,21 +200,20 @@
             var phone = $('#phone').val();
             var name = $('#name').val();
             page++;
-                var url = "{!! route('data-source.index') !!}" +"?output=json&page="+page+"&phone="+phone+"&area_code="+area_code+"&name="+name;
-                $.get(url, function(data){
-                    if(data.data.last_page <= page){
-                        $('#loadDataButton').remove();
-                    }
-                    var elements = data.data.data;
-                    var str = "";
-                    var i = 0;
-                    for(i=0;i<elements.length;i++){
-                        str += getElementString(elements[i]);
-                    }
-                    $('#card-container').append(str);
-                    $.LoadingOverlay("hide");
-
-                });
+            var url = "{!! route('data-source.index') !!}" +"?output=json&page="+page+"&phone="+phone+"&area_code="+area_code+"&name="+name;
+            $.get(url, function(data){
+                if (data.data.last_page <= page){
+                    $('#loadDataButton').remove();
+                }
+                var elements = data.data.data;
+                var str = "";
+                var i = 0;
+                for (i=0; i < elements.length; i++){
+                    str += getElementString(elements[i]);
+                }
+                $('#card-container').append(str);
+                $.LoadingOverlay("hide");
+            });
 
         });
 
@@ -218,19 +224,19 @@
         });
 
         function loadCitites(province){
-            var i;
             $('#city-filter').html("");
             $.LoadingOverlay("show");
-            for(i=0; i<cities.length;i++){
-                if(cities[i].province == province){
-                    var data = {
-                        id: cities[i].code,
-                        text: cities[i].city_name+" (+"+cities[i].code+")"
+            $.get('api/areas/cities-by-province/' + province, function(data){
+                var i;
+                for (i=0; i < data.length; i++) {
+                    var city = {
+                        id: data[i].code,
+                        text: data[i].city_name+" (+"+data[i].code+")"
                     };
-                    var newOption = new Option(data.text, data.id, false, false);
+                    var newOption = new Option(city.text, city.id, false, false);
                     $('#city-filter').append(newOption);
                 }
-            }
+            });
             $('#city-filter').trigger('change');
             $.LoadingOverlay("hide");
         }
@@ -241,35 +247,34 @@
             edit = edit.replace('id', ele.id);
             del = del.replace('id', ele.id);
 
-
             return `
-            <li class="flex justify-between gap-x-6 py-5">
-                    <div class="flex min-w-0 gap-x-4">
-                        <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
-                        <div class="min-w-0 flex-auto">
-                            <p class="text-sm font-semibold leading-6 text-gray-900"> ${ele.name || "{"+ele.phone+"}"}</p>
-                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">${ele.phone +" | "+ ele.email}</p>
-                        </div>
+        <li class="flex justify-between gap-x-6 py-5">
+                <div class="flex min-w-0 gap-x-4">
+                    <img class="h-12 w-12 flex-none rounded-full bg-gray-50" src="/images/Sample_User_Icon.png" alt="">
+                    <div class="min-w-0 flex-auto">
+                        <p class="text-sm font-semibold leading-6 text-gray-900"> ${ele.name || "{"+ele.phone+"}"}</p>
+                        <p class="mt-1 truncate text-xs leading-5 text-gray-500">${ele.phone +" | "+ ele.email}</p>
                     </div>
-                    <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                </div>
+                <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
 
 
-                <div class="mt-1 flex items-center gap-x-1.5">
-                            <div class="mt-1 flex items-center gap-x-1.5">
-                                <div class="flex-none rounded-full ${ele.black_list_number_count >=1 ? "bg-red-200" : "bg-emerald-500/20" } p-1">
-                                    <div class="h-1.5 w-1.5 rounded-full ${ele.black_list_number_count >=1 ? "bg-red-500" : "bg-emerald-500" }"></div>
-                                </div>
-                                <p class="text-xs leading-5 text-gray-500">${ele.black_list_number_count >=1  ? "Blocked" : "Available" }</p>
+            <div class="mt-1 flex items-center gap-x-1.5">
+                        <div class="mt-1 flex items-center gap-x-1.5">
+                            <div class="flex-none rounded-full ${ele.black_list_number_count >=1 ? "bg-red-200" : "bg-emerald-500/20" } p-1">
+                                <div class="h-1.5 w-1.5 rounded-full ${ele.black_list_number_count >=1 ? "bg-red-500" : "bg-emerald-500" }"></div>
                             </div>
-                            <span class="text-xs">|</span>
-                            <div class="mt-1 flex items-center gap-x-1.5">
-                                <a href="${edit}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
-                            </div>
-                            <span class="text-xs">|</span>
-                                <form method="post" action="${del}">
-                                    <div class="mt-1 flex items-center gap-x-1.5">
+                            <p class="text-xs leading-5 text-gray-500">${ele.black_list_number_count >=1  ? "Blocked" : "Available" }</p>
+                        </div>
+                        <span class="text-xs">|</span>
+                        <div class="mt-1 flex items-center gap-x-1.5">
+                            <a href="${edit}" style="color: dodgerblue" class="text-xs leading-5 text-gray-500">EDIT</a>
+                        </div>
+                        <span class="text-xs">|</span>
+                            <form method="post" action="${del}">
+                                <div class="mt-1 flex items-center gap-x-1.5">
 
-                                    @csrf
+                                @csrf
             @method('DELETE')
             <button class="text-xs leading-5 " style="color:darkred">DELETE</button>
                                     </div>
@@ -280,8 +285,8 @@
 
                         <p class="mt-1 text-xs leading-5 text-gray-500">${ele.sent_messages_count} sent  message | ${ele.recipient_lists_count} recipients | ${ele.campaigns_count} campaigns</p>
 
-                    </div>
-                </li>`;
+                </div>
+            </li>`;
         }
     });
 
