@@ -22,23 +22,22 @@ class RecipientsListController extends Controller
     public function index()
     {
         $per_page = 12;
-        $recipient_lists = null;
-        if(auth()->user()->hasRole('admin')):
-            $recipient_lists = RecipientsList::select()->with('user')->withCount(['contacts', 'campaigns']);
-        else:
-            $recipient_lists = auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
-        endif;
+        $recipient_lists = auth()->user()->hasRole('admin')
+            ? $recipient_lists = RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
+            : $recipient_lists = auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
+        $nameFilter = request()->input('name');
+        $isImportedFilter = request()->input('is_imported', '');
 
-        if(\request()->input('name')){
-            $recipient_lists = $recipient_lists->where('name', 'like', '%'.\request()->input('name').'%');
+        if ($nameFilter) {
+            $recipient_lists = $recipient_lists->whereLike('name', '%' . request()->input('name') . '%');
         }
-        if(is_numeric(\request()->input('is_imported', ''))){
-            $recipient_lists = $recipient_lists->where('is_imported', \request()->input('is_imported'));
+        if (is_numeric($isImportedFilter)) {
+            $recipient_lists = $recipient_lists->where('is_imported', $isImportedFilter);
         }
 
         $recipient_lists = $recipient_lists->orderby('id', 'desc')->paginate($per_page);
 
-        if(\request()->input('output') == 'json'){
+        if (request()->input('output') == 'json') {
             return response()->success(null, $recipient_lists);
         }
         return view('recipient_lists.index', compact('recipient_lists'));
@@ -61,17 +60,19 @@ class RecipientsListController extends Controller
         $request->validate([
             'source' => 'nullable|string|min:1|max:100'
         ]);
-        if(auth()->user()->show_introductory_screen == true){
-            User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+
+        $user = auth()->user();
+        if ($user->show_introductory_screen) {
+            $user->update(['show_introductory_screen' => false]);
         }
 
-        if($request->entry_type =='file'){
+        if ($request->entry_type == 'file') {
             DB::beginTransaction();
-            $recipientsList = auth()->user()->recipientLists()->create([
+            $recipientsList = $user->recipientLists()->create([
                 'name' => $request->name,
             ]);
 
-            $user_id = auth()->user()->id;
+            $user_id = $user->id;
             $file = $request->file('csv_file');
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
@@ -92,12 +93,12 @@ class RecipientsListController extends Controller
 
             $nameVar = '@dummy';
             $emailVar = '@dummy';
-            if($nameColumn!=null && $nameColumn!='-1'){
+            if ($nameColumn != null && $nameColumn != '-1') {
                 $dummyVariables[$nameColumn] = 'name';
                 $nameVar = 'name';
             }
 
-            if($emailColumn!=null && $emailColumn!='-1'){
+            if ($emailColumn != null && $emailColumn != '-1') {
                 $dummyVariables[$emailColumn] = 'email';
                 $emailVar = 'email';
             }
@@ -114,32 +115,33 @@ class RecipientsListController extends Controller
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'name' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
-                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
                                 FROM contacts
                                 WHERE file_tag='$newFileName'"
-                            );
-var_dump("LOAD DATA LOCAL INFILE '$fullPath'
+                );
+                var_dump("LOAD DATA LOCAL INFILE '$fullPath'
                                INTO TABLE contacts
                                FIELDS TERMINATED BY ','
                                OPTIONALLY ENCLOSED BY '\"'
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'name' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
 
-var_dump(                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-FROM contacts
-WHERE file_tag='$newFileName'");
+                var_dump("INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+                                 FROM contacts
+                                 WHERE file_tag='$newFileName'"
+                );
 
-$recipientsList->is_imported = true;
-$recipientsList->source = $request->source;
+                $recipientsList->is_imported = true;
+                $recipientsList->source = $request->source;
                 $recipientsList->save();
 
-                            DB::commit();
+                DB::commit();
 
                 return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
             } catch (\Exception $e) {
@@ -149,57 +151,57 @@ $recipientsList->source = $request->source;
             }
 
 
-        }else{
+        } else {
             $data = explode(',', $request->numbers);
         }
 
-        if(count($data)==0){
+        if (count($data) == 0) {
             return redirect()->back()->withErrors(['error' => 'Cannot create an empty recipient list.']);
         }
 
         DB::beginTransaction();
-        $recipientsList = auth()->user()->recipientLists()->create([
+        $recipientsList = $user->recipientLists()->create([
             'name' => $request->name,
         ]);
 
         try {
             $insertables = [];
             $now = now()->toDateTimeString();
-            $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone', 'id')->toArray();
+            $existing_phones_for_user = Contact::where(['user_id' => $user->id])->pluck('phone', 'id')->toArray();
             foreach ($data as $row) {
-                if(is_array($row)):
+                if (is_array($row)):
 
-                    if(!in_array($row['phone'], $existing_phones_for_user)):
-                        $insertables[] =[
+                    if (!in_array($row['phone'], $existing_phones_for_user)):
+                        $insertables[] = [
                             'phone' => $row['phone'],
-                            'user_id'=>auth()->user()->id,
+                            'user_id' => $user->id,
                             'name' => $row['name'],
                             'email' => $row['email'],
-                            'created_at'=>$now,
-                            'updated_at'=>$now,
-                            ];
-                        else:
-                            $attachable_id = array_search($row['phone'], $existing_phones_for_user);
-                            $recipient_list->contacts()->attach($attachable_id, ['user_id'=>$user_id]);
-                        endif;
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    else:
+                        $attachable_id = array_search($row['phone'], $existing_phones_for_user);
+                        $recipientsList->contacts()->attach($attachable_id, ['user_id' => $user->id]);
+                    endif;
 
                 else:
 
-                    $insertables[] =[
+                    $insertables[] = [
                         'phone' => $row,
-                        'user_id'=>auth()->user()->id,
+                        'user_id' => $user->id,
                         'name' => $row,
                         'email' => '',
-                        'created_at'=>$now,
-                        'updated_at'=>$now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
 
                 endif;
             }
 
-            foreach($insertables as $insertable){
+            foreach ($insertables as $insertable) {
                 $contact = Contact::create($insertable);
-                $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
+                $recipientsList->contacts()->attach($contact->id, ['user_id' => auth()->id()]);
             }
 
             $recipientsList->is_imported = true;
@@ -212,10 +214,6 @@ $recipientsList->source = $request->source;
             DB::rollback();
             return redirect()->back()->withErrors(['error' => 'An error occurred while importing contacts.']);
         }
-
-
-
-        return redirect()->route('recipient_lists.index')->with('success', 'Recipients List created successfully.');
     }
 
     /**
@@ -265,8 +263,8 @@ $recipientsList->source = $request->source;
      */
     public function destroy($id)
     {
-        $item = RecipientsList::findOrFail($id);
-        if($item->campaigns->count()>0){
+        $item = RecipientsList::withCount('campaigns')->findOrFail($id);
+        if ($item->campaigns_count > 0) {
             return redirect()->back()->withErrors(['error' => 'List is associated with a campaign - this cannot be deleted.']);
         }
 
@@ -279,7 +277,7 @@ $recipientsList->source = $request->source;
      * @param $userID
      * @return array
      */
-    private function getSourceForUser($userID) : array
+    private function getSourceForUser($userID): array
     {
         return RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
             ->where('user_id', $userID)

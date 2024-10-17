@@ -244,7 +244,7 @@ class CampaignController extends Controller
      */
     public function edit(Campaign $campaign)
     {
-        $recipient_lists = RecipientsList::where('user_id',$campaign->user_id)->get();
+        $recipient_lists = RecipientsList::where('user_id', $campaign->user_id)->get();
         return view('campaigns.edit', compact('campaign', 'recipient_lists'));
     }
 
@@ -255,22 +255,25 @@ class CampaignController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'recipients_list_id' => 'required|integer|exists:recipients_lists,id',
+            'message_subject' => 'required|string|max:255',
+            'message_body' => 'required|string',
+            'message_target_url' => 'nullable|url',
         ]);
-
-        $campaign->title = $request->title;
-        $campaign->description = $request->description;
-        $campaign->recipients_list_id = $request->recipients_list_id;
-        $campaign->save();
+        $campaign->fill([
+            'title' => $request->title,
+            'description' => $request->description,
+            'recipients_list_id' => $request->recipients_list_id,
+        ]);
 
         $campaign->generateUniqueFolder();
         $campaign->save();
 
-        $message = $campaign->message;
-        $message->subject = $request->message_subject;
-        $message->body = $request->message_body;
-        $message->target_url = $request->message_target_url;
-        $message->save();
-
+        $campaign->message->update([
+            'subject' => $request->message_subject,
+            'body' => $request->message_body,
+            'target_url' => $request->message_target_url,
+        ]);
 
         return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign updated successfully.');
     }
