@@ -11,7 +11,7 @@ class AreaCodeService
     // If you are using other driver, you can remove `->tags([self::CACHE_KEY])` from the methods
 
     const CACHE_KEY = 'area_data';
-    const CACHE_TTL = 60 * 60; // 1 hour
+    const CACHE_TTL = 60 * 60 * 24; // 24 hour
 
     /**
      * @return array

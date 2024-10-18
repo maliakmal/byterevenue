@@ -16,8 +16,8 @@ Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout
 Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
 Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
-// group routes that require external api token and sanctum auth
-Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */'auth:sanctum'])->group(function () {
+// group routes that require external api token (webhooks)
+Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->group(function () {
     Route::prefix('messages')->group(function (){
         Route::post('/update-by-file/sent', [\App\Http\Controllers\Api\BroadcastLogController::class, 'updateSentMessage']);
         Route::post('/update/sent', [JobsController::class, 'updateSentMessage']);
@@ -43,6 +43,12 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */'auth:
     });
 });
 
+// group routes that require auth:sanctum
+Route::middleware(['auth:sanctum'])->group(function () {
+    //
+});
+
+// public routes
 Route::prefix('areas')->name('api.areas.')->group(function () {
     Route::get('get-all-provinces', [\App\Http\Controllers\Api\AreasController::class, 'getAllProvinces']);
     Route::get('get-all-cities', [\App\Http\Controllers\Api\AreasController::class, 'getAllCities']);
