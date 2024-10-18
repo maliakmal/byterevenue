@@ -12,7 +12,7 @@ class SimcardController extends Controller
      */
     public function index()
     {
-        $simcards = SimCard::select()->latest()->paginate(10);
+        $simcards = SimCard::latest()->paginate(10);
 
         return view('simcards.index', compact('simcards'));
     }

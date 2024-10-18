@@ -26,12 +26,12 @@ class CampaignController extends Controller
     public function index()
     {
         $campaigns = Campaign::query();
-        $filter = array(
-            'status' => request('status') ?? null,
-            'user_id' => request('user_id') ?? null,
-            'sortby' => request('sortby') ?? 'id_desc',
-            'count' => request('count') ?? 5,
-        );
+        $filter = [
+            'status' => request('status'),
+            'user_id' => request('user_id'),
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 5),
+        ];
 
 
         if (!is_null($filter['status'])) {
@@ -193,12 +193,13 @@ class CampaignController extends Controller
             $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
             $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
             //var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
-            DB::insert($sql, [auth()->id(), $campaign->recipient_list->id, $campaign->message->id, 0, $campaign->id, $campaign->recipient_list->id]);
+            $recepientListId = $campaign->recipient_list->id;
+            DB::insert($sql, [auth()->id(), $recepientListId, $campaign->message->id, 0, $campaign->id, $recepientListId]);
 
 
             // $data = [
             //     'user_id'=>auth()->id(),
-            //     'recipients_list_id'=>$campaign->recipient_list->id,
+            //     'recipients_list_id'=>$recepientListId,
             //     'message_id'=>$campaign->message->id,
             //     'message_body'=>'',
             //     'recipient_phone'=>'',
@@ -244,7 +245,7 @@ class CampaignController extends Controller
      */
     public function edit(Campaign $campaign)
     {
-        $recipient_lists = RecipientsList::where('user_id',$campaign->user_id)->get();
+        $recipient_lists = RecipientsList::where('user_id', $campaign->user_id)->get();
         return view('campaigns.edit', compact('campaign', 'recipient_lists'));
     }
 
@@ -255,22 +256,25 @@ class CampaignController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'recipients_list_id' => 'required|integer|exists:recipients_lists,id',
+            'message_subject' => 'required|string|max:255',
+            'message_body' => 'required|string',
+            'message_target_url' => 'nullable|url',
         ]);
-
-        $campaign->title = $request->title;
-        $campaign->description = $request->description;
-        $campaign->recipients_list_id = $request->recipients_list_id;
-        $campaign->save();
+        $campaign->fill([
+            'title' => $request->title,
+            'description' => $request->description,
+            'recipients_list_id' => $request->recipients_list_id,
+        ]);
 
         $campaign->generateUniqueFolder();
         $campaign->save();
 
-        $message = $campaign->message;
-        $message->subject = $request->message_subject;
-        $message->body = $request->message_body;
-        $message->target_url = $request->message_target_url;
-        $message->save();
-
+        $campaign->message->update([
+            'subject' => $request->message_subject,
+            'body' => $request->message_body,
+            'target_url' => $request->message_target_url,
+        ]);
 
         return redirect()->route('campaigns.show', $campaign)->with('success', 'Campaign updated successfully.');
     }

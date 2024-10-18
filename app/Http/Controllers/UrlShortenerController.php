@@ -15,10 +15,10 @@ class UrlShortenerController extends Controller
     {
 
         $urlShorteners = UrlShortener::query();
-        $filter = array(
-            'is_propagated'=> request('is_propagated')!=''?request('is_propagated'):null,
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-        );
+        $filter = [
+            'is_propagated'=> request('is_propagated'),
+            'sortby'=> request('sortby', 'id_desc'),
+        ];
 
         if(!is_null($filter['is_propagated'])){
             $urlShorteners->where('is_propagated', $filter['is_propagated']);

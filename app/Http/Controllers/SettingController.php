@@ -31,9 +31,9 @@ class SettingController extends Controller
          */
         public function index(Request $request)
         {
-            $filter = array(
-                'count'=> request('count')?request('count'):5,
-            );
+            $filter = [
+                'count'=> request('count',5),
+            ];
             $list = Setting::latest()->paginate($request->count);
             return view('settings.index', compact('list', 'filter' ));
         }
@@ -78,7 +78,6 @@ class SettingController extends Controller
          */
         public function update(Request $request, Setting $setting)
         {
-            $request->all();
             $id = $setting->id;
             $request->validate([
                 'name' => "required|unique:settings,name,$id|string|min:1|max:255",

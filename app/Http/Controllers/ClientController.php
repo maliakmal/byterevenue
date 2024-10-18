@@ -12,8 +12,7 @@ class ClientController extends Controller
      */
     public function index()
     {
-        $clients = auth()->user()->clients()->latest()->paginate(5);
-
+        $clients = Client::where('user_id', auth()->id())->latest()->paginate(5);
         return view('clients.index', compact('clients'));
     }
 
@@ -66,10 +65,10 @@ class ClientController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|max:255'.$client->id,
+            'email' => 'string|email|max:255' . $client->id,
         ]);
 
-        $contact->update([
+        $client->update([
             'name' => $request->name,
             'email' => $request->email,
         ]);

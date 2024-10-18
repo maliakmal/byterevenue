@@ -28,7 +28,7 @@ class BatchFileController extends Controller
 
     public function getFormContentFromCampaign(Request $request){
         $campaign = $this->campaignRepository->find($request->campaign_id);
-        $result = array();
+        $result = [];
         $result['data'] = $campaign->message;
 
         return response()->json($result);
@@ -49,14 +49,14 @@ class BatchFileController extends Controller
             $one['total_sent'] =  $specs['total_sent'];
             $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
             $one['total_clicked'] = $specs['total_clicked'];
-            
+
             $one['created_at_ago'] = $file->created_at->diffForHumans();;
 
             $files[] = $one;
         }
 
 
-        $result = array();
+        $result = [];
         $result['data'] = $files;
         $result['ids'] = $request->files;
 
@@ -70,7 +70,7 @@ class BatchFileController extends Controller
         $campaign_ids = is_array($campaign_ids)?$campaign_ids:[];
         $campaign_ids[] = 0;
 
-        $campaigns = Campaign::select()->whereIn('id', $campaign_ids)->get();
+        $campaigns = Campaign::whereIn('id', $campaign_ids)->get();
         $message = null;
         if(count($campaigns) == 1){
             $message = $campaigns[0]->message;
@@ -88,7 +88,7 @@ class BatchFileController extends Controller
                 $one['total_sent'] =  $specs['total_sent'];
                 $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
                 $one['total_clicked'] = $specs['total_clicked'];
-                
+
                 $one['created_at_ago'] = $file->created_at->diffForHumans();;
 
                 $files[] = $one;

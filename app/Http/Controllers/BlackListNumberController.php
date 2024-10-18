@@ -25,9 +25,9 @@ class BlackListNumberController extends Controller
          */
         public function index(Request $request)
         {
-            $filter = array(
-                'count'=> request('count') ?? 5,
-            );
+            $filter = [
+                'count'=> request('count', 5),
+            ];
             $list = $this->blackListNumberRepository->paginate($request->count);
             return view('black_list_number.index', compact('list', 'filter' ));
         }
@@ -76,7 +76,6 @@ class BlackListNumberController extends Controller
          */
         public function update(Request $request, BlackListNumber $blackListNumber)
         {
-            $request->all();
             $id = $blackListNumber->id;
             $request->validate([
                 'phone_number' => "required|unique:black_list_numbers,phone_number,$id|string|min:1|max:255",
@@ -101,9 +100,9 @@ class BlackListNumberController extends Controller
      */
     public function getBlackListNumberForUser(Request $request)
     {
-        $filter = array(
-            'count' => request('count') ? request('count') : 5,
-        );
+        $filter = [
+            'count' => request('count', 5),
+        ];
         $user_id = auth()->id();
         $list = $this->contactRepository->getBlockedListUserContacts($user_id, $filter['count']);
         return view('black_list_number.black_list_user', compact('list', 'filter'));
