@@ -54,12 +54,12 @@ class DataFeed extends Model
     {
         $query = $this->where('data_type', $dataType)
             ->where(function($q) use($dataset) {
-                if (null !== $dataset) {
+                if (isset($dataset)) {
                     $q->where('dataset_name', $dataset);
                 }
             })
             ->sum('data');
 
         return $query;
-    }    
+    }
 }

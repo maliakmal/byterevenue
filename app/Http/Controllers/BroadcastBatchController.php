@@ -57,7 +57,7 @@ class BroadcastBatchController extends Controller
         $broadcast_batch_data = [
             'recipients_list_id' => $request->recipients_list_id,
             'user_id' => auth()->id(),
-            'campaign_id' => $campaign->id,
+            'campaign_id' => $campaign_id,
             'message_id' => $message->id,
             'status' => 0,
         ];

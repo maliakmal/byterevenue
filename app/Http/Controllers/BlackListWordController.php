@@ -19,9 +19,9 @@ class BlackListWordController extends Controller
          */
         public function index(Request $request)
         {
-            $filter = array(
-                'count'=> request('count')?request('count'):5,
-            );
+            $filter = [
+                'count'=> request('count', 5),
+            ];
             $list = $this->blackListWordRepository->paginate($request->count);
             return view('black_list_word.index', compact('list', 'filter' ));
         }
@@ -50,7 +50,7 @@ class BlackListWordController extends Controller
             $list = $list->map(function ($item) {
                 return ['word' => trim($item)];
             });
-            $black_list_word = $this->blackListWordRepository->upsertWord($list->toArray());
+            $this->blackListWordRepository->upsertWord($list->toArray());
             return redirect()->route('black-list-words.index')->with('success', 'The Item created successfully.');
         }
 
@@ -67,7 +67,6 @@ class BlackListWordController extends Controller
          */
         public function update(Request $request, BlackListWord $blackListWord)
         {
-            $request->all();
             $id = $blackListWord->id;
             $request->validate([
                 'word' => "required|unique:black_list_words,word,$id|string|min:1|max:255",

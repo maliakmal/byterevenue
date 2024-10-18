@@ -37,7 +37,7 @@ class DashboardController extends Controller
 
         }
         if (auth()->user()->hasRole('admin')):
-            $campaigns = Campaign::select()->orderby('id', 'desc')->limit(100)->get();
+            $campaigns = Campaign::orderby('id', 'desc')->limit(100)->get();
             $accounts = User::withCount([
                     'campaigns',
                     'campaigns as processing_campaign_count' => function ($query) {
@@ -70,9 +70,10 @@ class DashboardController extends Controller
             $params['start_date'] = $start_date;
             $params['end_date'] = $end_date;
 
-            $params['campaigns_remaining_in_queue'] = BroadcastLog::select('campaign_id')->where('is_sent', 0)->groupby('campaign_id')->get()->count();
+            $params['campaigns_remaining_in_queue'] = BroadcastLog::where('is_sent', 0)->distinct('campaign_id')->count();
             // $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->groupby('campaign_id')->get()->count('id');
-            $params['campaigns_in_queue'] = DB::selectOne("select count(*) AS ct from (select campaign_id from broadcast_logs group by campaign_id) subq")->ct;
+
+            $params['campaigns_in_queue'] = BroadcastLog::distinct('campaign_id')->count();
             $params['campaigns_completed_from_queue'] = $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
             $params['users_campaigns'] = User::withCount('campaigns')->having('campaigns_count', '>', 0)->orderBy('campaigns_count', 'desc')->limit(10)->get();
 

@@ -12,10 +12,10 @@ class AccountsController extends Controller
 {
     public function index()
     {
-        $filter = array(
-            'sortby' => request('sortby') ?? 'id_desc',
-            'count' => request('count') ?? 5,
-        );
+        $filter = [
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 5),
+        ];
         $accounts = User::withCount([
             'campaigns',
             'campaigns as processing_campaign_count' => function ($query) {
@@ -63,11 +63,11 @@ class AccountsController extends Controller
     {
         $account = User::find($id);
         $transactions = Transaction::query();
-        $filter = array(
-            'type' => request('type') ?? null,
-            'sortby' => request('sortby') ?? 'id_desc',
-            'count' => request('count') ?? 5,
-        );
+        $filter = [
+            'type' => request('type'),
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 5),
+        ];
         if (!empty($filter['type'])) {
             $transactions->where('type', $filter['type']);
         }
@@ -93,11 +93,11 @@ class AccountsController extends Controller
         $account = User::find(auth()->user()->id);
         $transactions = Transaction::query();
 
-        $filter = array(
-            'type' => request('type') ?? null,
-            'sortby' => request('sortby') ?? 'id_desc',
-            'count' => request('count') ?? 5,
-        );
+        $filter = [
+            'type' => request('type'),
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 5),
+        ];
         if (!empty($filter['type'])) {
             $transactions->where('type', $filter['type']);
         }

@@ -18,68 +18,71 @@ class ReportController extends Controller
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected UserRepositoryInterface $userRepository,
         protected CampaignRepositoryInterface $campaignRepository,
-    )
-    {
+    ) {
     }
 
     public function messages()
     {
-        $filter = array(
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):15,
-        );
+        $filter = [
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 15),
+        ];
         $download_csv = request()->get('download_csv') == 1;
         $inputs = request()->all();
+        $userId = request()->get('user_id');
 
         $list = $this->broadcastLogRepository->paginateBroadcastLogs($inputs, !$download_csv);
         $users = $this->userRepository->all();
         $campaigns = [];
-        if(request()->exists('user_id') && (request()->get('user_id')!=null)){
-            $campaigns = $this->campaignRepository->getCampaignsForUser(request()->get('user_id'));
+        if (isset($userId)) {
+            $campaigns = $this->campaignRepository->getCampaignsForUser($userId);
         }
-        if($download_csv){
+        if ($download_csv) {
             $response = Response::make($this->collectionToCSV($list), 200);
             unset($inputs['download_csv']);
-            $_filename =  implode('-', array_map(function($key, $value) {
+            $_filename = implode('-', array_map(function ($key, $value) {
                 return $key . '-' . $value;
             }, array_keys($inputs), $inputs));
             $response->header('Content-Type', 'text/csv')
-                    ->header('Content-disposition','attachment; filename="report-'.$_filename.'-'.time().'.csv"');;
+                ->header('Content-disposition', 'attachment; filename="report-' . $_filename . '-' . time() . '.csv"');
+            ;
             return $response;
         }
         return view('reports.messages', compact('list', 'filter', 'users', 'campaigns'));
     }
 
     /**
-     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     * @return Application|Factory|View|\Illuminate\Foundation\Application|\Illuminate\Http\Response
      */
     public function campaigns()
     {
-        $filter = array(
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-            'count'=> request('count')?request('count'):15,
-        );
+        $filter = [
+            'sortby' => request('sortby', 'id_desc'),
+            'count' => request('count', 15),
+        ];
         $download_csv = request()->get('download_csv') == 1;
         $columns = [
-            'id', 'title', 'user_id'
+            'id',
+            'title',
+            'user_id'
         ];
-        $list = $this->campaignRepository->reportCampaigns(request()->all(),$columns , !$download_csv);
-            foreach ($list as $index => $item){
-                $list[$index]->user_name = '';
-                if(!empty($item->user))
-                {
-                    $list[$index]->user_name = $item->user->name;
-                }
-                $list[$index]->ctr = 0;
-                if($item->broad_case_log_messages_sent_count > 0) {
-                    $list[$index]->ctr = ($item->broad_case_log_messages_click_count / $item->broad_case_log_messages_sent_count) * 100;
-                }
+        $list = $this->campaignRepository->reportCampaigns(request()->all(), $columns, !$download_csv);
+        foreach ($list as $index => $item) {
+            $list[$index]->user_name = '';
+            if (!empty($item->user)) {
+                $list[$index]->user_name = $item->user->name;
+            }
+            $list[$index]->ctr = 0;
+            if ($item->broad_case_log_messages_sent_count > 0) {
+                $list[$index]->ctr = ($item->broad_case_log_messages_click_count / $item->broad_case_log_messages_sent_count) * 100;
+            }
         }
         $users = $this->userRepository->all();
-        if($download_csv){
+        if ($download_csv) {
             $response = Response::make($this->collectionToCSV($list, ['user']), 200);
             $response->header('Content-Type', 'text/csv')
-                ->header('Content-disposition','attachment; filename="report-campaign-'.time().'.csv"');;
+                ->header('Content-disposition', 'attachment; filename="report-campaign-' . time() . '.csv"');
+            ;
             return $response;
         }
         return view('reports.campaigns', compact('list', 'filter', 'users'));

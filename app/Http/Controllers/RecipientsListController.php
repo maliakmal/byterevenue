@@ -3,15 +3,8 @@
 namespace App\Http\Controllers;
 use App\Models\RecipientsList;
 use App\Models\Contact;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ContactsImport;
-use League\Csv\Reader;
-use App\Jobs\ProcessRecipientsImportCsvChunk;
-use Illuminate\Support\Facades\Redis;
 
 
 class RecipientsListController extends Controller
@@ -28,8 +21,8 @@ class RecipientsListController extends Controller
         $nameFilter = request()->input('name');
         $isImportedFilter = request()->input('is_imported', '');
 
-        if ($nameFilter) {
-            $recipient_lists = $recipient_lists->whereLike('name', '%' . request()->input('name') . '%');
+        if (isset($nameFilter)) {
+            $recipient_lists = $recipient_lists->whereLike('name', "%$nameFilter%");
         }
         if (is_numeric($isImportedFilter)) {
             $recipient_lists = $recipient_lists->where('is_imported', $isImportedFilter);

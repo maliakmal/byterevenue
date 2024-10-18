@@ -15,7 +15,7 @@ class DataFeedController extends Controller
     {
         $df = new DataFeed();
 
-        return (object)[
+        return [
             'labels' => $df->getDataFeed(
                 $request->datatype,
                 'label',
