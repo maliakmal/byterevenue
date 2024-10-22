@@ -40,7 +40,7 @@ return new class extends Migration
             $table->unsignedBigInteger('contact_id');
             $table->unsignedBigInteger('campaign_id');
             $table->timestamp('sent_at')->nullable();
-            $table->timestamp('click_at')->nullable();
+            $table->timestamp('clicked_at')->nullable();
             $table->timestamp('created_at');
         });
     }

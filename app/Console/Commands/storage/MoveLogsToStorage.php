@@ -26,21 +26,21 @@ class MoveLogsToStorage extends Command
     public function handle()
     {
         $logs = \DB::table('broadcast_logs')
-            ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'sent_at', 'click_at', 'created_at')
+            ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'sent_at', 'clicked_at', 'created_at')
             ->where(function ($query) {
                 $query
-                    ->where('sent_at', 1)
-                    ->where('click_at', 1);
+                    ->whereNotNull('sent_at')
+                    ->whereNotNull('clicked_at');
             })
             ->orWhere(function ($query) {
                 $query
-                    ->where('sent_at', 1)
-                    ->where('click_at', 0)
+                    ->whereNotNull('sent_at')
+                    ->whereNull('clicked_at')
                     ->where('created_at', '<', now()->subDays(config('settings.storage.not_clicked_period')));
             })
             ->orWhere(function ($query) {
                 $query
-                    ->where('sent_at', 0)
+                    ->whereNull('sent_at')
                     ->where('created_at', '<', now()->subDays(config('settings.storage.total_period')));
             })
             ->limit(config('settings.storage.archive_logs.count'))
@@ -54,7 +54,7 @@ class MoveLogsToStorage extends Command
                 'contact_id'  => $log->contact_id,
                 'campaign_id' => $log->campaign_id,
                 'sent_at'     => $log->sent_at,
-                'click_at'    => $log->click_at,
+                'clicked_at'  => $log->clicked_at,
                 'created_at'  => $log->created_at,
             ];
         }
