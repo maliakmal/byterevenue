@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataFeedController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
@@ -47,6 +48,7 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::any('/dashboard', [DashboardController::class, 'indexApi']);
+    Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeedApi']);
 });
 
 // public routes
