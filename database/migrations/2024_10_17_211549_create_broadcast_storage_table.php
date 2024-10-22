@@ -39,8 +39,9 @@ return new class extends Migration
             // $table->unsignedBigInteger('phone');
             $table->unsignedBigInteger('contact_id');
             $table->unsignedBigInteger('campaign_id');
-            $table->unsignedInteger('sent_at')->default(0);
-            $table->unsignedInteger('click_at')->default(0);
+            $table->timestamp('sent_at')->nullable();
+            $table->timestamp('click_at')->nullable();
+            $table->timestamp('created_at');
         });
     }
 
