@@ -36,7 +36,7 @@ class DashboardService
             ->groupBy(DB::raw('DATE(created_at)'))->get();
         $click_map = [];
         foreach ($click_data as $datum) {
-            $click_map[$datum->date . ''] = $datum->count;
+            $click_map[$datum->date] = $datum->count;
         }
 
         $send_data = BroadcastLog::select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
@@ -45,7 +45,7 @@ class DashboardService
             ->groupBy(DB::raw('DATE(created_at)'))->get();
         $send_map = [];
         foreach ($send_data as $datum) {
-            $send_map[$datum->date . ''] = $datum->count;
+            $send_map[$datum->date] = $datum->count;
         }
 
         $campaign_data = Campaign::select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
@@ -53,7 +53,7 @@ class DashboardService
             ->groupBy(DB::raw('DATE(created_at)'))->get();
         $campaign_map = [];
         foreach ($campaign_data as $datum) {
-            $campaign_map[$datum->date . ''] = $datum->count;
+            $campaign_map[$datum->date] = $datum->count;
         }
 
         $labels = [];
