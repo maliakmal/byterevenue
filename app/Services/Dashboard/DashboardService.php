@@ -13,14 +13,15 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
-    private BroadcastLogRepository $broadcastLogRepository;
-
     /**
      * @param BroadcastLogRepository $broadcastLogRepository
      */
-    public function __construct(BroadcastLogRepository $broadcastLogRepository)
+    public function __construct(
+        // todo:: this is not used in the code
+        private BroadcastLogRepository $broadcastLogRepository
+    )
     {
-        $this->broadcastLogRepository = $broadcastLogRepository;
+        //
     }
 
     /**
@@ -30,28 +31,74 @@ class DashboardService
      */
     public function getAdminGraphData(Carbon $startDate, Carbon $endDate)
     {
-        $click_data = BroadcastLog::select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
+        // operation table data
+        $click_data = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
             ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
             ->where('is_click', true)
             ->groupBy(DB::raw('DATE(created_at)'))->get();
+
         $click_map = [];
+
         foreach ($click_data as $datum) {
             $click_map[$datum->date] = $datum->count;
         }
 
-        $send_data = BroadcastLog::select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
+        unset($datum);
+        unset($click_data);
+
+        // completed data from storage table
+        $archived_click_data = \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
+            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
+            ->whereNotNull('clicked_at')
+            ->groupBy(DB::raw('DATE(created_at)'))->get();
+
+        foreach ($archived_click_data as $datum) {
+            $click_map[$datum->date] = ($click_map[$datum->date] ?? 0) + $datum->count;
+        }
+
+        unset($datum);
+        unset($archived_click_data);
+
+        $send_data = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
             ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
             ->where('is_sent', true)
             ->groupBy(DB::raw('DATE(created_at)'))->get();
+
         $send_map = [];
+
         foreach ($send_data as $datum) {
             $send_map[$datum->date] = $datum->count;
         }
 
+        unset($datum);
+        unset($send_data);
+
+        $archived_send_data = \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
+            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
+            ->whereNotNull('sent_at')
+            ->groupBy(DB::raw('DATE(created_at)'))->get();
+
+        foreach ($archived_send_data as $datum) {
+            $send_map[$datum->date] = ($send_map[$datum->date] ?? 0) + $datum->count;
+        }
+
+        unset($datum);
+        unset($archived_send_data);
+
         $campaign_data = Campaign::select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
             ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
             ->groupBy(DB::raw('DATE(created_at)'))->get();
+
         $campaign_map = [];
+
         foreach ($campaign_data as $datum) {
             $campaign_map[$datum->date] = $datum->count;
         }
@@ -61,6 +108,7 @@ class DashboardService
         $send = [];
         $campaigns = [];
         $ctr = [];
+
         while ($startDate->lt($endDate)) {
             $date = $startDate->format('Y-m-d');
             $labels[] = $date;
@@ -70,6 +118,7 @@ class DashboardService
             $ctr[] = (($click_map[$date] ?? 0) == 0 || ($send_map[$date] ?? 0) == 0) ? 0 : (($click_map[$date] / $send_map[$date]) * 100);
             $startDate = $startDate->addDay();
         }
+
         return [$labels, $campaigns, $send, $clicks, $ctr];
     }
 
@@ -91,7 +140,6 @@ class DashboardService
             $dates = explode('-', $date_range);
             $start_date = trim($dates[0]);
             $end_date = trim($dates[1]);
-
         }
 
         if (auth()->user()->hasRole('admin')) {
@@ -115,25 +163,53 @@ class DashboardService
             $startDate = Carbon::createFromFormat('m/d/Y', $start_date);
             $endDate = Carbon::createFromFormat('m/d/Y', $end_date);
 
-            $totals = BroadcastLog::selectRaw("
+            $totals = \DB::connection('mysql')
+                ->table('broadcast_logs')
+                ->selectRaw("
                     COUNT(CASE WHEN is_sent = 1 AND sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
                     COUNT(CASE WHEN is_click = 1 AND clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
                 ", [$startDate, $endDate, $startDate, $endDate])
                 ->first();
 
-            $params['total_num_sent'] = $totals->total_num_sent;
-            $params['total_num_clicks'] = $totals->total_num_clicks;
+            $totalsFromStorage = \DB::connection('storage_mysql')
+                ->table('broadcast_storage_master')
+                ->selectRaw("
+                    COUNT(CASE WHEN sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
+                    COUNT(CASE WHEN clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
+                ", [$startDate, $endDate, $startDate, $endDate])
+                ->first();
+
+            $params['total_num_sent'] = $totals->total_num_sent + $totalsFromStorage->total_num_sent;
+            $params['total_num_clicks'] = $totals->total_num_clicks + $totalsFromStorage->total_num_clicks;
 
             $params['ctr'] = $this->calculateCTR($params['total_num_clicks'], $params['total_num_sent']);
             $params['start_date'] = $start_date;
             $params['end_date'] = $end_date;
 
-            $params['campaigns_remaining_in_queue'] = BroadcastLog::where('is_sent', 0)
+            $params['campaigns_remaining_in_queue'] = \DB::connection('mysql')
+                ->table('broadcast_logs')
+                ->where('is_sent', 0)
                 ->distinct('campaign_id')
                 ->count();
-            // $params['campaigns_in_queue'] = BroadcastLog::select('campaign_id')->groupby('campaign_id')->get()->count('id');
 
-            $params['campaigns_in_queue'] = BroadcastLog::distinct('campaign_id')->count();
+            // if archived data from storage needs to be considered
+//            $params['campaigns_remaining_in_queue'] += \DB::connection('storage_mysql')
+//                ->table('broadcast_storage_master')
+//                ->whereNull('sent_at')
+//                ->distinct('campaign_id')
+//                ->count();
+
+            $params['campaigns_in_queue'] = \DB::connection('mysql')
+                ->table('broadcast_logs')
+                ->distinct('campaign_id')
+                ->count();
+
+            // if archived data from storage needs to be considered
+//            $params['campaigns_in_queue'] += \DB::connection('storage_mysql')
+//                ->table('broadcast_storage_master')
+//                ->distinct('campaign_id')
+//                ->count();
+
             $params['campaigns_completed_from_queue'] =
                 $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
 
