@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\ContactUpdateRequest;
 use App\Http\Requests\StoreContactRequest;
 use App\Models\AreaCode;
 use App\Models\Contact;
@@ -50,7 +51,7 @@ class ContactController extends ApiController
         }
 
         $area_data = [
-            'provinces' => $this->areaCodeService->getAllProvinces('true'),
+            'provinces' => $this->areaCodeService->getAllProvinces(true),
             //'cities'  => $this->areaCodeService->getAllCities('true') // legacy data
         ];
 
@@ -72,7 +73,7 @@ class ContactController extends ApiController
 
         $contacts = $this->contactService->getContacts($user, $perPage, $name, $area_code, $phone);
         $areaData = [
-            'provinces' => $this->areaCodeService->getAllProvinces('true'),
+            'provinces' => $this->areaCodeService->getAllProvinces(true),
         ];
 
         return $this->responseSuccess([
@@ -159,12 +160,12 @@ class ContactController extends ApiController
     }
 
     /**
-     * @param StoreContactRequest $request
+     * @param ContactUpdateRequest $request
      * @param Contact $dataSource
      *
      * @return RedirectResponse
      */
-    public function update(StoreContactRequest $request, Contact $dataSource)
+    public function update(ContactUpdateRequest $request, Contact $dataSource)
     {
         $dataSource->update([
             'name'  => $request->name,
@@ -177,13 +178,18 @@ class ContactController extends ApiController
 
     /**
      * @param int $id
-     * @param StoreContactRequest $request
+     * @param ContactUpdateRequest $request
      *
      * @return JsonResponse
      */
-    public function updateApi(int $id, StoreContactRequest $request)
+    public function updateApi(int $id, ContactUpdateRequest $request)
     {
         $contact = Contact::find($id);
+
+        if (!$contact) {
+            return $this->responseError([], 'Contact not found.', 404);
+        }
+
         $contact->update([
             'name'  => $request->name,
             'email' => $request->email,
