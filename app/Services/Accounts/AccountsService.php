@@ -102,7 +102,7 @@ class AccountsService
      */
     public function addTokensToAccount(Request $request)
     {
-        $validator = Validator  ::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'user_id' => ['required','exists:users,id'],
             'amount' => ['required','numeric'],
         ]);
