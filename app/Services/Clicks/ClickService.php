@@ -22,7 +22,7 @@ class ClickService
     public function getClicksOnKeitaro($from, $end, $limit, $offset, $timezone = null, $interval = null, $columns = null, $filters = null, $sort = null)
     {
         $request = new GetClicksRequest($from, $end, $limit, $offset, $timezone, $interval, $columns, $filters, $sort);
-        $caller = new KeitaroCaller();
-        return $caller->call($request);
+
+        return KeitaroCaller::call($request);
     }
 }

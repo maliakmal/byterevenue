@@ -6,15 +6,16 @@ use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
 
 
 class AccountsService
 {
     /**
-     * @return array
+     * @return LengthAwarePaginator
      */
-    public function getAccountsWithFilter()
+    public function getAccounts()
     {
         $filter = [
             'sortby' => request('sortby', 'id_desc'),
@@ -59,13 +60,13 @@ class AccountsService
 
         $accounts = $accounts->paginate($filter['count']);
 
-        return compact('accounts', 'filter');
+        return $accounts;
     }
 
     /**
      * @param string|null $id
      *
-     * @return array
+     * @return LengthAwarePaginator
      */
     public function getAccountTransactions($id = null)
     {
@@ -92,7 +93,7 @@ class AccountsService
 
         $transactions = $transactions->paginate($filter['count']);
 
-        return compact('transactions');
+        return $transactions;
     }
 
     /**
@@ -102,7 +103,7 @@ class AccountsService
      */
     public function addTokensToAccount(Request $request)
     {
-        $validator = Validator  ::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'user_id' => ['required','exists:users,id'],
             'amount' => ['required','numeric'],
         ]);
