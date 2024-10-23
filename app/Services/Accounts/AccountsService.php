@@ -6,13 +6,14 @@ use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
 
 
 class AccountsService
 {
     /**
-     * @return array
+     * @return LengthAwarePaginator
      */
     public function getAccounts()
     {
@@ -59,13 +60,13 @@ class AccountsService
 
         $accounts = $accounts->paginate($filter['count']);
 
-        return compact('accounts');
+        return $accounts;
     }
 
     /**
      * @param string|null $id
      *
-     * @return array
+     * @return LengthAwarePaginator
      */
     public function getAccountTransactions($id = null)
     {
@@ -92,7 +93,7 @@ class AccountsService
 
         $transactions = $transactions->paginate($filter['count']);
 
-        return compact('transactions');
+        return $transactions;
     }
 
     /**

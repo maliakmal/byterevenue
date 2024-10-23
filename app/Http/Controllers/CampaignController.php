@@ -108,9 +108,9 @@ class CampaignController extends Controller
             if (auth()->user()->show_introductory_screen == true) {
                 User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
             }
-            //                $caller = new KeitaroCaller();
+            //
 //                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
-//                $response = $caller->call($create_group_request);
+//                $response = KeitaroCaller::call($create_group_request);
 //                $campaign->keitaro_group_id = $response['id'];
 //                $campaign->keitaro_create_group_response = @json_encode($response);
 //                $campaign->save();

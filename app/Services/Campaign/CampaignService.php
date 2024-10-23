@@ -24,13 +24,13 @@ class CampaignService
 
     )
     {
-        $caller = new KeitaroCaller();
+
         $keitaro_token = uniqid();
         $create_campaign_request = new CreateCampaignRequest($alias, $title, $keitaro_token, $type, $groupID.'',
             $domainID, $cookies_ttl, $state, $cost_type, $cost_value, $cost_currency, $cost_auto, null,
         $traffic_source_id,null,null,null, $uniqueness_method, $position, $uniqueness_use_cookies,
         $traffic_loss);
-        return $caller->call($create_campaign_request);
+        return KeitaroCaller::call($create_campaign_request);
     }
 
     public function createFlowOnKeitaro($campaignID, $campaignTitle, $action_payload = null, $filters = null, $action_options = null,
@@ -44,8 +44,8 @@ class CampaignService
             Str::slug($campaignTitle), $action_type, $action_payload, $position, $weight, $action_options, $comments, $state,
             $collect_clicks, $filter_or, $filters
         );
-        $caller = new KeitaroCaller();
-        return $caller->call($create_flow_request);
+
+        return KeitaroCaller::call($create_flow_request);
     }
 
     /**
@@ -56,8 +56,8 @@ class CampaignService
     public function getAllCampaigns(?int $limit, int $offset)
     {
         $request = new GetAllCampaignsRequest($limit, $offset);
-        $caller = new KeitaroCaller();
-        return $caller->call($request);
+
+        return KeitaroCaller::call($request);
     }
 
     /**
@@ -67,7 +67,7 @@ class CampaignService
     public function moveCampaignToArchive(int $campaignID)
     {
         $request = new MoveCampaignToArchiveRequest($campaignID);
-        $caller = new KeitaroCaller();
-        return $caller->call($request);
+
+        return KeitaroCaller::call($request);
     }
 }

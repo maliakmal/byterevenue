@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
@@ -51,12 +52,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::any('/dashboard', [DashboardController::class, 'indexApi']);
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeedApi']);
 
-    Route::prefix('accounts')->group(function () {
-        Route::get('/', [AccountsController::class, 'indexApi']);
-        Route::post('/store-tokens', [AccountsController::class, 'storeTokensApi']);
-        Route::get('/{id}', [AccountsController::class, 'showApi']);
+    Route::controller(AccountsController::class)->group(function () {
+        Route::prefix('accounts')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/store-tokens', 'storeTokensApi');
+            Route::get('/{id}', 'showApi');
+        });
+        Route::get('/tokens', 'showTokensApi');
     });
-    Route::get('/tokens',[AccountsController::class,'showTokensApi']);
+
+    Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'deleteApi');
+    });
+
 });
 
 // public routes
