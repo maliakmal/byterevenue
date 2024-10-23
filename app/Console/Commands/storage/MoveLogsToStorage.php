@@ -26,21 +26,21 @@ class MoveLogsToStorage extends Command
     public function handle()
     {
         $logs = \DB::table('broadcast_logs')
-            ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'is_sent', 'is_click')
+            ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'sent_at', 'clicked_at', 'created_at')
             ->where(function ($query) {
                 $query
-                    ->where('is_sent', 1)
-                    ->where('is_click', 1);
+                    ->whereNotNull('sent_at')
+                    ->whereNotNull('clicked_at');
             })
             ->orWhere(function ($query) {
                 $query
-                    ->where('is_sent', 1)
-                    ->where('is_click', 0)
+                    ->whereNotNull('sent_at')
+                    ->whereNull('clicked_at')
                     ->where('created_at', '<', now()->subDays(config('settings.storage.not_clicked_period')));
             })
             ->orWhere(function ($query) {
                 $query
-                    ->where('is_sent', 0)
+                    ->whereNull('sent_at')
                     ->where('created_at', '<', now()->subDays(config('settings.storage.total_period')));
             })
             ->limit(config('settings.storage.archive_logs.count'))
@@ -50,11 +50,12 @@ class MoveLogsToStorage extends Command
 
         foreach ($logs as $log) {
             $block[] = [
-                'phone'       => intval($log->recipient_phone),
+                // 'phone'       => intval($log->recipient_phone),
                 'contact_id'  => $log->contact_id,
                 'campaign_id' => $log->campaign_id,
-                'is_sent'     => $log->is_sent,
-                'is_click'    => $log->is_click,
+                'sent_at'     => $log->sent_at,
+                'clicked_at'  => $log->clicked_at,
+                'created_at'  => $log->created_at,
             ];
         }
 

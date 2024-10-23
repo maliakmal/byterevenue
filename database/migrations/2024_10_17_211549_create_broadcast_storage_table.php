@@ -36,11 +36,12 @@ return new class extends Migration
 
         Schema::connection('storage_mysql')->create('broadcast_storage_master', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('phone');
+            // $table->unsignedBigInteger('phone');
             $table->unsignedBigInteger('contact_id');
             $table->unsignedBigInteger('campaign_id');
-            $table->boolean('is_sent')->default(false);
-            $table->boolean('is_click')->default(false);
+            $table->timestamp('sent_at')->nullable();
+            $table->timestamp('clicked_at')->nullable();
+            $table->timestamp('created_at');
         });
     }
 
