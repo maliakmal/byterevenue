@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -76,6 +77,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [ContactController::class, 'storeApi']);
         Route::put('/{id}', [ContactController::class, 'updateApi']);
         Route::delete('/{id}', [ContactController::class, 'destroyApi']);
+    });
+
+    Route::controller(SimcardController::class)->prefix('simcards')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
     });
 });
 
