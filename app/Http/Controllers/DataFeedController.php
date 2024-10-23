@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ApiController;
 use App\Services\DataFeed\DataFeedService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class DataFeedController extends Controller
+class DataFeedController extends ApiController
 {
     private $dataFeedService;
 
@@ -37,11 +38,11 @@ class DataFeedController extends Controller
      */
     public function getDataFeedApi(Request $request)
     {
-        return response()->json(
-            $this->dataFeedService->getDataFeed(
-                $request->get('dataType'),
-                $request->get('limit')
-            )
+        $data = $this->dataFeedService->getDataFeed(
+            $request->get('dataType'),
+            $request->get('limit')
         );
+
+        return $this->responseSuccess($data);
     }
 }

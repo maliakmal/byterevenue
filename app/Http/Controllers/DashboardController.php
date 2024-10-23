@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ApiController;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -9,7 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Services\Dashboard\DashboardService;
 
-class DashboardController extends Controller
+class DashboardController extends ApiController
 {
     private DashboardService $dashboardService;
 
@@ -51,7 +52,7 @@ class DashboardController extends Controller
      */
     public function indexApi()
     {
-        return response()->json($this->dashboardService->generateDashboardData());
+        return $this->responseSuccess($this->dashboardService->generateDashboardData());
     }
 
     /**
