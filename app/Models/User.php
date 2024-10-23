@@ -102,8 +102,12 @@ class User extends Authenticatable
     }
 
     public function addTokens($amount){
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => $amount,
+            'type' => 'purchase',
+        ]);
         $this->tokens += $amount;
+        $this->save();
     }
-
-
 }

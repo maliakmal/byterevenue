@@ -3,13 +3,68 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Token;
 use App\Models\Campaign;
 use App\Models\Transaction;
+use App\Services\Accounts\AccountsService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AccountsController extends Controller
 {
+    private AccountsService $accountsService;
+    /**
+     * @param AccountsService $accountsService
+     */
+    public function __construct(AccountsService $accountsService)
+    {
+        $this->accountsService = $accountsService;
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function indexApi()
+    {
+        $response = $this->accountsService->getAccountsWithFilter();
+        return response()->json($response);
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return JsonResponse
+     */
+    public function showApi($id)
+    {
+        $response = $this->accountsService->getAccountTransactions($id);
+
+        return response()->json($response);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function showTokensApi()
+    {
+        $isCurrentUserAdmin = auth()->user()->hasRole('admin');
+        $userId = $isCurrentUserAdmin ? null : auth()->id();
+        $response = $this->accountsService->getAccountTransactions($userId);
+
+        return response()->json($response);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function storeTokensApi(Request $request)
+    {
+        $response = $this->accountsService->addTokensToAccount($request);
+        if (isset($response['errors'])) {
+            return response()->json($response, 400);
+        }
+        return response()->json($response);
+    }
+
     public function index()
     {
         $filter = [
