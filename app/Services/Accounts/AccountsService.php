@@ -14,7 +14,7 @@ class AccountsService
     /**
      * @return array
      */
-    public function getAccountsWithFilter()
+    public function getAccounts()
     {
         $filter = [
             'sortby' => request('sortby', 'id_desc'),
@@ -59,7 +59,7 @@ class AccountsService
 
         $accounts = $accounts->paginate($filter['count']);
 
-        return compact('accounts', 'filter');
+        return compact('accounts');
     }
 
     /**

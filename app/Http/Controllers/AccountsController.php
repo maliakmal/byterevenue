@@ -25,7 +25,7 @@ class AccountsController extends Controller
      */
     public function indexApi()
     {
-        $response = $this->accountsService->getAccountsWithFilter();
+        $response = $this->accountsService->getAccounts();
         return response()->json($response);
     }
 
