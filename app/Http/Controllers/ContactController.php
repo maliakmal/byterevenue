@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\ContactUpdateRequest;
-use App\Http\Requests\StoreContactRequest;
-use App\Models\AreaCode;
+use App\Http\Requests\ContactStoreRequest;
 use App\Models\Contact;
 use App\Services\AreaCode\AreaCodeService;
 use App\Services\Contact\ContactService;
@@ -13,7 +12,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ContactController extends ApiController
 {
@@ -88,11 +86,11 @@ class ContactController extends ApiController
     }
 
     /**
-     * @param StoreContactRequest $request
+     * @param ContactStoreRequest $request
      *
      * @return RedirectResponse
      */
-    public function store(StoreContactRequest $request)
+    public function store(ContactStoreRequest $request)
     {
         auth()->user()->contacts()->create([
             'name'  => $request->name,
@@ -104,11 +102,11 @@ class ContactController extends ApiController
     }
 
     /**
-     * @param StoreContactRequest $request
+     * @param ContactStoreRequest $request
      *
      * @return JsonResponse
      */
-    public function storeApi(StoreContactRequest $request)
+    public function storeApi(ContactStoreRequest $request)
     {
         $contact = auth()->user()->contacts()->create([
             'name'  => $request->name,
