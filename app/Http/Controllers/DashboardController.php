@@ -83,4 +83,13 @@ class DashboardController extends ApiController
         User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
         return response()->redirectTo('/dashboard');
     }
+
+    /**
+     * @return JsonResponse
+     */
+    public function disableIntroductoryApi()
+    {
+        $user = User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+        return $this->responseSuccess($user, 'Introductory screen disabled successfully.');
+    }
 }

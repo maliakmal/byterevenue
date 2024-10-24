@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
@@ -53,6 +54,7 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::any('/dashboard', [DashboardController::class, 'indexApi']);
+    Route::get('/introductory/disable', [DashboardController::class, 'disableIntroductoryApi']);
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeedApi']);
 
     Route::controller(AccountsController::class)->group(function () {
@@ -94,6 +96,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', 'showApi');
         Route::put('/{id}', 'updateApi');
         Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(CampaignController::class)->prefix('campaigns')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+        Route::post('/mark-processed/{id}', 'markAsProcessedApi');
+        Route::get('/user/campaigns', 'getCampaignsForUserApi');
     });
 });
 
