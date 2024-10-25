@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Http\Request;
@@ -51,6 +55,7 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::any('/dashboard', [DashboardController::class, 'indexApi']);
+    Route::get('/introductory/disable', [DashboardController::class, 'disableIntroductoryApi']);
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeedApi']);
 
     Route::controller(AccountsController::class)->group(function () {
@@ -76,6 +81,40 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}', 'deleteApi');
     });
 
+    Route::prefix('data-source')->group(function (){
+        Route::get('/', [ContactController::class, 'indexApi']);
+        Route::get('/{id}', [ContactController::class, 'showApi']);
+        Route::get('/{id}/edit', [ContactController::class, 'editApi']);
+        Route::post('/', [ContactController::class, 'storeApi']);
+        Route::put('/{id}', [ContactController::class, 'updateApi']);
+        Route::delete('/{id}', [ContactController::class, 'destroyApi']);
+    });
+
+    Route::controller(SimcardController::class)->prefix('simcards')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(ClientController::class)->prefix('clients')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(CampaignController::class)->prefix('campaigns')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+        Route::post('/mark-processed/{id}', 'markAsProcessedApi');
+        Route::get('/user/campaigns', 'getCampaignsForUserApi');
+    });
 });
 
 // public routes
