@@ -92,7 +92,7 @@ class UrlShortenerService
 
     public function delete($id)
     {
-        UrlShortener::whereId($id)->destoy();
+        UrlShortener::whereId($id)->delete();
         return ['message' => 'URL Shortener deleted successfully.'];
     }
 }

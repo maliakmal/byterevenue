@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\SimcardController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -70,7 +71,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
         Route::get('/', 'indexApi');
         Route::post('/', 'storeApi');
-        Route::put('/{id}', 'updateApi');
+        Route::post('/{id}', 'updateApi');
+        Route::delete('/{id}', 'deleteApi');
+    });
+
+    Route::controller(SettingController::class)->prefix('settings')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::post('/{id}', 'updateApi');
         Route::delete('/{id}', 'deleteApi');
     });
 
