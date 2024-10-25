@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Http\Request;
@@ -106,6 +107,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}', 'destroyApi');
         Route::post('/mark-processed/{id}', 'markAsProcessedApi');
         Route::get('/user/campaigns', 'getCampaignsForUserApi');
+    });
+
+    Route::controller(RecipientsListController::class)->prefix('recipient_lists')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
     });
 });
 
