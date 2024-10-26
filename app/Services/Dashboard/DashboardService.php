@@ -14,17 +14,6 @@ use Illuminate\Support\Facades\DB;
 class DashboardService
 {
     /**
-     * @param BroadcastLogRepository $broadcastLogRepository
-     */
-    public function __construct(
-        // todo:: this is not used in the code
-        private BroadcastLogRepository $broadcastLogRepository
-    )
-    {
-        //
-    }
-
-    /**
      * @param Carbon $startDate
      * @param Carbon $endDate
      * @return array[]

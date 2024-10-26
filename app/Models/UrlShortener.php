@@ -9,15 +9,51 @@ use App\Models\BatchFile;
 class UrlShortener extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'endpoint', 'asset_id','is_registered', 'response',
+    protected $fillable = [
+        'name',
+        'endpoint',
+        'asset_id',
+        'is_registered',
+        'response',
         'is_propagated'
     ];
 
-    public function scopeOnlyRegistered($q){
+    public function campaignShortUrls()
+    {
+        return $this->hasMany(CampaignShortUrl::class, 'url_shortener_id');
+    }
+    public function scopeOnlyRegistered($q)
+    {
         return $q->where('is_registered', 1);
     }
 
-    public function campaignShortUrls(){
-        return $this->hasMany(CampaignShortUrl::class, 'url_shortener_id');
+    /**
+     * @param $query
+     * @param $isPropagated
+     * @return mixed
+     */
+    public function scopePropagatedFilter($query, $isPropagated)
+    {
+        return $query->where('is_propagated', $isPropagated);
+    }
+
+    /**
+     * @param $query
+     * @param $sortValue
+     * @return mixed
+     */
+    public function scopeIdSort($query, $sortValue)
+    {
+        return $query->orderBy('id', $sortValue);
+    }
+
+    /**
+     * @param $query
+     * @param $sortValue
+     * @return mixed
+     */
+    public function scopeUrlSort($query, $sortValue)
+    {
+        return $query->orderBy('url', $sortValue);
     }
 }

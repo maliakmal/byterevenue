@@ -76,4 +76,56 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         $campaign->status = Campaign::STATUS_DONE;
         $campaign->save();
     }
+
+    /**
+     * @param array $filter
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getFiltered(array $filter)
+    {
+        $campaigns = $this->model->newQuery();
+
+        if (!is_null($filter['status'])) {
+            $campaigns->where('status', $filter['status']);
+        }
+
+        if (auth()->user()->hasRole('admin')) {
+
+            if (!empty($filter['user_id'])) {
+                $campaigns->where('user_id', $filter['user_id']);
+            }
+
+        } else {
+            $campaigns->where('user_id', auth()->id());
+        }
+
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
+                case 'id_desc':
+                    $campaigns->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $campaigns->orderby('id', 'asc');
+                    break;
+                case 'ctr_desc':
+                    $campaigns->orderby('total_ctr', 'desc');
+                    break;
+                case 'ctr_asc':
+                    $campaigns->orderby('total_ctr', 'asc');
+                    break;
+                case 'clicks_desc':
+                    $campaigns->orderby('total_recipients_click_thru', 'desc');
+                    break;
+                case 'clicks_asc':
+                    $campaigns->orderby('total_recipients_click_thru', 'asc');
+                    break;
+                case 'title':
+                    $campaigns->orderby('title', 'asc');
+                    break;
+            }
+        }
+
+        return $campaigns->paginate($filter['count']);
+    }
 }

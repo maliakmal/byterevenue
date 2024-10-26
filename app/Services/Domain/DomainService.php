@@ -10,8 +10,8 @@ class DomainService
     public function isDomainPropaginated($assetID)
     {
         $request = new GetDomainRequest($assetID);
-        $caller = new KeitaroCaller();
-        $response  = $caller->call($request);
+
+        $response  = KeitaroCaller::call($request);
         return $response['network_status'] == 'active';
     }
 }
