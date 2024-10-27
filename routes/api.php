@@ -13,6 +13,7 @@ use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
+use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
@@ -134,20 +135,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
     });
 
-    Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
-        Route::get('/user', 'getBlackListNumberForUserApi');
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
-    });
+    Route::middleware([CheckAdminRole::class])->group(function () {
+        Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
+            Route::get('/user', 'getBlackListNumberForUserApi');
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::put('/{id}', 'updateApi');
+            Route::delete('/{id}', 'destroyApi');
+        });
 
-    Route::controller(BlackListWordController::class)->prefix('black-list-words')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
+        Route::controller(BlackListWordController::class)->prefix('black-list-words')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'updateApi');
+            Route::delete('/{id}', 'destroyApi');
+        });
     });
 });
 
