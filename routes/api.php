@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
@@ -123,6 +124,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', 'showApi');
         Route::put('/{id}', 'updateApi');
         Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(BroadcastBatchController::class)->prefix('broadcast_batches')->group(function () {
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
     });
 });
 
