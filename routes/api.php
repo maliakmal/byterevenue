@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\BlackListNumberController;
 use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ClientController;
@@ -130,6 +131,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', 'storeApi');
         Route::get('/{id}', 'showApi');
         Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
+    });
+
+    Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
+        Route::get('/user', 'getBlackListNumberForUserApi');
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
     });
 });
 
