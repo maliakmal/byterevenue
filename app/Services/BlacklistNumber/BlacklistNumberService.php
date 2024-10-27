@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\BlecklistNumber;
+namespace App\Services\BlacklistNumber;
 
 use App\Models\BlackListNumber;
 use App\Services\Unitily\UtilityService;

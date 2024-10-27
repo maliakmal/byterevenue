@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\BlackListNumberController;
+use App\Http\Controllers\BlackListWordController;
 use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ClientController;
@@ -137,6 +138,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/user', 'getBlackListNumberForUserApi');
         Route::get('/', 'indexApi');
         Route::post('/', 'storeApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(BlackListWordController::class)->prefix('black-list-words')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'show');
         Route::put('/{id}', 'updateApi');
         Route::delete('/{id}', 'destroyApi');
     });
