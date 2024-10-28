@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\BroadcastBatchStoreRequest;
 use App\Models\BroadcastBatch;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Message;
 use App\Models\RecipientsList;
+use App\Services\BroadcastBatch\BroadcastBatchService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class BroadcastBatchController extends Controller
+class BroadcastBatchController extends ApiController
 {
+    public function __construct(private BroadcastBatchService $broadcastBatchService) {}
 
     /**
      * Display a listing of the resource.
@@ -37,34 +43,30 @@ class BroadcastBatchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BroadcastBatchStoreRequest $request)
     {
-        $campaign_id = $request->campaign_id;
+        [$campaign, $broadcast_batch] = $this->broadcastBatchService->store($request->validated());
 
-        $campaign = Campaign::find($campaign_id);
-        //
+        return redirect()->route('campaigns.show', $campaign)
+            ->with('success', 'Broadcast Job created successfully.');
+    }
 
-        $message_data = [
-            'subject' => $request->message_subject,
-            'body' => $request->message_body,
-            'target_url' => $request->message_target_url,
-            "user_id" => auth()->id(),
-            'campaign_id' => $campaign_id,
-        ];
+    /**
+     * @param BroadcastBatchStoreRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function storeApi(BroadcastBatchStoreRequest $request)
+    {
+        [$campaign, $broadcast_batch] = $this->broadcastBatchService->store($request->validated());
 
-        $message = Message::create($message_data);
-
-        $broadcast_batch_data = [
-            'recipients_list_id' => $request->recipients_list_id,
-            'user_id' => auth()->id(),
-            'campaign_id' => $campaign_id,
-            'message_id' => $message->id,
-            'status' => 0,
-        ];
-
-        BroadcastBatch::create($broadcast_batch_data);
-        return redirect()->route('campaigns.show', $campaign)->with('success', 'Broadcast Job created successfully.');
-
+        return $this->responseSuccess(
+            [
+                'campaign' => $campaign,
+                'broadcast_batch' => $broadcast_batch,
+            ],
+            'Broadcast Job created successfully.'
+        );
     }
 
     /**
@@ -72,62 +74,92 @@ class BroadcastBatchController extends Controller
      */
     public function show(BroadcastBatch $broadcastBatch)
     {
-        $campaign = $broadcastBatch->campaign;
-        $message = $broadcastBatch->message;
-
         $recipient_lists = $broadcastBatch->recipient_list;
-        $broadcast_batch = $broadcastBatch;
-
-        if ($broadcast_batch->isDraft()) {
+        if ($broadcastBatch->isDraft()) {
             $contacts = $recipient_lists->contacts()->paginate(10);
             $logs = [];
 
         } else {
             $contacts = [];
-            $logs = BroadcastLog::select()->where('broadcast_batch_id', '=', $broadcast_batch->id)->paginate(10);
+            $logs = BroadcastLog::select()
+                ->where('recipients_list_id', '=', $broadcastBatch->recipients_list_id)
+                ->paginate(10);
         }
-        return view('broadcast_batch.show', compact('campaign', 'contacts', 'logs', 'broadcast_batch', 'message', 'recipient_lists'));
 
+        return view('broadcast_batch.show')->with(
+            [
+                'campaign' => $broadcastBatch->campaign,
+                'contacts' => $contacts,
+                'logs' => $logs,
+                'broadcast_batch' => $broadcastBatch,
+                'message' => $broadcastBatch->message,
+                'recipient_lists' => $recipient_lists,
+            ]
+        );
     }
 
-    public function markAsProcessed($id)
+    /**
+     * @param int $id
+
+     * @return JsonResponse
+     */
+    public function showApi(int $id)
     {
-        // create message logs against each contact and generate the message acordingly
+        $broadcastBatch = BroadcastBatch::where('id', $id)
+            ->with(['campaign', 'recipient_list', 'message'])
+            ->firstOrFail();
+        $recipient_lists = $broadcastBatch->recipient_list;
 
-        DB::beginTransaction();
-
-        try {
-            $broadcast_batch = BroadcastBatch::findOrFail($id);
-
-            $message = $broadcast_batch->message->getParsedMessage();
-            $data = [
-                'user_id' => auth()->id(),
-                'recipients_list_id' => $broadcast_batch->recipient_list->id,
-                'message_id' => $broadcast_batch->message_id,
-                'message_body' => $message,
-                'recipient_phone' => '',
-                'contact_id' => 0,
-                'is_downloaded_as_csv' => 0,
-                'broadcast_batch_id' => $broadcast_batch->id
-            ];
-
-            $contacts = $broadcast_batch->recipient_list->contacts->all();
-
-            foreach ($contacts as $contact) {
-                $data['recipient_phone'] = $contact->phone;
-                $data['contact_id'] = $contact->id;
-                BroadcastLog::create($data);
-            }
-
-            $broadcast_batch->markAsProcessed();
-            $broadcast_batch->save();
-            DB::commit();
-            return redirect()->back()->with('success', 'Job is being processed.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return redirect()->back()->withErrors(['error' => 'An error occurred - please try again later.']);
+        if ($broadcastBatch->isDraft()) {
+            $contacts = $recipient_lists->contacts()->paginate(10);
+            $logs = [];
+        } else {
+            $contacts = [];
+            $logs = BroadcastLog::select()
+                ->where('recipients_list_id', '=', $broadcastBatch->recipients_list_id)
+                ->paginate(10);
         }
 
+        return $this->responseSuccess(
+            [
+                'campaign' => $broadcastBatch->campaign,
+                'contacts' => $contacts,
+                'logs' => $logs,
+                'broadcast_batch' => $broadcastBatch,
+                'message' => $broadcastBatch->message,
+                'recipient_lists' => $recipient_lists,
+            ]
+        );
+    }
+
+    /**
+     * @param $id
+     *
+     * @return RedirectResponse
+     */
+    public function markAsProcessed($id)
+    {
+        [$result, $message] = $this->broadcastBatchService->markedAsProcessed($id);
+
+        if ($result) {
+            return redirect()->back()->with('success', $message);
+        }
+
+        return redirect()->back()->withErrors(['error' => $message]);
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return JsonResponse
+     */
+    public function markAsProcessedApi(int $id)
+    {
+        [$result, $message] = $this->broadcastBatchService->markedAsProcessed($id);
+
+        return $result
+            ? $this->responseSuccess([], $message)
+            : $this->responseError([], $message);
     }
 
     /**

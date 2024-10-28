@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\AccountsController;
+use App\Http\Controllers\BlackListNumberController;
+use App\Http\Controllers\BlackListWordController;
+use App\Http\Controllers\BroadcastBatchController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\RecipientsListController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
@@ -39,8 +43,8 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
         Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
     });
     Route::prefix('jobs')->group(function () {
-        Route::post('/generate-csv', [\App\Http\Controllers\JobsController::class, 'index']);
-        Route::post('/regenerate-csv', [\App\Http\Controllers\JobsController::class, 'regenerateUnsent']);
+        Route::post('/generate-csv', [JobsController::class, 'index']);
+        Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
     });
     Route::prefix('campaigns')->group(function () {
         Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
@@ -125,6 +129,38 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}', 'destroyApi');
         Route::post('/mark-processed/{id}', 'markAsProcessedApi');
         Route::get('/user/campaigns', 'getCampaignsForUserApi');
+    });
+
+    Route::controller(RecipientsListController::class)->prefix('recipient_lists')->group(function () {
+        Route::get('/', 'indexApi');
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::put('/{id}', 'updateApi');
+        Route::delete('/{id}', 'destroyApi');
+    });
+
+    Route::controller(BroadcastBatchController::class)->prefix('broadcast_batches')->group(function () {
+        Route::post('/', 'storeApi');
+        Route::get('/{id}', 'showApi');
+        Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
+    });
+
+    Route::middleware([CheckAdminRole::class])->group(function () {
+        Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
+            Route::get('/user', 'getBlackListNumberForUserApi');
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::put('/{id}', 'updateApi');
+            Route::delete('/{id}', 'destroyApi');
+        });
+
+        Route::controller(BlackListWordController::class)->prefix('black-list-words')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::get('/{id}', 'show');
+            Route::put('/{id}', 'updateApi');
+            Route::delete('/{id}', 'destroyApi');
+        });
     });
 });
 
