@@ -6,9 +6,11 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
+use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
@@ -67,18 +69,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/tokens', 'showTokensApi');
     });
 
-    Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::post('/{id}', 'updateApi');
-        Route::delete('/{id}', 'deleteApi');
-    });
+    Route::middleware([CheckAdminRole::class])->group(function () {
+        Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
 
-    Route::controller(SettingController::class)->prefix('settings')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::post('/{id}', 'updateApi');
-        Route::delete('/{id}', 'deleteApi');
+        Route::controller(SettingController::class)->prefix('settings')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
+        Route::controller(ReportController::class)->prefix('reports')->group(function (){
+            Route::get('messages', 'messagesApi');
+            Route::get('messages/csv','messagesCSVApi');
+            Route::get('campaigns', 'campaignsApi');
+            Route::get('campaigns/csv','campaignsCSVApi');
+        });
     });
 
     Route::prefix('data-source')->group(function (){

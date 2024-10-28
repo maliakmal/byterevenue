@@ -27,9 +27,9 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     /**
      * @param array $inputs
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator|\Illuminate\Database\Eloquent\Collection
      */
-    public function paginateBroadcastLogs(array $inputs, bool $paginate)
+    public function paginateBroadcastLogs(array $inputs)
     {
         $query = $this->model->newQuery();
         if(!empty($inputs['campaign_id'])){
@@ -42,9 +42,9 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             $query = $query->where('is_click', $inputs['is_click']);
         }
         $query = $query->orderBy('id', 'DESC');
-        if($paginate){
+        if(isset($inputs['per_page'])){
             $query = $query->with(['campaign.user']);
-            return $query->paginate();
+            return $query->paginate($inputs['per_page']);
         }
         return $query->get();
     }
@@ -69,7 +69,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         }
 
         if(!empty($inputs['count'])){
-            $query = $query->limit($input['count']);
+            $query = $query->limit($inputs['count']);
         }
 
 
@@ -95,7 +95,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         }
 
         if(!empty($inputs['count'])){
-            $query = $query->limit($input['count']);
+            $query = $query->limit($inputs['count']);
         }
 
         return $query->get();

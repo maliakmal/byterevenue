@@ -5,7 +5,6 @@ namespace App\Services\Settings;
 use App\Models\Setting;
 use App\Repositories\Contract\Setting\SettingRepositoryInterface;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
 
 class SettingService
