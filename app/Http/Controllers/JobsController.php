@@ -55,6 +55,7 @@ class JobsController extends Controller
         $params['total_in_queue'] = $queue_stats['total_in_queue'];//BroadcastLog::select()->count();
         $params['campaigns'] = $campaigns;
         $params['files'] = [];
+        $params['files_to_observe'] = [];
         $params['urlShorteners'] = $urlShorteners;
         $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];//BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
 
@@ -211,6 +212,7 @@ class JobsController extends Controller
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
         $params['total_in_queue'] = $queue_stats['total_in_queue'];//BroadcastLog::select()->count();
         $params['files'] = $files;
+        $params['files_to_observe'] = [];
         $params['download_me'] = $download_me;
         $params['urlShorteners'] = $urlShorteners;
         $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];// BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();

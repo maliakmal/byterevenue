@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ContactsImport;
+use Illuminate\Support\Facades\Log;
+
 use League\Csv\Reader;
 use App\Jobs\ProcessRecipientsImportCsvChunk;
 use Illuminate\Support\Facades\Redis;
@@ -67,9 +69,6 @@ class RecipientsListController extends Controller
 
         if($request->entry_type =='file'){
             DB::beginTransaction();
-            $recipientsList = auth()->user()->recipientLists()->create([
-                'name' => $request->name,
-            ]);
 
             $user_id = auth()->user()->id;
             $file = $request->file('csv_file');
@@ -84,56 +83,75 @@ class RecipientsListController extends Controller
             $phoneColumn = $request->input('phone_column');
             $totalColumns = $request->input('total_columns');
             $dummyVariables = array_fill(0, $totalColumns, '@dummy');
+            $headers = null;
+            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                // Get the first row (headers)
+                $headers = fgetcsv($handle);
+                
 
-            var_dump(request()->all());
-            var_dump($nameColumn);
-            var_dump($emailColumn);
-            var_dump($phoneColumn);
+            }else{
+                throw new \Exception('Could not parse CSV headers!');
+            }
+    
+
+            Log::info('RECIPIENTS IMPORT');
+            Log::info(request()->all());
+            Log::info($nameColumn);
+            Log::info($emailColumn);
+            Log::info($phoneColumn);
+            $recipientsList = auth()->user()->recipientLists()->create([
+                'name' => $request->name,
+            ]);
 
             $nameVar = '@dummy';
             $emailVar = '@dummy';
+            Log::info($headers);
+
             if($nameColumn!=null && $nameColumn!='-1'){
-                $dummyVariables[$nameColumn] = 'name';
-                $nameVar = 'name';
+                $dummyVariables[$nameColumn] = $headers[$nameColumn];
+                $nameVar = $headers[$nameColumn];
             }
 
             if($emailColumn!=null && $emailColumn!='-1'){
-                $dummyVariables[$emailColumn] = 'email';
-                $emailVar = 'email';
+                $dummyVariables[$emailColumn] = $headers[$emailColumn];
+                $emailVar =  $headers[$emailColumn];
             }
 
-            $dummyVariables[$phoneColumn] = 'phone';
+            $phoneVar = $headers[$phoneColumn];
+
+            $dummyVariables[$phoneColumn] = $phoneVar;
+            Log::info(['nameVar'=>$nameVar, 'emailVar'=>$emailVar, 'phoneVar'=>$phoneVar]);
 
 
             try {
-                DB::statement("LOAD DATA LOCAL INFILE '$fullPath'
+                $_sql_load = "LOAD DATA LOCAL INFILE '$fullPath'
                                INTO TABLE contacts
                                FIELDS TERMINATED BY ','
                                OPTIONALLY ENCLOSED BY '\"'
 
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
-                                (" . implode(', ', $dummyVariables) . ")
-                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
-                DB::statement(
-                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+                               (" . implode(', ', $dummyVariables) . ")
+                            SET name = ".($nameVar!='@dummy'?"`".$nameVar."`":"''").", 
+                                email =  ".($emailVar!='@dummy'?"`".$emailVar."`":"''").", 
+                                phone = TRIM(`".$phoneVar."`), created_at = NOW(), 
+                                user_id='$user_id', file_tag='$newFileName', updated_at = NOW()";
+
+                Log::info($_sql_load);
+
+                $_sql_insert = "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
                                 SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
                                 FROM contacts
-                                WHERE file_tag='$newFileName'"
-                            );
-var_dump("LOAD DATA LOCAL INFILE '$fullPath'
-                               INTO TABLE contacts
-                               FIELDS TERMINATED BY ','
-                               OPTIONALLY ENCLOSED BY '\"'
-                               LINES TERMINATED BY '\n'
-                               IGNORE 1 ROWS
-                                (" . implode(', ', $dummyVariables) . ")
-                               SET name = ".($nameVar!='@dummy'?'name':"''").", email =  ".($emailVar!='@dummy'?'name':"''").", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                                WHERE file_tag='$newFileName'";
 
-var_dump(                                "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-FROM contacts
-WHERE file_tag='$newFileName'");
+                Log::info("INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
+                                SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+                                FROM contacts
+                                WHERE file_tag='$newFileName'");
+
+
+                DB::statement($_sql_load);
+                DB::statement($_sql_insert);
 
 $recipientsList->is_imported = true;
 $recipientsList->source = $request->source;
