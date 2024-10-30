@@ -39,16 +39,15 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(CampaignService $campaign_service): void
     {
-        $campaign_service = new CampaignService();
         $domain_id = $this->params['domain_id'];
 
         foreach($this->params['campaigns'] as $_item){
             Log::info('_item');
             Log::info($_item);
             $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['campaign_alias']);
-            $campaign = $this->campaignRepository->find($_item['campaign_id']); 
+            $campaign = $this->campaignRepository->find($_item['campaign_id']);
             $url_for_campaign = $campaign->message?->target_url;
             Log::info($_item['campaign_alias']);
             $response_campaign = $campaign_service->createCampaignOnKeitaro($_item['campaign_alias'], $campaign->title, $campaign->keitaro_group_id, $domain_id);

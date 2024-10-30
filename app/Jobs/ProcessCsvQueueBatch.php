@@ -62,7 +62,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
         $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
         $this->url_shortener = $url_shortener ?? $this->url_shortener;
-        $this->campaign_service = new CampaignService();
         $this->batch_no = $batch_no;
         $this->type = $type;
         $this->type_id = $type_id;
@@ -76,14 +75,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(CampaignService $campaign_service): void
     {
         $unique_campaigns = collect();
         $unique_campaign_map = [];
         \DB::enableQueryLog();
 
         $new_campaigns = collect();
-        $campaign_service = $this->campaign_service;
         $current_campaign_id = 0;
         $message = '';
         $batch_no = $this->batch_no;

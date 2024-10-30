@@ -14,6 +14,7 @@ use App\Services\Keitaro\Requests\Campaign\GetAllCampaignsRequest;
 use App\Services\Keitaro\Requests\Campaign\MoveCampaignToArchiveRequest;
 use App\Services\Keitaro\Requests\Flows\CreateFlowRequest;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -294,5 +295,26 @@ class CampaignService
     public function getCampaignsForUser(int $userId)
     {
         return $this->campaignRepository->getCampaignsForUser($userId);
+    }
+
+    /**
+     * @param array $uniqCampaignIds
+     * @param int $userId
+     *
+     * @return Collection
+     */
+    public function getUnsentByIdsOfUser(array $uniqCampaignIds, int $userId)
+    {
+        return $this->campaignRepository->getUnsentByIdsOfUser($uniqCampaignIds, $userId);
+    }
+
+    /**
+     * @param array $uniqCampaignIds
+     *
+     * @return Collection
+     */
+    public function getUnsentByIds(array $uniqCampaignIds)
+    {
+        return $this->campaignRepository->getUnsentByIds($uniqCampaignIds);
     }
 }

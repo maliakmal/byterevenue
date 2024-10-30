@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BroadcastLog\BroadcastLogStatus;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\SettingUploadSendDataRequest;
 use App\Models\Setting;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
@@ -13,10 +15,11 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class SettingController extends Controller
+class SettingController extends ApiController
 {
     use CSVReader;
     public function __construct(
@@ -153,29 +156,36 @@ class SettingController extends Controller
     {
         return view('settings.upload_message_send_data');
     }
-    public function uploadSendData(Request $request)
+
+    public function uploadSendData(SettingUploadSendDataRequest $request)
     {
-        $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');
-        $request->validate([
-            'file' => "required|max:$max_allowed_csv_upload_file",
-            'has_header' => "required|in:yes,no",
-        ]);
-        $file = $request->file('file');
-        $content = file_get_contents($file->getRealPath());
-        if ($request->has_header == 'no') {
-            $content = "UID\n" . $content;
+        [$result, $number_of_updated_rows] = $this->settingService->uploadSendData($request);
+
+        if ($result) {
+            return redirect()->route('messages.uploadMessageSendDataIndex')
+                ->with('success', "Send Data Updated for $number_of_updated_rows Message");
         }
-        $csv = $this->csvToCollection($content);
-        if (!$csv) {
-            return redirect()->route('messages.uploadMessageSendDataIndex')->with('error', 'error parse csv');
+
+        return redirect()->route('messages.uploadMessageSendDataIndex')->with('error', 'error parse csv');
+    }
+
+    /**
+     * @param SettingUploadSendDataRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function uploadSendDataApi(SettingUploadSendDataRequest $request)
+    {
+        [$result, $number_of_updated_rows] = $this->settingService->uploadSendData($request);
+
+        if ($result) {
+            return $this->responseSuccess(
+                ['updated_rows' => $number_of_updated_rows],
+                "Send Data Updated for $number_of_updated_rows Message"
+            );
         }
-        $message_ids = $csv->pluck('UID')->toArray();
-        $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [
-            'sent_at' => Carbon::now(),
-            'is_sent' => true,
-            'status' => BroadcastLogStatus::SENT,
-        ]);
-        return redirect()->route('messages.uploadMessageSendDataIndex')->with('success', "Send Data Updated for $number_of_updated_rows Message");
+
+        return $this->responseError('Error parse csv');
     }
 
     /**
@@ -187,31 +197,49 @@ class SettingController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param SettingUploadSendDataRequest $request
+     *
      * @return RedirectResponse
      */
-    public function uploadBlackListNumber(Request $request)
+    public function uploadBlackListNumber(SettingUploadSendDataRequest $request)
     {
-        $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');
-        $request->validate([
-            'file' => "required|max:$max_allowed_csv_upload_file",
-            'has_header' => "required|in:yes,no",
-        ]);
-        $file = $request->file('file');
-        $content = file_get_contents($file->getRealPath());
-        if ($request->has_header == 'no') {
-            $content = "phone_number\n" . $content;
+        [$result, $error] = $this->settingService->uploadBlacklistNumber($request);
+
+        if (!$result) {
+            if ($error === 'parse_error') {
+                return redirect()->route('messages.uploadBlockNumberIndex')
+                    ->with('error', 'error parse csv');
+            }
+
+            if ($error === 'phone_number') {
+                return redirect()->route('messages.uploadBlackListNumberIndex')
+                    ->with('error', "first column should be phone_number");
+            }
         }
-        $csv = $this->csvToCollection($content);
-        if (!$csv) {
-            return redirect()->route('messages.uploadBlockNumberIndex')->with('error', 'error parse csv');
-        }
-        if (isset($csv->first()['phone_number']) == false) {
-            return redirect()->route('messages.uploadBlackListNumberIndex')->with('error', "first column should be phone_number");
-        }
-        $data = $csv->toArray();
-        $this->blackListNumberRepository->upsertPhoneNumber($data);
-        return redirect()->route('messages.uploadBlackListNumberIndex')->with('success', "Update Was Successful");
+
+        return redirect()->route('messages.uploadBlackListNumberIndex')
+            ->with('success', "Update Was Successful");
     }
 
+    /**
+     * @param SettingUploadSendDataRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function uploadBlackListNumberApi(SettingUploadSendDataRequest $request)
+    {
+        [$result, $error] = $this->settingService->uploadBlacklistNumber($request);
+
+        if (!$result) {
+            if ($error === 'parse_error') {
+                return $this->responseError('Error parse csv');
+            }
+
+            if ($error === 'phone_number') {
+                return $this->responseError('First column should be phone_number');
+            }
+        }
+
+        return $this->responseSuccess([], 'Update Was Successful');
+    }
 }

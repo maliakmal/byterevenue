@@ -79,13 +79,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{id}', 'deleteApi');
     });
 
-    Route::controller(SettingController::class)->prefix('settings')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::post('/{id}', 'updateApi');
-        Route::delete('/{id}', 'deleteApi');
-    });
-
     Route::prefix('data-source')->group(function (){
         Route::get('/', [ContactController::class, 'indexApi']);
         Route::get('/{id}', [ContactController::class, 'showApi']);
@@ -118,7 +111,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/{id}', 'updateApi');
         Route::delete('/{id}', 'destroyApi');
         Route::post('/mark-processed/{id}', 'markAsProcessedApi');
-        Route::get('/user/campaigns', 'getCampaignsForUserApi');
     });
 
     Route::controller(RecipientsListController::class)->prefix('recipient_lists')->group(function () {
@@ -135,9 +127,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
     });
 
+    Route::get('black-list-numbers/user', [BlackListNumberController::class, 'getBlackListNumberForUserApi']);
+
     Route::middleware([CheckAdminRole::class])->group(function () {
         Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
-            Route::get('/user', 'getBlackListNumberForUserApi');
             Route::get('/', 'indexApi');
             Route::post('/', 'storeApi');
             Route::put('/{id}', 'updateApi');
@@ -151,6 +144,25 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::put('/{id}', 'updateApi');
             Route::delete('/{id}', 'destroyApi');
         });
+
+        Route::controller(SettingController::class)->prefix('settings')->group(function () {
+            Route::post('/upload-messages', 'uploadSendDataApi');
+            Route::post('/upload-black-numbers', 'uploadBlackListNumberApi');
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
+        Route::controller(JobsController::class)->prefix('jobs')->group(function () {
+            Route::get('/fifo', 'indexApi');
+            Route::post('/', 'createJobApi');
+            Route::post('/regenerate', 'regenerateUnsentApi');
+            Route::post('/campaigns/regenerate', 'regenerateUnsentApi');
+            Route::get('/campaigns', 'campaignsApi');
+        });
+
+        Route::get('/user/campaigns', [CampaignController::class, 'getCampaignsForUserApi']);
     });
 });
 
