@@ -87,13 +87,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/{id}', 'updateApi');
             Route::delete('/{id}', 'deleteApi');
         });
-
-        Route::controller(ReportController::class)->prefix('reports')->group(function (){
-            Route::get('messages', 'messagesApi');
-            Route::get('messages/csv','messagesCSVApi');
-            Route::get('campaigns', 'campaignsApi');
-            Route::get('campaigns/csv','campaignsCSVApi');
-        });
     });
 
     Route::prefix('data-source')->group(function (){
@@ -178,6 +171,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/regenerate', 'regenerateUnsentApi');
             Route::post('/campaigns/regenerate', 'regenerateUnsentApi');
             Route::get('/campaigns', 'campaignsApi');
+        });
+
+        Route::controller(ReportController::class)->prefix('reports')->group(function (){
+            Route::get('messages', 'messagesApi');
+            Route::get('messages/csv','messagesCSVApi');
+            Route::get('campaigns', 'campaignsApi');
+            Route::get('campaigns/csv','campaignsCSVApi');
         });
 
         Route::get('/user/campaigns', [CampaignController::class, 'getCampaignsForUserApi']);
