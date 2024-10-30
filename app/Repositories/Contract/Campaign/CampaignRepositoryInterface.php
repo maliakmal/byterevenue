@@ -16,5 +16,5 @@ interface CampaignRepositoryInterface extends BaseRepositoryInterface
 
     public function getUnsentByIdsOfUser(array $ids, $user_id = null);
 
-    public function reportCampaigns(array $inputs, array $selectColumns = [], bool $paginate = true);
+    public function reportCampaigns(array $inputs, array $selectColumns = []);
 }

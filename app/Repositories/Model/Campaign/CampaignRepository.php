@@ -54,7 +54,7 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
      * @param bool $paginate
      * @return LengthAwarePaginator|Builder[]|Collection
      */
-    public function reportCampaigns(array $inputs, array $selectColumns = [], bool $paginate = true)
+    public function reportCampaigns(array $inputs, array $selectColumns = [])
     {
         $query = $this->model->newQuery();
         if(!empty($selectColumns)){
@@ -65,8 +65,8 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
             $query = $query->where('user_id', $inputs['user_id']);
         }
         $query = $query->orderBy('id', 'DESC');
-        if($paginate){
-            return $query->paginate();
+        if(isset($inputs['per_page'])){
+            return $query->paginate($inputs['per_page']);
         }
         return $query->get();
     }

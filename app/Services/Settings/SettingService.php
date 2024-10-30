@@ -12,7 +12,6 @@ use App\Trait\CSVReader;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
 
 class SettingService

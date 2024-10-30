@@ -10,6 +10,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\RecipientsListController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
@@ -42,8 +43,8 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
         Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
     });
     Route::prefix('jobs')->group(function () {
-        Route::post('/generate-csv', [\App\Http\Controllers\JobsController::class, 'index']);
-        Route::post('/regenerate-csv', [\App\Http\Controllers\JobsController::class, 'regenerateUnsent']);
+        Route::post('/generate-csv', [JobsController::class, 'index']);
+        Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
     });
     Route::prefix('campaigns')->group(function () {
         Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
@@ -72,11 +73,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/tokens', 'showTokensApi');
     });
 
-    Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::post('/{id}', 'updateApi');
-        Route::delete('/{id}', 'deleteApi');
+    Route::middleware([CheckAdminRole::class])->group(function () {
+        Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
+        Route::controller(SettingController::class)->prefix('settings')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
+        Route::controller(ReportController::class)->prefix('reports')->group(function (){
+            Route::get('messages', 'messagesApi');
+            Route::get('messages/csv','messagesCSVApi');
+            Route::get('campaigns', 'campaignsApi');
+            Route::get('campaigns/csv','campaignsCSVApi');
+        });
     });
 
     Route::prefix('data-source')->group(function (){
@@ -131,6 +148,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::middleware([CheckAdminRole::class])->group(function () {
         Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
+            Route::get('/user', 'getBlackListNumberForUserApi');
             Route::get('/', 'indexApi');
             Route::post('/', 'storeApi');
             Route::put('/{id}', 'updateApi');

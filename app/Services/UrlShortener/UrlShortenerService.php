@@ -4,7 +4,6 @@ namespace App\Services\UrlShortener;
 
 use App\Models\UrlShortener;
 use App\Services\Keitaro\KeitaroCaller;
-use App\Services\Keitaro\Requests\Domains\GetDomainRequest;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -12,9 +11,6 @@ use Validator;
 
 class UrlShortenerService
 {
-    /**
-     * @return array
-     */
     public function getAll(Request $request)
     {
         $query = UrlShortener::query();
