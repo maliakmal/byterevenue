@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ApiController;
 use App\Models\User;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Services\Accounts\AccountsService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class AccountsController extends Controller
+class AccountsController extends ApiController
 {
     private AccountsService $accountsService;
     /**
@@ -26,7 +28,7 @@ class AccountsController extends Controller
     public function indexApi()
     {
         $response = $this->accountsService->getAccounts();
-        return response()->json($response);
+        return $this->responseSuccess($response);
     }
 
     /**
@@ -38,7 +40,7 @@ class AccountsController extends Controller
     {
         $response = $this->accountsService->getAccountTransactions($id);
 
-        return response()->json($response);
+        return $this->responseSuccess($response);
     }
 
     /**
@@ -50,7 +52,7 @@ class AccountsController extends Controller
         $userId = $isCurrentUserAdmin ? null : auth()->id();
         $response = $this->accountsService->getAccountTransactions($userId);
 
-        return response()->json($response);
+        return $this->responseSuccess($response);
     }
 
     /**
@@ -60,9 +62,9 @@ class AccountsController extends Controller
     {
         $response = $this->accountsService->addTokensToAccount($request);
         if (isset($response['errors'])) {
-            return response()->json($response, 400);
+            return $this->responseError($response['errors']);
         }
-        return response()->json($response);
+        return $this->responseSuccess($response);
     }
 
     public function index()
@@ -144,34 +146,24 @@ class AccountsController extends Controller
 
     public function tokens()
     {
-
-        $account = User::find(auth()->user()->id);
-        $transactions = Transaction::query();
+        $account = auth()->user();
 
         $filter = [
             'type' => request('type'),
             'sortby' => request('sortby', 'id_desc'),
             'count' => request('count', 5),
         ];
-        if (!empty($filter['type'])) {
-            $transactions->where('type', $filter['type']);
-        }
 
-        if (!empty($filter['sortby'])) {
-            switch ($filter['sortby']) {
-                case 'id_desc':
-                    $transactions->orderby('id', 'desc');
-                    break;
-                case 'id_asc':
-                    $transactions->orderby('id', 'asc');
-                    break;
-            }
-        }
-        $transactions = $transactions->get();
+        $transactions = $this->accountsService->getTransactions($account->id, $filter);
 
         return view('accounts.tokens', compact('account', 'filter', 'transactions'));
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return RedirectResponse
+     */
     public function storeTokens(Request $request)
     {
         $account = User::find($request->user_id);
@@ -183,7 +175,7 @@ class AccountsController extends Controller
         ]);
         $account->addTokens($amount);
         $account->save();
+
         return redirect()->route('accounts.show', $account->id)->with('success', 'Tokens updated successfully.');
     }
-
 }

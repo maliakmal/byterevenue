@@ -5,9 +5,12 @@ namespace App\Services\Accounts;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Validator;
+use function PHPUnit\Framework\isNull;
 
 
 class AccountsService
@@ -117,5 +120,37 @@ class AccountsService
         $account = User::find($data['user_id']);
         $account->addTokens($data['amount']);
         return ['message' => 'Tokens updated successfully.'];
+    }
+
+    /**
+     * @param int|null $userId
+     * @param array $filter
+     *
+     * @return Collection
+     */
+    public function getTransactions(?int $userId, array $filter = [])
+    {
+        $transactions = Transaction::query();
+
+        if (!isNull($userId)) {
+            $transactions->where('user_id', $userId);;
+        }
+
+        if (!empty($filter['type'])) {
+            $transactions->where('type', $filter['type']);
+        }
+
+        if (!empty($filter['sortby'])) {
+            switch ($filter['sortby']) {
+                case 'id_desc':
+                    $transactions->orderby('id', 'desc');
+                    break;
+                case 'id_asc':
+                    $transactions->orderby('id', 'asc');
+                    break;
+            }
+        }
+
+        return $transactions->get();
     }
 }
