@@ -6,9 +6,15 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Jetstream\Jetstream;
 
 class AuthController extends ApiController
 {
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
     public function login(Request $request): JsonResponse
     {
         $loginUserData = $request->validate([
@@ -27,11 +33,32 @@ class AuthController extends ApiController
         return $this->responseSuccess(compact('token'));
     }
 
-    public function register(): JsonResponse
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function register(Request $request): JsonResponse
     {
-        return response()->json(['message' => 'register']);
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => $this->passwordRules(),
+            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return $this->responseSuccess($user, 'User created successfully');
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function logout(): JsonResponse
     {
         $user = auth()->user();
@@ -41,6 +68,9 @@ class AuthController extends ApiController
         return $this->responseSuccess([], 'Logged out successfully');
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function refresh(): JsonResponse
     {
         $user = auth()->user();
@@ -56,6 +86,11 @@ class AuthController extends ApiController
         return $this->responseSuccess(compact('token'));
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
