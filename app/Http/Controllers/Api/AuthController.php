@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Laravel\Jetstream\Jetstream;
 
 class AuthController extends ApiController
 {
+    use PasswordValidationRules;
     /**
      * @param Request $request
      *
@@ -43,7 +45,7 @@ class AuthController extends ApiController
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => $this->passwordRules(),
+            'password' => ['required', 'string', 'min:6', 'max:255'],
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ]);
 
@@ -53,7 +55,9 @@ class AuthController extends ApiController
             'password' => Hash::make($request->password),
         ]);
 
-        return $this->responseSuccess($user, 'User created successfully');
+        $token = $user->createToken($user->name .'-AuthToken')->plainTextToken;
+
+        return $this->responseSuccess(compact('token'));
     }
 
     /**
