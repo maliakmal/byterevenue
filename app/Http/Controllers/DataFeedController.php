@@ -2,30 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\ApiController;
+use App\Services\DataFeed\DataFeedService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\DataFeed;
 
-class DataFeedController extends Controller
+class DataFeedController extends ApiController
 {
+    private $dataFeedService;
+
+    /**
+     * @param DataFeedService $dataFeedService
+     */
+    public function __construct(DataFeedService $dataFeedService)
+    {
+        $this->dataFeedService = $dataFeedService;
+    }
+
     /**
      * @param Request $request
-     * @return mixed
+     * @return array
      */
     public function getDataFeed(Request $request)
     {
-        $df = new DataFeed();
+        return $this->dataFeedService->getDataFeed(
+            $request->get('dataType'),
+            $request->get('limit')
+        );
+    }
 
-        return (object)[
-            'labels' => $df->getDataFeed(
-                $request->datatype,
-                'label',
-                $request->limit
-            ),
-            'data' => $df->getDataFeed(
-                $request->datatype,
-                'data',
-                $request->limit
-            ),
-        ];
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function getDataFeedApi(Request $request)
+    {
+        $data = $this->dataFeedService->getDataFeed(
+            $request->get('dataType'),
+            $request->get('limit')
+        );
+
+        return $this->responseSuccess($data);
     }
 }

@@ -89,7 +89,7 @@ class ProcessRecipientsImportCsvChunk implements ShouldQueue
                     'created_at'=>$now,
                     'updated_at'=>$now,
                 ];
-                
+
             endif;
         }
 

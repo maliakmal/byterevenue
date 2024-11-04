@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 class KeitaroCaller
 {
-    public function call(AbstractRequest $request)
+    static public function call(AbstractRequest $request)
     {
         $method = $request->getMethod();
         $path = $request->getPath();

@@ -6,19 +6,57 @@ use App\Models\UrlShortener;
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\CreateShortDomainRequest;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
+use App\Services\UrlShortener\UrlShortenerService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 
 class UrlShortenerController extends Controller
 {
+    private UrlShortenerService $urlShortenerService;
+    /**
+     * @param UrlShortenerService $urlShortenerService
+     */
+    public function __construct(UrlShortenerService $urlShortenerService)
+    {
+        $this->urlShortenerService = $urlShortenerService;
+    }
+    public function indexApi(Request $request)
+    {
+        $response = $this->urlShortenerService->getAll($request);
+        return response()->json($response);
+    }
+
+    public function storeApi(Request $request)
+    {
+        $response = $this->urlShortenerService->create($request);
+        if (isset($response['errors']) || isset($response['error'])) {
+            return response()->json($response, 400);
+        }
+        return response()->json($response);
+    }
+
+    public function updateApi($id, Request $request)
+    {
+        $response = $this->urlShortenerService->update($id, $request);
+        if (isset($response['errors'])) {
+            return response()->json($response, 400);
+        }
+        return response()->json($response);
+    }
+    public function deleteApi($id)
+    {
+        $response = $this->urlShortenerService->delete($id);
+        return response()->json($response);
+    }
+
     public function index()
     {
 
         $urlShorteners = UrlShortener::query();
-        $filter = array(
-            'is_propagated'=> request('is_propagated')!=''?request('is_propagated'):null,
-            'sortby'=> request('sortby')?request('sortby'):'id_desc',
-        );
+        $filter = [
+            'is_propagated'=> request('is_propagated'),
+            'sortby'=> request('sortby', 'id_desc'),
+        ];
 
         if(!is_null($filter['is_propagated'])){
             $urlShorteners->where('is_propagated', $filter['is_propagated']);
@@ -60,10 +98,10 @@ class UrlShortenerController extends Controller
         $inputs = $request->all();
         $request = new RegisterShortDomainRequest($inputs['name'],null, null, null,
             null, true, true, true, false);
-        $caller = new KeitaroCaller();
+
         $response = null;
         try{
-            $response = $caller->call($request)[0];
+            $response = KeitaroCaller::call($request)[0];
             $inputs['is_registered'] = true;
             $inputs['is_propagated'] = false;
 

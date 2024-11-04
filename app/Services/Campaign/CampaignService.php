@@ -2,15 +2,36 @@
 
 namespace App\Services\Campaign;
 
+use App\Models\BroadcastLog;
+use App\Models\Campaign;
+use App\Models\Message;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Repositories\Model\Campaign\CampaignRepository;
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Campaign\CreateCampaignRequest;
 use App\Services\Keitaro\Requests\Campaign\GetAllCampaignsRequest;
 use App\Services\Keitaro\Requests\Campaign\MoveCampaignToArchiveRequest;
 use App\Services\Keitaro\Requests\Flows\CreateFlowRequest;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CampaignService
 {
+    private $campaignRepository;
+
+    /**
+     * CampaignService constructor.
+     * @param CampaignRepository $campaignRepository
+     */
+    public function __construct(CampaignRepository $campaignRepository)
+    {
+        $this->campaignRepository = $campaignRepository;
+    }
+
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
         $param = config('app.keitaro.uid_param', 'sub_id_1');
@@ -24,13 +45,13 @@ class CampaignService
 
     )
     {
-        $caller = new KeitaroCaller();
+
         $keitaro_token = uniqid();
         $create_campaign_request = new CreateCampaignRequest($alias, $title, $keitaro_token, $type, $groupID.'',
             $domainID, $cookies_ttl, $state, $cost_type, $cost_value, $cost_currency, $cost_auto, null,
         $traffic_source_id,null,null,null, $uniqueness_method, $position, $uniqueness_use_cookies,
         $traffic_loss);
-        return $caller->call($create_campaign_request);
+        return KeitaroCaller::call($create_campaign_request);
     }
 
     public function createFlowOnKeitaro($campaignID, $campaignTitle, $action_payload = null, $filters = null, $action_options = null,
@@ -44,8 +65,8 @@ class CampaignService
             Str::slug($campaignTitle), $action_type, $action_payload, $position, $weight, $action_options, $comments, $state,
             $collect_clicks, $filter_or, $filters
         );
-        $caller = new KeitaroCaller();
-        return $caller->call($create_flow_request);
+
+        return KeitaroCaller::call($create_flow_request);
     }
 
     /**
@@ -56,8 +77,8 @@ class CampaignService
     public function getAllCampaigns(?int $limit, int $offset)
     {
         $request = new GetAllCampaignsRequest($limit, $offset);
-        $caller = new KeitaroCaller();
-        return $caller->call($request);
+
+        return KeitaroCaller::call($request);
     }
 
     /**
@@ -67,7 +88,233 @@ class CampaignService
     public function moveCampaignToArchive(int $campaignID)
     {
         $request = new MoveCampaignToArchiveRequest($campaignID);
-        $caller = new KeitaroCaller();
-        return $caller->call($request);
+
+        return KeitaroCaller::call($request);
+    }
+
+    /**
+     * @param array $filter
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getCampaignsFiltered(array $filter)
+    {
+        return $this->campaignRepository->getFiltered($filter);
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public function store(array $data)
+    {
+        try {
+            DB::beginTransaction();
+            $campaign = auth()->user()->campaigns()->create([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'recipients_list_id' => $data['recipients_list_id'],
+            ]);
+            $campaign->generateUniqueFolder();
+            $campaign->save();
+            if (auth()->user()->show_introductory_screen == true) {
+                User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+            }
+            //
+//                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
+//                $response = KeitaroCaller::call($create_group_request);
+//                $campaign->keitaro_group_id = $response['id'];
+//                $campaign->keitaro_create_group_response = @json_encode($response);
+//                $campaign->save();
+            DB::commit();
+        } catch (RequestException $exception) {
+            DB::rollBack();
+
+            return [null, ['message' => $exception->getMessage()]];
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            report($exception);
+
+            return [null, ['message' => 'Error Create Campaign']];
+        }
+
+        $message_data = [
+            'subject' => $data['message_subject'],
+            'body' => $data['message_body'],
+            'target_url' => $data['message_target_url'],
+            "user_id" => auth()->id(),
+            'campaign_id' => $campaign->id
+        ];
+        Message::create($message_data);
+
+        return [$campaign, null];
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return array
+     */
+    public function show(int $id)
+    {
+        $per_page = 15;
+        $campaign = $this->campaignRepository->find($id);
+        $message = $campaign->message;
+
+        $recipient_lists = $campaign->recipient_list;
+
+        if ($campaign->isDraft()) {
+            $contacts = $recipient_lists->contacts()->paginate($per_page);
+            $logs = [];
+
+        } else {
+            $contacts = [];
+            $logs = BroadcastLog::where('campaign_id', $campaign->id)->paginate($per_page);
+        }
+
+        return [
+            'campaign' => $campaign,
+            'message' => $message,
+            'contacts' => $contacts,
+            'logs' => $logs
+        ];
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return array
+     */
+    public function markAsProcessed(int $id)
+    {
+        // create message logs against each contact and generate the message acordingly
+        $campaign = Campaign::with(['user'])->withCount([
+            'recipient_list as recipient_list_contacts_count' => function ($query) {
+                $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
+                    ->join('contact_recipient_list', 'contact_recipient_list.recipients_list_id', '=', 'recipients_lists.id');
+            }
+        ])->findOrFail($id);
+
+        $account = $campaign->user;
+        $amount = $campaign->recipient_list_contacts_count;
+
+        if ($account->tokens < $amount) {
+            return [false, 'You do not have enough tokens to process this campaign.'];
+        }
+
+        DB::enableQueryLog();
+        DB::beginTransaction();
+
+        try {
+            //$message = $campaign->message->getParsedMessage();
+
+            $sql = "INSERT INTO broadcast_logs ";
+            $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
+            $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
+            //var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
+            $recepientListId = $campaign->recipient_list->id;
+            DB::insert($sql, [auth()->id(), $recepientListId, $campaign->message->id, 0, $campaign->id, $recepientListId]);
+
+            // $data = [
+            //     'user_id'=>auth()->id(),
+            //     'recipients_list_id'=>$recepientListId,
+            //     'message_id'=>$campaign->message->id,
+            //     'message_body'=>'',
+            //     'recipient_phone'=>'',
+            //     'contact_id'=>0,
+            //     'is_downloaded_as_csv'=>0,
+            //     'campaign_id'=>$campaign->id,
+            // ];
+
+            // $contacts = $campaign->recipient_list->contacts()->get();
+
+            // foreach($contacts as $contact){
+            //     $data['recipient_phone'] = $contact->phone;
+            //     $data['contact_id'] = $contact->id;
+            //     BroadcastLog::create($data);
+            // }
+//
+            $campaign->markAsProcessed();
+            $campaign->save();
+
+            Transaction::create([
+                'user_id' => auth()->id(),
+                'amount' => $amount,
+                'type' => 'usage',
+            ]);
+            $account->deductTokens($amount);
+            $account->save();
+
+            DB::commit();
+            $queries = DB::getQueryLog();
+
+            return [true, 'Job is being processed.'];
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return [false, 'An error occurred - please try again later.'];
+        }
+    }
+
+    /**
+     * @param int $id
+     * @param array $data
+     *
+     * @return Campaign
+     */
+    public function update(int $id, array $data)
+    {
+        $campaign = Campaign::find($id);
+        $campaignFields = [
+            'title',
+            'description',
+            'recipients_list_id',
+        ];
+
+        foreach ($data as $key => $field) {
+            if (in_array($key, $campaignFields)) {
+                $campaign->$key = $data[$key];
+                unset($data[$key]);
+            }
+        }
+
+        $campaign->generateUniqueFolder();
+        $campaign->save();
+
+        $campaign->message->update($data);
+
+        return $campaign;
+    }
+
+    /**
+     * @param int $userId
+     *
+     * @return mixed
+     */
+    public function getCampaignsForUser(int $userId)
+    {
+        return $this->campaignRepository->getCampaignsForUser($userId);
+    }
+
+    /**
+     * @param array $uniqCampaignIds
+     * @param int $userId
+     *
+     * @return Collection
+     */
+    public function getUnsentByIdsOfUser(array $uniqCampaignIds, int $userId)
+    {
+        return $this->campaignRepository->getUnsentByIdsOfUser($uniqCampaignIds, $userId);
+    }
+
+    /**
+     * @param array $uniqCampaignIds
+     *
+     * @return Collection
+     */
+    public function getUnsentByIds(array $uniqCampaignIds)
+    {
+        return $this->campaignRepository->getUnsentByIds($uniqCampaignIds);
     }
 }

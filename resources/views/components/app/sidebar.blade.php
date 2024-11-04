@@ -420,7 +420,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['black-list-numbers'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['black-list-numbers'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif"  d="M48,0A48,48,0,1,0,96,48,48.0512,48.0512,0,0,0,48,0Zm0,12a35.71,35.71,0,0,1,20.7993,6.7214L18.717,68.7935A35.8886,35.8886,0,0,1,48,12Zm0,72a35.71,35.71,0,0,1-20.7993-6.7214L77.283,27.2065A35.8886,35.8886,0,0,1,48,84Z"/></svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Black List Number</span>
                                 </div>
@@ -453,7 +453,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['black-list-words'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['black-list-words'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif"  d="M48,0A48,48,0,1,0,96,48,48.0512,48.0512,0,0,0,48,0Zm0,12a35.71,35.71,0,0,1,20.7993,6.7214L18.717,68.7935A35.8886,35.8886,0,0,1,48,12Zm0,72a35.71,35.71,0,0,1-20.7993-6.7214L77.283,27.2065A35.8886,35.8886,0,0,1,48,84Z"/></svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Black List Word</span>
                                 </div>
@@ -487,7 +487,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['reports'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['reports'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif" d="M6 11h4v17h-4v-17zM22 16v12h4v-12h-4zM14 28h4v-24h-4v24z"></path>
                                     </svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Reports</span>

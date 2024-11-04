@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
-    
+
     }
 
     /**
@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerConfigs()
     {
-        Setting::orderBy('id')->chunk(100, function ($items){
+        Setting::on('mysql')->orderBy('id')->chunk(100, function ($items){
             foreach ($items as $item){
                 $key = 'setting.'.$item->name;
                 Config::set($key, $item->value);

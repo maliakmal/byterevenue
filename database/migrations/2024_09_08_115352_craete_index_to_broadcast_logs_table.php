@@ -23,7 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-
-
+        Schema::table('broadcast_logs', function (Blueprint $table) {
+            $table->dropIndex(['is_sent', 'sent_at']);
+            $table->dropIndex(['is_click', 'clicked_at']);
+            $table->dropIndex(['created_at']);
+        });
     }
 };
