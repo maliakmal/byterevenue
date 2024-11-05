@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Response;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
                 'success' => false,
                 'message' => $errorMessages,
             ], $code, $headers);
+        });
+
+        LogViewer::auth(function ($request) {
+            return Auth::check() && Auth::user()->hasRole('admin');
         });
     }
 
