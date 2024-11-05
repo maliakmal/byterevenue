@@ -29,6 +29,7 @@ Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
 Route::post('/forgot-password', [\App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
+Route::get('/reset-password/{token}', [\App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
 Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
 Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
