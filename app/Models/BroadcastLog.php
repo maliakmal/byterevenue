@@ -12,6 +12,8 @@ class BroadcastLog extends Model
 
     protected $casts = [
         'keitaro_click_log' => 'json',
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
     public function campaign(){
