@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobsController;
 
+
 // User data for livewire
 Route::get('/user', function (Request $request) {
     return $request->user();
