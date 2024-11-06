@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BroadcastLog extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
+
     protected $guarded = [];
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     protected $casts = [
         'keitaro_click_log' => 'json',
@@ -16,10 +22,13 @@ class BroadcastLog extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public function campaign(){
+    public function campaign()
+    {
         return $this->belongsTo(Campaign::class);
     }
-    public function message(){
+
+    public function message()
+    {
         return $this->belongsTo(Message::class);
     }
 

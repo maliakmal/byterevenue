@@ -52,6 +52,7 @@ class AddBroadcastLogs extends Command
 
                 if ($type === 'archive') {
                     $values[] = "('" .  implode("','", [
+                        $data['id'],
                         $data['contact_id'],
                         $data['campaign_id'],
                         $data['sent_at'],
@@ -63,7 +64,7 @@ class AddBroadcastLogs extends Command
 
             $tableName = $type === 'main' ? 'broadcast_logs' : 'broadcast_storage_master';
             $connection = $type === 'main' ? 'mysql' : 'storage_mysql';
-            $mainFields = 'user_id, recipients_list_id, message_id, sent_at, clicked_at, total_recipients_click_thru,
+            $mainFields = 'id, user_id, recipients_list_id, message_id, sent_at, clicked_at, total_recipients_click_thru,
                 status, message_body, recipient_phone, is_downloaded_as_csv, contact_id, campaign_id, batch,
                 is_sent, is_click, is_bot, is_unique_global, is_unique_campaign, created_at, updated_at';
             $archiveFields = 'contact_id, campaign_id, sent_at, clicked_at, created_at';

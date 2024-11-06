@@ -50,7 +50,7 @@ class MoveLogsToStorage extends Command
 
         foreach ($logs as $log) {
             $block[] = [
-                // 'phone'       => intval($log->recipient_phone),
+                'id'          => $log->id,
                 'contact_id'  => $log->contact_id,
                 'campaign_id' => $log->campaign_id,
                 'sent_at'     => $log->sent_at,

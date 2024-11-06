@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\CampaignsGetRequest;
@@ -12,8 +13,6 @@ use App\Services\Campaign\CampaignService;
 use App\Jobs\ProcessCsvQueueBatch;
 use App\Jobs\ProcessCsvRegenQueueBatch;
 use App\Jobs\CreateCampaignsOnKeitaro;
-
-
 use App\Services\JobService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -61,7 +60,6 @@ class JobsController extends ApiController
 
     public function index(Request $request)
     {
-
         $download_me = null;
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
 
@@ -84,22 +82,21 @@ class JobsController extends ApiController
                     return $value !== 0 && !empty($value);
                 });
 
-                foreach ($uniq_campaign_ids as $uniq_campaign_id):
-
+                foreach ($uniq_campaign_ids as $uniq_campaign_id) {
                     if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
                         $alias_for_campaign = uniqid();
                         $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
 
-                        $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                        $campaign_short_urls[] = $this->campaignShortUrlRepository->create([
                             'campaign_id' => $uniq_campaign_id,
                             'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                             'campaign_alias' => $alias_for_campaign,
                             'url_shortener_id' => $urlShortener->id,
                             'deleted_on_keitaro' => false
                         ]);
-                        $campaign_short_urls[] = $_campaign_short_url;
                     }
-                endforeach;
+                }
+
                 $type = 'campaign';
                 $type_id = $uniq_campaign_ids;
                 //$uniq_campaign_ids = [$uniq_campaign_id];
@@ -112,26 +109,21 @@ class JobsController extends ApiController
                     }
                 );
 
-                foreach ($uniq_campaign_ids as $uniq_campaign_id):
+                foreach ($uniq_campaign_ids as $uniq_campaign_id) {
                     if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
                         $alias_for_campaign = uniqid();
                         $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
 
-                        $_campaign_short_url = $this->campaignShortUrlRepository->create([
+                        $campaign_short_urls[] = $this->campaignShortUrlRepository->create([
                             'campaign_id' => $uniq_campaign_id,
                             'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
                             'campaign_alias' => $alias_for_campaign,
                             'url_shortener_id' => $urlShortener->id,
                             'deleted_on_keitaro' => false
                         ]);
-                        $campaign_short_urls[] = $_campaign_short_url;
-
                     }
-
-                endforeach;
-
+                }
             }
-
 
             $numBatches = ceil($total / $batchSize);
             $campaign_short_url_map = []; // maps campaign_id -> short url
@@ -164,7 +156,6 @@ class JobsController extends ApiController
                 $params['type'] = $type;
                 $params['type_id'] = $type_id;
                 dispatch(new ProcessCsvQueueBatch($params));//$offset, $batchSize, $urlShortenerName, $batch_no, $batch_file, $is_last, $type, $type_id));
-
             }
 
             $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
@@ -184,7 +175,6 @@ class JobsController extends ApiController
             }
             return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
         }
-
 
         $directory = storage_path('app/csv/');
         $files = BatchFile::orderby('id', 'desc')->paginate(15);
