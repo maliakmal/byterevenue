@@ -111,7 +111,7 @@ class AuthController extends ApiController
      */
     public function forgotPassword(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate(['email' => 'required|email|exists:users']);
 
         $status = Password::sendResetLink(
             $request->only('email')

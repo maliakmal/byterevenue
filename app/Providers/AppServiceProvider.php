@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +49,14 @@ class AppServiceProvider extends ServiceProvider
 
         LogViewer::auth(function ($request) {
             return Auth::check() && Auth::user()->hasRole('admin');
+        });
+
+        ResetPassword::createUrlUsing(function (User $user, string $token) {
+            return config('app.front_base_url')
+                . '/reset-password?token='
+                . $token
+                . '&email='
+                . $user->getEmailForPasswordReset();
         });
     }
 
