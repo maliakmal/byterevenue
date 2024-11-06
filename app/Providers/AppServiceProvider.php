@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
 
         ResetPassword::createUrlUsing(function (User $user, string $token) {
             return config('app.front_base_url')
-                . '/auth/reset-password?token='
+                . '/reset-password?token='
                 . $token
                 . '&email='
                 . $user->getEmailForPasswordReset();
