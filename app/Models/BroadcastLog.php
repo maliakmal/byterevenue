@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class BroadcastLog extends Model
 {
     use HasFactory;
+
+    const CACHE_STATUS_KEY = 'broadcast_log_updated';
+
     protected $guarded = [];
 
     protected $casts = [

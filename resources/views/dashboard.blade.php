@@ -56,7 +56,7 @@
 
 
 
-          @if(auth()->user()->hasRole('admin'))
+        @if(auth()->user()->hasRole('admin'))
           <form action="" id="form-admin-dashboard" class="float-right" method="post">
             @csrf
             @method('POST')
@@ -65,6 +65,10 @@
           </form>
 
         <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Dashboard</h1>
+
+        @if ($cache_updated_at)
+            <div class="text-sm">Last update: {{ $cache_updated_at }}</div>
+        @endif
 
           <div class="mt-5">
 

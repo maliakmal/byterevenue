@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Services\Clicks\ClickService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Mockery\Exception;
 
@@ -87,6 +89,10 @@ class UpdateClicksFromKeitaro extends Command
             }
             $offset += $limit;
             $total = $response['total'];
+        }
+
+        if ($total && (int) $total > 0) {
+            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true);
         }
     }
 
