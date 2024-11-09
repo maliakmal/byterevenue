@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Jobs;
+
 use DB;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -100,7 +101,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $lastQuery = end($lastQuery);
 
         Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
-        $ids = [0];
+        $ids = [''];
         $cases = ["WHEN 0 THEN ''"];
         $bindings = [];
         $batch = $batch_no;
@@ -194,7 +195,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
 
                 $message_body = $message->getParsedMessage($generated_url);
-                $cases[] = "WHEN {$log->id} THEN '" . addslashes($message_body) . "'";
+                $cases[] = "WHEN `{$log->id}` THEN '" . addslashes($message_body) . "'";
 
                 $campaign_key = $campaign->id . '';
                 if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
@@ -241,7 +242,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
             }
         }); */
 
-        $idList = implode(',', $ids);
+        $idList = "'". implode("','", $ids) ."'";
         $caseList = implode(' ', $cases);
         $is_downloaded_as_csv = 1;
 
@@ -249,7 +250,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         $sql = "
         UPDATE `broadcast_logs`
-
         SET `message_body` = CASE `id`
             {$caseList}
         END,

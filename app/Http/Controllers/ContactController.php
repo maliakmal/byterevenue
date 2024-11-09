@@ -220,4 +220,20 @@ class ContactController extends ApiController
 
         return $this->responseSuccess($contact);
     }
+
+    /**
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function contactsInfo(Request $request)
+    {
+        $request->validate([
+            'contacts' => 'required|array',
+        ]);
+
+        return $this->responseSuccess(
+            $this->contactService->getInfo($request->get('contacts'))
+        );
+    }
 }

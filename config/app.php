@@ -142,4 +142,5 @@ return [
         'host' => env('ONE_PLUS_E', 'http://172.16.0.101:8000'),
     ],
 
+    'front_base_url' => env('FRONT_BASE_URL', 'http://localhost:8000'),
 ];
