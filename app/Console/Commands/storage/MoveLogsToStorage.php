@@ -25,6 +25,10 @@ class MoveLogsToStorage extends Command
      */
     public function handle()
     {
+        if (!env('STORAGE_WORKER_ENABLED', false)) {
+            return self::SUCCESS;
+        }
+
         $logs = \DB::table('broadcast_logs')
             ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'sent_at', 'clicked_at', 'created_at')
             ->where(function ($query) {
@@ -50,7 +54,6 @@ class MoveLogsToStorage extends Command
 
         foreach ($logs as $log) {
             $block[] = [
-                // 'phone'       => intval($log->recipient_phone),
                 'contact_id'  => $log->contact_id,
                 'campaign_id' => $log->campaign_id,
                 'sent_at'     => $log->sent_at,
@@ -65,7 +68,7 @@ class MoveLogsToStorage extends Command
 
         \DB::connection('mysql')->table('broadcast_logs')->whereIn('id', $ids)->delete();
 
-        dump(sprintf('Logs %s moved to storage database.', count($block)));
+        \Log::debug(sprintf('Logs %s moved to storage database.', count($block)));
 
         return self::SUCCESS;
     }
