@@ -93,6 +93,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('data-source')->group(function (){
         Route::get('/', [ContactController::class, 'indexApi']);
+        Route::get('/info', [ContactController::class, 'contactsInfo']);
         Route::get('/{id}', [ContactController::class, 'showApi']);
         Route::get('/{id}/edit', [ContactController::class, 'editApi']);
         Route::post('/', [ContactController::class, 'storeApi']);

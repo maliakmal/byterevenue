@@ -2,17 +2,21 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\DataFeed;
 use App\Models\RecipientsList;
 use App\Models\User;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
+    public function __construct(
+        protected BroadcastLogRepository $broadcastLogRepository
+    ) {}
+
     /**
      * @param Carbon $startDate
      * @param Carbon $endDate
@@ -20,13 +24,13 @@ class DashboardService
      */
     public function getAdminGraphData(Carbon $startDate, Carbon $endDate)
     {
+        $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
+        $getFromCache = $this->dataRangeInCache($startDate, $endDate);
+
         // operation table data
-        $click_data = \DB::connection('mysql')
-            ->table('broadcast_logs')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->where('is_click', true)
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+        $click_data = $getFromCache
+            ? Cache::get('click_data_' . $startEndString, [])
+            : $this->broadcastLogRepository->getClicked($startDate, $endDate);
 
         $click_map = [];
 
@@ -38,12 +42,9 @@ class DashboardService
         unset($click_data);
 
         // completed data from storage table
-        $archived_click_data = \DB::connection('storage_mysql')
-            ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->whereNotNull('clicked_at')
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+        $archived_click_data = $getFromCache
+            ? Cache::get('archived_click_data_' . $startEndString, [])
+            : $this->broadcastLogRepository->getArchivedClicked($startDate, $endDate);
 
         foreach ($archived_click_data as $datum) {
             $click_map[$datum->date] = ($click_map[$datum->date] ?? 0) + $datum->count;
@@ -52,12 +53,9 @@ class DashboardService
         unset($datum);
         unset($archived_click_data);
 
-        $send_data = \DB::connection('mysql')
-            ->table('broadcast_logs')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->where('is_sent', true)
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+        $send_data = $getFromCache
+            ? Cache::get('send_data_' . $startEndString, [])
+            : $this->broadcastLogRepository->getSendData($startDate, $endDate);
 
         $send_map = [];
 
@@ -68,12 +66,9 @@ class DashboardService
         unset($datum);
         unset($send_data);
 
-        $archived_send_data = \DB::connection('storage_mysql')
-            ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->whereNotNull('sent_at')
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+        $archived_send_data = $getFromCache
+            ? Cache::get('archived_send_data_' . $startEndString, [])
+            : $this->broadcastLogRepository->getArchivedSendData($startDate, $endDate);
 
         foreach ($archived_send_data as $datum) {
             $send_map[$datum->date] = ($send_map[$datum->date] ?? 0) + $datum->count;
@@ -123,6 +118,7 @@ class DashboardService
         $start_date = Carbon::now()->subDays(1)->format($_dateFormat);
         $end_date = Carbon::now()->format($_dateFormat);
         $campaigns_graph = $send_graph = $clicks_graph = $ctr = $labels = [];
+        $cacheUpdatedAt = null;
 
         if (request()->isMethod('post')) {
             $date_range = request()->input('dates');
@@ -151,25 +147,21 @@ class DashboardService
                 ->get();
             $startDate = Carbon::createFromFormat('m/d/Y', $start_date);
             $endDate = Carbon::createFromFormat('m/d/Y', $end_date);
+            $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
 
-            $totals = \DB::connection('mysql')
-                ->table('broadcast_logs')
-                ->selectRaw("
-                    COUNT(CASE WHEN is_sent = 1 AND sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
-                    COUNT(CASE WHEN is_click = 1 AND clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
-                ", [$startDate, $endDate, $startDate, $endDate])
-                ->first();
+            if ($this->dataRangeInCache($startDate, $endDate)) {
+                $totals = Cache::get('totals_' . $startEndString);
+                $totalsFromStorage = Cache::get('totalsFromStorage_' . $startEndString);
+                $cacheUpdatedAt = Cache::get('last_refreshed_at');
+            } else {
+                $totals = $this->broadcastLogRepository->getTotals($startDate, $endDate);
+                $totalsFromStorage = $this->broadcastLogRepository->getArchivedTotals($startDate, $endDate);
+            }
 
-            $totalsFromStorage = \DB::connection('storage_mysql')
-                ->table('broadcast_storage_master')
-                ->selectRaw("
-                    COUNT(CASE WHEN sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
-                    COUNT(CASE WHEN clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
-                ", [$startDate, $endDate, $startDate, $endDate])
-                ->first();
-
-            $params['total_num_sent'] = $totals->total_num_sent + $totalsFromStorage->total_num_sent;
-            $params['total_num_clicks'] = $totals->total_num_clicks + $totalsFromStorage->total_num_clicks;
+            $params['total_num_sent'] = ($totals->total_num_sent ?? 0)
+                + ($totalsFromStorage->total_num_sent ?? 0);
+            $params['total_num_clicks'] = ($totals->total_num_clicks ?? 0)
+                + ($totalsFromStorage->total_num_clicks ?? 0);
 
             $params['ctr'] = $this->calculateCTR($params['total_num_clicks'], $params['total_num_sent']);
             $params['start_date'] = $start_date;
@@ -227,8 +219,24 @@ class DashboardService
             'send_graph' => $send_graph,
             'clicks_graph' => $clicks_graph,
             'ctr' => $ctr,
-            'labels' => $labels
+            'labels' => $labels,
+            'updated_cache' => $cacheUpdatedAt,
         ];
+    }
+
+    /**
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     *
+     * @return bool
+     */
+    public function dataRangeInCache(Carbon $startDate, Carbon $endDate): bool
+    {
+        $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
+        $cachedPeriod = Carbon::now()->subDays(1)->format('Y-m-d')
+            . '_'
+            . Carbon::now()->format('Y-m-d');
+        return $cachedPeriod === $startEndString;
     }
 
     /**

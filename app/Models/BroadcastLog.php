@@ -10,6 +10,8 @@ class BroadcastLog extends Model
 {
     use HasFactory, HasUlids;
 
+    const CACHE_STATUS_KEY = 'broadcast_log_updated';
+
     protected $guarded = [];
 
     protected $keyType = 'string';
