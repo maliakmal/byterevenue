@@ -143,7 +143,15 @@
 
                         </div>
 
-                        <p class="mt-1 text-xs leading-5 text-gray-500"> {{$contact->sent_messages_count}}  sent  message | {{$contact->recipient_lists_count}} recipients | {{$contact->campaigns_count}} campaigns</p>
+                        <div>
+                            <p class="info-data mt-1 text-xs leading-5 text-gray-500" style="display: none">
+                                <span class="messages-count">{{$contact->sent_messages_count}}</span>  sent  message | <span class="recipients-count">{{$contact->recipient_lists_count}}</span> recipients | <span class="campaign-count">{{$contact->campaigns_count}}</span> campaigns
+                            </p>
+                            <p>
+                                <a href="#" class="show-more-link text-sm text-gray-500" data-id="{{ $contact->id }}">Load info...</a>
+                            </p>
+                            <p class="loading-state text-sm text-gray-500" style="display: none">Loading...</p>
+                        </div>
 
 
                     </div>
@@ -288,6 +296,33 @@
                 </div>
             </li>`;
         }
+
+        $('.show-more-link').click((e) => {
+            e.preventDefault();
+
+            let contactId = e.target.dataset.id;
+            let $this = $(e.target);
+            $this.parent().hide();
+            $this.parent().parent().find('.loading-state').show();
+
+            $.ajax(
+                {
+                    url: `/data-source/info`,
+                    type: 'GET',
+                    data: {
+                        contacts: [contactId]
+                    },
+                    success: (data) => {
+                        let info = data.data;
+                        $this.parent().parent().find('.messages-count').text(info.sent);
+                        $this.parent().parent().find('.recipients-count').text(info.recipientLists);
+                        $this.parent().parent().find('.campaign-count').text(info.campaigns);
+                        $this.parent().parent().find('.loading-state').hide();
+                        $this.parent().parent().find('.info-data').show();
+                    }
+                }
+            );
+        })
     });
 
 </script>

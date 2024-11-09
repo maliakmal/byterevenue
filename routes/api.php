@@ -28,6 +28,8 @@ Route::get('/user', function (Request $request) {
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
+Route::post('/forgot-password', [\App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [\App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
 Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
 Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
@@ -91,6 +93,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('data-source')->group(function (){
         Route::get('/', [ContactController::class, 'indexApi']);
+        Route::get('/info', [ContactController::class, 'contactsInfo']);
         Route::get('/{id}', [ContactController::class, 'showApi']);
         Route::get('/{id}/edit', [ContactController::class, 'editApi']);
         Route::post('/', [ContactController::class, 'storeApi']);

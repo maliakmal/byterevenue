@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class UpdateBroadcastLogSentAtWithCSV extends Command
@@ -46,6 +48,11 @@ class UpdateBroadcastLogSentAtWithCSV extends Command
         $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [
             'sent_at' => Carbon::now()
         ]);
+
+        if (count($message_ids) > 0) {
+            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true);
+        }
+
         $this->info("broadcast_logs sent at column updated for $number_of_updated_rows number of rows");
     }
 }
