@@ -34,9 +34,10 @@ return new class extends Migration
             return;
         }
 
+        Schema::connection('storage_mysql')->dropIfExists('broadcast_storage_master');
+
         Schema::connection('storage_mysql')->create('broadcast_storage_master', function (Blueprint $table) {
             $table->bigIncrements('id');
-            // $table->unsignedBigInteger('phone');
             $table->unsignedBigInteger('contact_id');
             $table->unsignedBigInteger('campaign_id');
             $table->timestamp('sent_at')->nullable();

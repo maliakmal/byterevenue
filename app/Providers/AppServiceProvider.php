@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Response;
 use Opcodes\LogViewer\Facades\LogViewer;
@@ -62,11 +63,13 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerConfigs()
     {
-        Setting::on('mysql')->orderBy('id')->chunk(100, function ($items){
-            foreach ($items as $item){
-                $key = 'setting.'.$item->name;
-                Config::set($key, $item->value);
-            }
-        });
+        if (Schema::hasTable((new Setting)->getTable())) {
+            Setting::on('mysql')->orderBy('id')->chunk(100, function ($items){
+                foreach ($items as $item){
+                    $key = 'setting.'.$item->name;
+                    Config::set($key, $item->value);
+                }
+            });
+        }
     }
 }
