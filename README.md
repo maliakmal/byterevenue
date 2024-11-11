@@ -20,11 +20,16 @@
 3. From CLI run `composer install`
 4. From CLI run `php artisan key:generate`
 5. Create a main-database and fill DB values in the `.env` file
-  5.1. **[optional]** Create new Mysql server and change the `DB_STORAGE_...` block values in the `/.env` file
+   #### **[optional]** Create new Mysql server (second/archive connection for storage db)
+   5.1. Fill the `DB_STORAGE_...` block values in the `/.env` file
+   #### !Important: The 'storage_database' table has MyISAM engine, so make sure to set the correct engine in the `config/database.php` file 
 6. From CLI run `php artisan migrate`
 7. From CLI run `php artisan db:seed`
 8. From CLI run `npm install`
 9. From CLI run `npm run build`
+10. From CLI run `php artisan optimize:clear`
+
+### Credentials
 
 | User login           | User Role | Password   |
 |----------------------|-----------|------------|
