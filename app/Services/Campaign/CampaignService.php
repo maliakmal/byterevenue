@@ -189,6 +189,7 @@ class CampaignService
     public function markAsProcessed(int $id)
     {
         // create message logs against each contact and generate the message acordingly
+        $user = auth()->user();
         $campaign = Campaign::with(['user', 'message'])->withCount([
             'recipient_list as recipient_list_contacts_count' => function ($query) {
                 $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
@@ -212,12 +213,14 @@ class CampaignService
 
             $data = [];
             foreach ($contacts as $contact) {
+                $message = $campaign->message;
+
                 $data[] = [
                     'id' => Str::ulid(),
-                    'user_id' => auth()->id(),
+                    'user_id' => $user->id,
                     'recipients_list_id' => $recepientListId,
-                    'message_id' => $campaign->message->id,
-                    'message_body' => $campaign->message->getParsedMessage($contact->phone),
+                    'message_id' => $message->id,
+                    'message_body' => $message->getParsedMessage($contact->phone),
                     'recipient_phone' => $contact->phone,
                     'contact_id' => $contact->id,
                     'is_downloaded_as_csv' => 0,
@@ -227,16 +230,19 @@ class CampaignService
                 ];
             }
 
-            $batchSize = 5000;
+            $columns = ['id', 'user_id', 'recipients_list_id', 'message_id', 'message_body', 'recipient_phone', 'contact_id', 'is_downloaded_as_csv', 'campaign_id', 'created_at', 'updated_at'];
+            $values = collect($data)->map(function ($item) {
+                return '("' . implode('","', $item) . '")';
+            })->implode(',');
 
-            foreach (array_chunk($data, $batchSize) as $batch) {
-                BroadcastLog::insert($batch);
-            }
+            $sql = 'INSERT INTO broadcast_logs (' . implode(',', $columns) . ') VALUES ' . $values;
+
+            DB::insert($sql);
 
             $campaign->markAsProcessed();
 
             Transaction::create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'amount' => $amount,
                 'type' => 'usage',
             ]);
@@ -249,7 +255,7 @@ class CampaignService
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
             DB::rollback();
-            return [false, 'An error occurred - please try again later.'];
+            return [false, $e->getMessage()]; // TODO:: remove after testing
         }
     }
 
