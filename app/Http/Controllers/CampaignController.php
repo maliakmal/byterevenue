@@ -47,6 +47,41 @@ class CampaignController extends ApiController
      *     path="/campaigns",
      *     summary="Get a list of campaigns",
      *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Filter by campaign status"
+     *     ),
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Filter by user ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sortby",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort by field"
+     *     ),
+     *     @OA\Parameter(
+     *         name="count",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Number of items per page"
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Search term"
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
@@ -56,6 +91,7 @@ class CampaignController extends ApiController
      *         )
      *     )
      * )
+     * @param Request $request
      * @return JsonResponse
      */
     public function indexApi(Request $request)
@@ -65,6 +101,7 @@ class CampaignController extends ApiController
             'user_id' => $request->get('user_id'),
             'sortby' => $request->get('sortby', 'id_desc'),
             'count' => $request->get('count', 5),
+            'search' => $request->get('search'),
         ];
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
 
@@ -136,7 +173,7 @@ class CampaignController extends ApiController
      */
     public function show(Campaign $campaign)
     {
-        $campaignData = $this->campaignService->show($campaign->id);
+        $campaignData = $this->campaignService->show($campaign->id, []);
 
         if (request()->input('output') == 'json') {
             return response()->success(null, [
@@ -160,23 +197,60 @@ class CampaignController extends ApiController
      *         @OA\Schema(type="integer"),
      *         description="Campaign ID"
      *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Number of items per page"
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Page number"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort by field"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort order (asc or desc)"
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="description", type="string")
+     *             @OA\Property(property="campaign", type="object"),
+     *             @OA\Property(property="message", type="object"),
+     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="logs", type="array", @OA\Items(type="object"))
      *         )
      *     )
      * )
      * @param int $id
+     * @param Request $request
      *
      * @return JsonResponse
      */
-    public function showApi(int $id)
+    public function showApi(int $id, Request $request)
     {
-        $campaignData = $this->campaignService->show($id);
+        $filters = [
+            'per_page' => $request->get('per_page', 5),
+            'page' => $request->get('page', 1),
+            'sort_by' => $request->get('sort_by', 'id_desc'),
+            'sort_order' => $request->get('sort_order', 'asc'),
+        ];
+        $campaignData = $this->campaignService->show($id, $filters);
 
         return $this->responseSuccess($campaignData);
     }

@@ -153,24 +153,54 @@ class CampaignService
 
     /**
      * @param int $id
+     * @param array $filters
      *
      * @return array
      */
-    public function show(int $id)
+    public function show(int $id, array $filters)
     {
-        $per_page = 15;
+        $per_page = 5;
         $campaign = $this->campaignRepository->find($id);
         $message = $campaign->message;
 
         $recipient_lists = $campaign->recipient_list;
 
         if ($campaign->isDraft()) {
-            $contacts = $recipient_lists->contacts()->paginate($per_page);
+            $contacts = $recipient_lists->contacts();
+
+            if (isset($filters['search'])) {
+                $contacts = $contacts->where('phone', 'like', '%' . $filters['search'] . '%');
+            }
+
+            $contacts = $contacts->paginate($filters['per_page'] ?? $per_page);
             $logs = [];
 
         } else {
             $contacts = [];
-            $logs = BroadcastLog::where('campaign_id', $campaign->id)->paginate($per_page);
+            $logs = BroadcastLog::where('campaign_id', $campaign->id);
+
+            if (isset($filters['sort'])) {
+                switch ($filters['sort']) {
+//                    case 'blocked':
+//                        $contacts = $contacts->orderBy('blocked', $filters['sort_order']);
+//                        break;
+                    case 'status':
+                        $logs = $logs->orderBy('status', $filters['sort_order']);
+                        break;
+                    case 'clicked':
+                        $logs = $logs->orderBy('is_click', $filters['sort_order']);
+                        break;
+                    default:
+                        $logs = $logs->orderBy('created_at', $filters['sort_order']);
+                        break;
+                }
+            }
+
+            if (isset($filters['search'])) {
+                $logs = $logs->where('phone', 'like', '%' . $filters['search'] . '%');
+            }
+
+            $logs = $logs->paginate($filters['per_page'] ?? $per_page);
         }
 
         return [

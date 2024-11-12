@@ -100,6 +100,10 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
             $campaigns->where('user_id', auth()->id());
         }
 
+        if (!empty($filter['search'])) {
+            $campaigns->where('title', 'like', '%' . $filter['search'] . '%');
+        }
+
         if (!empty($filter['sortby'])) {
             switch ($filter['sortby']) {
                 case 'id_desc':
@@ -122,6 +126,12 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
                     break;
                 case 'title':
                     $campaigns->orderby('title', 'asc');
+                    break;
+                case 'date_asc':
+                    $campaigns->orderby('created_at', 'asc');
+                    break;
+                case 'date_desc':
+                    $campaigns->orderby('created_at', 'desc');
                     break;
             }
         }
