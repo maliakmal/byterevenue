@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\BroadcastLog;
+use App\Models\Campaign;
+use App\Models\Contact;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Laravel\Telescope\Telescope;
@@ -42,9 +45,26 @@ class AddBroadcastLogs extends Command
             $telescopeRecording = false;
         }
 
+        $users = Campaign::select('user_id')
+            ->groupBy('user_id')
+            ->take(100)
+            ->get();
+
         for ($i = 0; $i < $steps; $i++) {
+            $randomUser = User::where('id', $users->random()->user_id)->first();
+            $userCampaign = $randomUser->campaigns()->take(10)->get()->random();
+
             for ($log = 0; $log < self::BATCH_SIZE; $log++) {
-                $data = BroadcastLog::factory()->make()->toArray();
+                $message = $userCampaign->messages?->random();
+                $data = BroadcastLog::factory()->make(
+                    [
+                        'user_id' => $randomUser->id,
+                        'recipients_list_id' => $randomUser->recipientsLists?->random()->id ?? 1,
+                        'contact_id' => $randomUser->contacts()->take(5)->get()->random()->id ?? 1,
+                        'campaign_id' => $userCampaign->id,
+                        'message_id' => $message->id ?? 1,
+                    ]
+                )->toArray();
 
                 if ($type === 'main') {
                     $values[] = "('" . implode("','", array_values($data)) . "')";

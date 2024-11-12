@@ -11,7 +11,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
+/**
+ * @OA\Tag(
+ *     name="RecipientLists",
+ *     description="Operations about user"
+ * )
+ */
 class RecipientsListController extends ApiController
 {
     /**
@@ -38,8 +43,20 @@ class RecipientsListController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/recipient_lists",
+     *     summary="Get a list of recipient lists",
+     *     tags={"Recipient Lists"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
      * @param Request $request
-     *
      * @return JsonResponse
      */
     public function indexApi(Request $request)
@@ -80,8 +97,27 @@ class RecipientsListController extends ApiController
     }
 
     /**
+     * @OA\Post(
+     *     path="/recipient_lists",
+     *     summary="Store a new recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="List Name"),
+     *             @OA\Property(property="csv_file", type="string", format="binary")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
      * @param RecipientStoreRequest $request
-     *
      * @return JsonResponse
      */
     public function storeApi(RecipientStoreRequest $request)
@@ -110,8 +146,28 @@ class RecipientsListController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/recipient_lists/{id}",
+     *     summary="Get a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="recipientList", type="object"),
+     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      * @param int $id
-     *
      * @return JsonResponse
      */
     public function showApi(int $id): JsonResponse
@@ -150,9 +206,34 @@ class RecipientsListController extends ApiController
     }
 
     /**
+     * @OA\Put(
+     *     path="/recipient_lists/{id}",
+     *     summary="Update a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Updated List Name")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="recipientList", type="object")
+     *         )
+     *     )
+     * )
      * @param int $id
      * @param RecipientUpdateRequest $request
-     *
      * @return JsonResponse
      */
     public function updateApi(int $id, RecipientUpdateRequest $request): JsonResponse
@@ -180,8 +261,27 @@ class RecipientsListController extends ApiController
     }
 
     /**
+     * @OA\Delete(
+     *     path="/recipient_lists/{id}",
+     *     summary="Delete a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list deleted successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="List deleted successfully.")
+     *         )
+     *     )
+     * )
      * @param int $id
-     *
      * @return JsonResponse
      */
     public function destroyApi(int $id)

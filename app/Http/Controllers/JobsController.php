@@ -58,6 +58,22 @@ class JobsController extends ApiController
         return $this->responseSuccess($this->jobService->campaigns($request->validated()));
     }
 
+    /**
+     * @OA\Get(
+     *     path="/jobs",
+     *     summary="Get a list of jobs",
+     *     tags={"Jobs"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of jobs",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     * @return JsonResponse
+     */
     public function index(Request $request)
     {
         $download_me = null;
@@ -199,6 +215,19 @@ class JobsController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/jobs/generate/csv",
+     *     summary="Get a list of jobs",
+     *     tags={"Jobs"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of jobs",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
      * @return JsonResponse
      */
     public function indexApi()
@@ -245,8 +274,34 @@ class JobsController extends ApiController
     }
 
     /**
+     * @OA\Post(
+     *     path="/jobs/regenerate/csv",
+     *     summary="Regenerate unsent jobs",
+     *     tags={"Jobs"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="job_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="CSV is being generated",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="string", example="path/to/csv/file")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="CSV generation failed",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="CSV generation failed.")
+     *         )
+     *     )
+     * )
      * @param JobRegenerateRequest $request
-     *
      * @return JsonResponse
      */
     public function regenerateUnsentApi(JobRegenerateRequest $request)
@@ -306,6 +361,45 @@ class JobsController extends ApiController
 
     }
 
+    /**
+     * @OA\Post(
+     *     path="/messages/update/sent",
+     *     summary="Update sent message status",
+     *     tags={"Messages"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="uid", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Message status updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Message not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="validation error")
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function updateSentMessage(Request $request)
     {
         $request->validate(['uid' => 'required|numeric|min:1']);
@@ -326,6 +420,45 @@ class JobsController extends ApiController
         return response()->success();
     }
 
+    /**
+     * @OA\Post(
+     *     path="/messages/update/clicked",
+     *     summary="Update clicked message status",
+     *     tags={"Messages"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="uid", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Message status updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Message not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="validation error")
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function updateClickMessage(Request $request)
     {
         $request->validate(['uid' => 'required|numeric|min:1']);

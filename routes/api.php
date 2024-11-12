@@ -34,7 +34,10 @@ Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refre
 Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
 // group routes that require external api token (webhooks)
-Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->group(function () {
+Route::middleware([
+    /*\App\Http\Middleware\CheckExternalApiToken::class, */
+    'auth:sanctum',
+])->group(function () {
     Route::prefix('messages')->group(function () {
         Route::post('/update-by-file/sent', [\App\Http\Controllers\Api\BroadcastLogController::class, 'updateSentMessage']);
         Route::post('/update/sent', [JobsController::class, 'updateSentMessage']);
@@ -46,7 +49,9 @@ Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->gr
     });
     Route::prefix('jobs')->group(function () {
         Route::post('/generate-csv', [JobsController::class, 'index']);
+        Route::post('/generate/csv', [JobsController::class, 'indexApi']);
         Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
+        Route::post('/regenerate/csv', [JobsController::class, 'regenerateUnsentApi']);
     });
     Route::prefix('campaigns')->group(function () {
         Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
@@ -69,26 +74,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::controller(AccountsController::class)->group(function () {
         Route::prefix('accounts')->group(function () {
             Route::get('/', 'indexApi');
-            Route::post('/store-tokens', 'storeTokensApi');
             Route::get('/{id}', 'showApi');
         });
         Route::get('/tokens', 'showTokensApi');
-    });
-
-    Route::middleware([CheckAdminRole::class])->group(function () {
-        Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::post('/{id}', 'updateApi');
-            Route::delete('/{id}', 'deleteApi');
-        });
-
-        Route::controller(SettingController::class)->prefix('settings')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::post('/{id}', 'updateApi');
-            Route::delete('/{id}', 'deleteApi');
-        });
     });
 
     Route::prefix('data-source')->group(function (){
@@ -183,7 +171,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('campaigns/csv','campaignsCSVApi');
         });
 
+        Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
+        Route::controller(SettingController::class)->prefix('settings')->group(function () {
+            Route::get('/', 'indexApi');
+            Route::post('/', 'storeApi');
+            Route::post('/{id}', 'updateApi');
+            Route::delete('/{id}', 'deleteApi');
+        });
+
         Route::get('/user/campaigns', [CampaignController::class, 'getCampaignsForUserApi']);
+        Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokensApi']);
     });
 });
 

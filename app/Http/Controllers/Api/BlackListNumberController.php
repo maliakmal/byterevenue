@@ -18,7 +18,51 @@ class BlackListNumberController extends Controller
     )
     {
     }
+
     /**
+     * @OA\Post(
+     *     path="/blacklist-numbers/upload",
+     *     summary="Update black list numbers from CSV file",
+     *     tags={"Black List Numbers"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="black_list_file",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="CSV file containing black list numbers"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Black list numbers updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="validation error")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="internal server error")
+     *         )
+     *     )
+     * )
      * @param Request $request
      * @return mixed
      */

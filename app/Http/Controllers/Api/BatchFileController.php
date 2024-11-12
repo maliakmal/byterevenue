@@ -9,6 +9,7 @@ use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BatchFileController extends Controller
@@ -25,7 +26,29 @@ class BatchFileController extends Controller
 
     }
 
-
+    /**
+     * @OA\Post(
+     *     path="/batch_files/get-form-content-from-campaign",
+     *     summary="Get form content from campaign",
+     *     tags={"Batch Files"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="campaign_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Form content retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="string")
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getFormContentFromCampaign(Request $request){
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $result = [];
@@ -34,6 +57,30 @@ class BatchFileController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/batch_files/check-status",
+     *     summary="Check status of batch files",
+     *     tags={"Batch Files"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="files", type="array", @OA\Items(type="integer"), example={1, 2, 3})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Batch file status checked successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="ids", type="array", @OA\Items(type="integer"))
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function checkStatus(Request $request){
         $file_ids = isset($_POST['files'])?$_POST['files']:[];
         $file_ids = is_array($file_ids)?$file_ids:[];
@@ -63,7 +110,29 @@ class BatchFileController extends Controller
         return response()->json($result);
     }
 
-
+    /**
+     * @OA\Post(
+     *     path="/batch_files",
+     *     summary="Get batch files for campaigns",
+     *     tags={"Batch Files"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="campaign_ids", type="array", @OA\Items(type="integer"), example={1, 2, 3})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Batch files retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function index(Request $request){
 
         $campaign_ids = $request->campaign_ids;

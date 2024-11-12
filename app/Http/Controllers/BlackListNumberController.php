@@ -163,8 +163,21 @@ class BlackListNumberController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/black-list-numbers/user",
+     *     summary="Get black list numbers for a user",
+     *     tags={"Black List Numbers"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="list", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="filter", type="object")
+     *         )
+     *     )
+     * )
      * @param Request $request
-     *
      * @return JsonResponse
      */
     public function getBlackListNumberForUserApi(Request $request)
