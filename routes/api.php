@@ -108,6 +108,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', 'indexApi');
         Route::post('/', 'storeApi');
         Route::get('/{id}', 'showApi');
+        Route::get('/{id}/stats', 'campaignStats');
         Route::put('/{id}', 'updateApi');
         Route::delete('/{id}', 'destroyApi');
         Route::post('/mark-processed/{id}', 'markAsProcessedApi');
