@@ -203,7 +203,6 @@ class CampaignService
             return [false, 'You do not have enough tokens to process this campaign.'];
         }
 
-        DB::enableQueryLog();
         DB::beginTransaction();
 
         try {
@@ -228,7 +227,7 @@ class CampaignService
                 ];
             }
 
-            $batchSize = 1000;
+            $batchSize = 5000;
 
             foreach (array_chunk($data, $batchSize) as $batch) {
                 BroadcastLog::insert($batch);
@@ -246,7 +245,6 @@ class CampaignService
             $account->save();
 
             DB::commit();
-            $queries = DB::getQueryLog();
 
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
