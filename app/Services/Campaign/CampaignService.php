@@ -189,7 +189,7 @@ class CampaignService
     public function markAsProcessed(int $id)
     {
         // create message logs against each contact and generate the message acordingly
-        $campaign = Campaign::with(['user'])->withCount([
+        $campaign = Campaign::with(['user', 'message'])->withCount([
             'recipient_list as recipient_list_contacts_count' => function ($query) {
                 $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
                     ->join('contact_recipient_list', 'contact_recipient_list.recipients_list_id', '=', 'recipients_lists.id');
@@ -207,45 +207,41 @@ class CampaignService
         DB::beginTransaction();
 
         try {
-            //$message = $campaign->message->getParsedMessage();
-
-//            $sql = "INSERT INTO broadcast_logs ";
-//            $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
-//            $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
-//            var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
             $recepientListId = $campaign->recipient_list->id;
-//            DB::insert($sql, [auth()->id(), $recepientListId, $campaign->message->id, 0, $campaign->id, $recepientListId]);
-
-            $data = [
-                'user_id'=>auth()->id(),
-                'recipients_list_id'=>$recepientListId,
-                'message_id'=>$campaign->message->id,
-                'message_body'=>'',
-                'recipient_phone'=>'',
-                'contact_id'=>0,
-                'is_downloaded_as_csv'=>0,
-                'campaign_id'=>$campaign->id,
-            ];
-
             $recipientList = $campaign->recipient_list;
             $contacts = $recipientList?->contacts ?? [];
 
+            $data = [];
             foreach ($contacts as $contact) {
-                $data['id'] = Str::ulid();
-                $data['recipient_phone'] = $contact->phone;
-                $data['contact_id'] = $contact->id;
-                $data['message_body'] = $campaign->message->getParsedMessage($contact->phone);
-                BroadcastLog::create($data);
+                $data[] = [
+                    'id' => Str::ulid(),
+                    'user_id' => auth()->id(),
+                    'recipients_list_id' => $recepientListId,
+                    'message_id' => $campaign->message->id,
+                    'message_body' => $campaign->message->getParsedMessage($contact->phone),
+                    'recipient_phone' => $contact->phone,
+                    'contact_id' => $contact->id,
+                    'is_downloaded_as_csv' => 0,
+                    'campaign_id' => $campaign->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            $batchSize = 1000;
+
+            foreach (array_chunk($data, $batchSize) as $batch) {
+                BroadcastLog::insert($batch);
             }
 
             $campaign->markAsProcessed();
-//            $campaign->save();
 
             Transaction::create([
                 'user_id' => auth()->id(),
                 'amount' => $amount,
                 'type' => 'usage',
             ]);
+
             $account->deductTokens($amount);
             $account->save();
 
