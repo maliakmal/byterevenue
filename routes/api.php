@@ -36,7 +36,6 @@ Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->midd
 // group routes that require external api token (webhooks)
 Route::middleware([
     /*\App\Http\Middleware\CheckExternalApiToken::class, */
-    'auth:sanctum',
 ])->group(function () {
     Route::prefix('messages')->group(function () {
         Route::post('/update-by-file/sent', [\App\Http\Controllers\Api\BroadcastLogController::class, 'updateSentMessage']);

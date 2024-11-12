@@ -27,25 +27,6 @@ class BatchFileController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/batch_files/get-form-content-from-campaign",
-     *     summary="Get form content from campaign",
-     *     tags={"Batch Files"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="campaign_id", type="integer", example=1)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Form content retrieved successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="data", type="string")
-     *         )
-     *     )
-     * )
      * @param Request $request
      * @return JsonResponse
      */
@@ -58,26 +39,6 @@ class BatchFileController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/batch_files/check-status",
-     *     summary="Check status of batch files",
-     *     tags={"Batch Files"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="files", type="array", @OA\Items(type="integer"), example={1, 2, 3})
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Batch file status checked successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="ids", type="array", @OA\Items(type="integer"))
-     *         )
-     *     )
-     * )
      * @param Request $request
      * @return JsonResponse
      */
@@ -111,25 +72,6 @@ class BatchFileController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/batch_files",
-     *     summary="Get batch files for campaigns",
-     *     tags={"Batch Files"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="campaign_ids", type="array", @OA\Items(type="integer"), example={1, 2, 3})
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Batch files retrieved successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     )
-     * )
      * @param Request $request
      * @return JsonResponse
      */

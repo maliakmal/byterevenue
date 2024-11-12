@@ -22,37 +22,7 @@ class BroadcastLogController extends Controller
 
     use CSVReader;
 
-    /**
-     * @OA\Post(
-     *     path="/messages/update-by-file/sent",
-     *     summary="Update sent messages from CSV file",
-     *     tags={"Broadcast Logs"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                 @OA\Property(
-     *                     property="messages_csv_file",
-     *                     type="string",
-     *                     format="binary",
-     *                     description="CSV file containing message IDs"
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Number of updated rows",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="updated_rows", type="integer", example=10)
-     *         )
-     *     )
-     * )
-     * @param Request $request
-     * @return mixed
-     */
+
     public function updateSentMessage(Request $request)
     {
         $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');
