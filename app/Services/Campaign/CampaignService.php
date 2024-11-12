@@ -216,6 +216,32 @@ class CampaignService
      *
      * @return array
      */
+    public function getCampaignStats(int $id)
+    {
+        $total = BroadcastLog::where('campaign_id', $id)->count();
+        $clicked = BroadcastLog::where('campaign_id', $id)->where('is_click', 1)->count();
+        $sent = BroadcastLog::where('campaign_id', $id)->where('is_sent', 1)->count();
+        $campaign = Campaign::with('recipient_list')->find($id);
+
+        return [
+            'recipient_list' => $campaign->recipient_list->name,
+            'status' => $campaign->status,
+            'messages' => [
+                'total' => $total,
+                'sent' => $sent,
+                'clicked' => $clicked,
+                'clicked_percentage' => $total > 0 ? ($clicked / $total) * 100 : 0,
+                //'blocked' => $total - $sent, TODO: blocked
+            ],
+            'ctr' => $campaign->total_ctr,
+        ];
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return array
+     */
     public function markAsProcessed(int $id)
     {
         // create message logs against each contact and generate the message acordingly

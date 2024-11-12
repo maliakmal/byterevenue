@@ -258,6 +258,18 @@ class CampaignController extends ApiController
     /**
      * @param int $id
      *
+     * @return JsonResponse
+     */
+    public function campaignStats(int $id)
+    {
+        $campaignStats = $this->campaignService->getCampaignStats($id);
+
+        return $this->responseSuccess($campaignStats);
+    }
+
+    /**
+     * @param int $id
+     *
      * @return RedirectResponse
      */
     public function markAsProcessed(int $id)
