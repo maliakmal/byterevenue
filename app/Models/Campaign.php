@@ -81,7 +81,7 @@ class Campaign extends Model
 
     public function markAsProcessed(){
         $this->status = self::STATUS_PROCESSING;
-        $this->total_recipients = $this->recipient_list()->contacts()->count();
+        $this->total_recipients = $this->recipient_list->contacts()->count();
         $this->submitted_at = now();
         $this->save();
     }

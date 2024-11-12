@@ -209,34 +209,37 @@ class CampaignService
         try {
             //$message = $campaign->message->getParsedMessage();
 
-            $sql = "INSERT INTO broadcast_logs ";
-            $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
-            $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
-            //var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
+//            $sql = "INSERT INTO broadcast_logs ";
+//            $sql .= "(contact_id, recipient_phone,  user_id, recipients_list_id, message_id, message_body, is_downloaded_as_csv, campaign_id, created_at, updated_at) ";
+//            $sql .= "SELECT id, phone, ?, ?, ?, '', ?, ?,  NOW(), NOW() from contacts where contacts.id in (select contact_id from contact_recipient_list where recipients_list_id = ?) ";
+//            var_dump(sprintf($sql, auth()->id(), $campaign->recipient_list->id, $campaign->message->id, '', '', 0, $campaign->id));die();
             $recepientListId = $campaign->recipient_list->id;
-            DB::insert($sql, [auth()->id(), $recepientListId, $campaign->message->id, 0, $campaign->id, $recepientListId]);
+//            DB::insert($sql, [auth()->id(), $recepientListId, $campaign->message->id, 0, $campaign->id, $recepientListId]);
 
-            // $data = [
-            //     'user_id'=>auth()->id(),
-            //     'recipients_list_id'=>$recepientListId,
-            //     'message_id'=>$campaign->message->id,
-            //     'message_body'=>'',
-            //     'recipient_phone'=>'',
-            //     'contact_id'=>0,
-            //     'is_downloaded_as_csv'=>0,
-            //     'campaign_id'=>$campaign->id,
-            // ];
+            $data = [
+                'user_id'=>auth()->id(),
+                'recipients_list_id'=>$recepientListId,
+                'message_id'=>$campaign->message->id,
+                'message_body'=>'',
+                'recipient_phone'=>'',
+                'contact_id'=>0,
+                'is_downloaded_as_csv'=>0,
+                'campaign_id'=>$campaign->id,
+            ];
 
-            // $contacts = $campaign->recipient_list->contacts()->get();
+            $recipientList = $campaign->recipient_list;
+            $contacts = $recipientList?->contacts ?? [];
 
-            // foreach($contacts as $contact){
-            //     $data['recipient_phone'] = $contact->phone;
-            //     $data['contact_id'] = $contact->id;
-            //     BroadcastLog::create($data);
-            // }
-//
+            foreach ($contacts as $contact) {
+                $data['id'] = Str::ulid();
+                $data['recipient_phone'] = $contact->phone;
+                $data['contact_id'] = $contact->id;
+                $data['message_body'] = $campaign->message->getParsedMessage($contact->phone);
+                BroadcastLog::create($data);
+            }
+
             $campaign->markAsProcessed();
-            $campaign->save();
+//            $campaign->save();
 
             Transaction::create([
                 'user_id' => auth()->id(),
@@ -252,7 +255,6 @@ class CampaignService
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
             DB::rollback();
-
             return [false, 'An error occurred - please try again later.'];
         }
     }
