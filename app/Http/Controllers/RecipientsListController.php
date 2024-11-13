@@ -63,7 +63,9 @@ class RecipientsListController extends ApiController
     {
         $nameFilter = $request->get('name');
         $isImportedFilter = $request->get('is_imported', '');
+        $perPage = $request->get('per_page',5);
         $recipientList = $this->recipientListService->getRecipientLists(
+            $perPage,
             $nameFilter,
             $isImportedFilter
         );

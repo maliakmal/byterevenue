@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\DB;
 class RecipientListService
 {
     /**
+     * @param string|null $perPage
      * @param string|null $nameFilter
      * @param string|null $isImportedFilter
      *
      * @return LengthAwarePaginator
      */
-    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter): LengthAwarePaginator
+    public function getRecipientLists(?string $perPage, ?string $nameFilter, ?string $isImportedFilter): LengthAwarePaginator
     {
-        $per_page = 12;
         $recipient_lists = auth()->user()->hasRole('admin')
             ? RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
             : auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
@@ -31,7 +31,7 @@ class RecipientListService
 
         return $recipient_lists
             ->orderby('id', 'desc')
-            ->paginate($per_page);
+            ->paginate($perPage);
     }
 
     /**
