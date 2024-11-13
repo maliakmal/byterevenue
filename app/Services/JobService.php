@@ -206,7 +206,7 @@ class JobService
         $type_id = null;
         $message_id = null;
 
-        if ($data['type'] == 'campaign') {
+        if (($data['type'] ?? '') == 'campaign') {
             $campaign_ids = $data['campaign_ids'];
             if (count($campaign_ids) == 1) {
                 $campaign = Campaign::find($campaign_ids[0]);

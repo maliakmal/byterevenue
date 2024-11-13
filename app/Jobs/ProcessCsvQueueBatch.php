@@ -102,7 +102,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
         $ids = [''];
-        $cases = ["WHEN 0 THEN ''"];
+        $cases = ["WHEN '' THEN ''"];
         $bindings = [];
         $batch = $batch_no;
 
@@ -195,7 +195,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
 
                 $message_body = $message->getParsedMessage($generated_url);
-                $cases[] = "WHEN `{$log->id}` THEN '" . addslashes($message_body) . "'";
+                $cases[] = "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
 
                 $campaign_key = $campaign->id . '';
                 if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
@@ -250,7 +250,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         $sql = "
         UPDATE `broadcast_logs`
-        SET `message_body` = CASE `id`
+        SET `message_body` = CASE CAST(`id` AS CHAR)
             {$caseList}
         END,
         " . ($this->message_id != null ? " `message_id` = '$this->message_id', " : "") . "
