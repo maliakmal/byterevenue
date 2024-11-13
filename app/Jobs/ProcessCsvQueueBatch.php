@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use DB;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -12,14 +11,10 @@ use App\Models\BroadcastLog;
 use App\Models\Message;
 use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
-use App\Models\BatchFile;
 use App\Models\UrlShortener;
 use App\Services\Campaign\CampaignService;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
-
-use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
-
 
 use Illuminate\Support\Facades\Log;
 
@@ -27,50 +22,36 @@ class ProcessCsvQueueBatch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $offset = 0;
-    protected $batchSize = 500;
+    protected $offset        = 1;
+    protected $batchSize     = 1;
     protected $url_shortener = null;
-    protected $logs = null;
-    protected $campaign_service = null;
-    protected $batch_no = null;
-    protected $batch_file = null;
-    protected $is_last = false;
-    protected $type = 'fifo';
-    protected $type_id = null;
-    protected $message_id = null;
+    protected $logs          = null;
+    protected $batch_no      = null;
+    protected $batch_file    = null;
+    protected $is_last       = false;
+    protected $type          = 'fifo';
+    protected $type_id       = null;
+    protected $message_id    = null;
     protected $campaignShortUrlRepository = null;
-    protected $urlShortenerRepository = null;
-    protected $campaignRepository = null;
-    protected $broadcastLogRepository = null;
+    protected $urlShortenerRepository     = null;
+    protected $broadcastLogRepository     = null;
 
     /**
      * Create a new job instance.
      */
     public function __construct($params = [])
     {
-        $offset = $params['offset'] ?? 1;
-        $batchSize = $params['batchSize'] ?? 1;
-        $url_shortener = $params['url_shortener'] ?? null;
-        $batch_no = $params['batch_no'] ?? null;
-        $batch_file = $params['batch_file'] ?? null;
-        $is_last = $params['is_last'] ?? false;
-        $type = $params['type'] ?? 'fifo';
-        $type_id = $params['type_id'] ?? null;
-        $message_id = $params['message_id'] ?? null;
-
-        Log::info('params');
-        Log::info($params);
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
-        $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
-        $this->url_shortener = $url_shortener ?? $this->url_shortener;
-        $this->batch_no = $batch_no;
-        $this->type = $type;
-        $this->type_id = $type_id;
-        $this->message_id = $message_id;
-        $this->offset = $offset;
-        $this->batchSize = $batchSize;
-        $this->batch_file = $batch_file;
-        $this->is_last = $is_last;
+        $this->urlShortenerRepository     = app()->make(UrlShortenerRepositoryInterface::class);
+        $this->url_shortener = $params['url_shortener'] ?? $this->url_shortener;
+        $this->batch_no      = $params['batch_no']      ?? $this->batch_no;
+        $this->type          = $params['type']          ?? $this->type;
+        $this->type_id       = $params['type_id']       ?? $this->type_id;
+        $this->message_id    = $params['message_id']    ?? $this->message_id;
+        $this->offset        = $params['offset']        ?? $this->offset;
+        $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
+        $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
+        $this->is_last       = $params['is_last']       ?? $this->is_last;
     }
 
     /**
@@ -80,43 +61,39 @@ class ProcessCsvQueueBatch implements ShouldQueue
     {
         $unique_campaigns = collect();
         $unique_campaign_map = [];
-        \DB::enableQueryLog();
-
         $new_campaigns = collect();
         $current_campaign_id = 0;
         $message = '';
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
-        Log::info($url_shortener);
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
 
-        if ($this->type == 'fifo') {
-            $this->logs = BroadcastLog::select()->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
-        }
+        $query = BroadcastLog::query()
+            ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereNull('batch')
+            ->limit($this->batchSize)
+            ->offset($this->offset);
+
         if ($this->type == 'campaign') {
-            $this->logs = BroadcastLog::select()->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)->whereIn('campaign_id', $this->type_id)->orderby('id', 'ASC')->offset($this->offset)->limit($this->batchSize)->get();
+            $query->where('campaign_id', $this->type_id);
         }
-        $lastQuery = DB::getQueryLog();
-        $lastQuery = end($lastQuery);
+
+        $this->logs = $query->get();
 
         Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
         $ids = [''];
         $cases = ["WHEN '' THEN ''"];
-        $bindings = [];
         $batch = $batch_no;
 
         $campaign_short_url_map = [];
 
         foreach ($this->logs as $log) {
-            $message_body = '';
-            $is_downloaded_as_csv = 0;
 
             if ($log->campaign_id != $current_campaign_id) {
                 if ($log->campaign_id == 0) {
                     $message = $log->message;
                     $campaign = $message->campaign;
-
                 } else {
                     $campaign = $log->campaign;
                     $current_campaign_id = $log->campaign->id;
@@ -127,7 +104,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             if ($this->message_id != null) {
                 $message = Message::find($this->message_id);
             }
-
 
             if ($message) {
                 // check if there an existing URL for this campaign with the same domain
@@ -159,7 +135,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
                         ];
 
                         $new_campaigns->add($_new_campaign);
-
                     }
 
                 } else {
@@ -203,91 +178,31 @@ class ProcessCsvQueueBatch implements ShouldQueue
                     $unique_campaign_map[$campaign_key] = true;
                 }
             }
+
             $ids[] = $log->id;
-
-            // $log->is_downloaded_as_csv = 1;
-            // $log->batch = $batch_no;
-            // $log->save();
-
         }
-
-
-        /*  $unique_campaigns->each(function ($itemCollection) use ($url_shortener, $unique_campaign_map, $campaign_service, $domain_id) {
-            $alias_for_campaign = $itemCollection['alias'];
-            $item = $itemCollection['campaign'];
-
-            $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
-            $url_for_campaign = $item->message?->target_url;
-            // maintain a record of short urls created against a campaign
-            // if a short url has been created against a campaign - do not create a new one, use the existing one
-            // else create a new one
-            if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($item->id, $url_for_keitaro)) {
-                Log::info('Campaign Short URL for  Campaign ID - '.$item->id.' and URL '.$url_for_keitaro.' was not found so created a new one');
-
-                $response_campaign = $campaign_service->createCampaignOnKeitaro($alias_for_campaign, $item->title, $item->keitaro_group_id, $domain_id);
-                $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'], $item->title, $url_for_campaign);
-                $_url_shortener = $this->urlShortenerRepository->search(['name'=>$url_shortener]);
-
-                $this->campaignShortUrlRepository->create([
-                    'campaign_id' => $item->id,
-                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
-                    'flow_id' => $response_flow['id'],
-                    'response' => @json_encode($response_flow),
-                    'keitaro_campaign_id' => $response_campaign['id'],
-                    'keitaro_campaign_response' => @json_encode($response_campaign),
-                    'campaign_alias' => $alias_for_campaign,
-                    'url_shortener_id'=>$_url_shortener->id
-                ]);
-
-            }
-        }); */
 
         $idList = "'". implode("','", $ids) ."'";
         $caseList = implode(' ', $cases);
-        $is_downloaded_as_csv = 1;
 
         Log::info('Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . count($cases));
 
-        $sql = "
-        UPDATE `broadcast_logs`
-        SET `message_body` = CASE CAST(`id` AS CHAR)
+        $sql = "UPDATE `broadcast_logs`
+        SET `message_body` = CASE `id`
             {$caseList}
         END,
         " . ($this->message_id != null ? " `message_id` = '$this->message_id', " : "") . "
         `is_downloaded_as_csv` = 1,
         `batch` = '$batch',
         `updated_at` = NOW()
-        WHERE `id` IN ({$idList})
-        ";
+        WHERE `id` IN ({$idList})";
 
-        DB::statement($sql);
+        \DB::statement($sql);
 
-        /* $new_campaigns->each(function($_item) use ($campaign_service, $domain_id){
-            $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['alias']);
-            $url_for_campaign = $_item['campaign']->message?->target_url;
-            $response_campaign = $campaign_service->createCampaignOnKeitaro($_item['alias'], $_item['campaign']->title, $_item['campaign']->keitaro_group_id, $domain_id);
-            $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'],  $_item['campaign']->title, $url_for_campaign);
-            $_url_shortener = $this->urlShortenerRepository->search(['name'=>$_item['url_shortener']]);
-
-            $this->campaignShortUrlRepository->updateByID([
-                'flow_id' => $response_flow['id'],
-                'response' => @json_encode($response_flow),
-                'keitaro_campaign_id' => $response_campaign['id'],
-                'keitaro_campaign_response' => @json_encode($response_campaign),
-            ], $_item['campaign_short_url_id'] );
-
-
-        });
-        */
-
-        Log::info('IS THIS THE LAST ONE?');
-        Log::info($this->is_last);
         if ($this->is_last == true) {
             Log::info('IS THE LAST ONE');
             $this->batch_file->is_ready = 1;
             $this->batch_file->save();
         }
-
-
     }
 }

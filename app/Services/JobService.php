@@ -129,7 +129,6 @@ class JobService
             $params['type'] = $type;
             $params['type_id'] = $type_id;
             dispatch(new ProcessCsvQueueBatch($params));//$offset, $batchSize, $urlShortenerName, $batch_no, $batch_file, $is_last, $type, $type_id));
-
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
@@ -158,7 +157,9 @@ class JobService
     private function createCampaignShortUrls($uniq_campaign_ids, $urlShortenerName, $urlShortener)
     {
         $campaign_short_urls = [];
+
         foreach ($uniq_campaign_ids as $uniq_campaign_id) {
+
             if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
                 $alias_for_campaign = uniqid();
                 $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
@@ -188,11 +189,13 @@ class JobService
         $batch_id = $data['batch'];
         $_batch = BatchFile::find($batch_id);
         preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $_batch->filename, $matches);
+
         if (!$matches[1]) {
             return false;
         } else {
             $batch = $matches[1];
         }
+
         $url_shortener = $data['url_shortener'];
         $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
         $domain_id = $_url_shortener->asset_id;
@@ -239,7 +242,8 @@ class JobService
 
         $numBatches = ceil($total / $batchSize);
         $campaign_short_url_map = []; // maps campaign_id -> short url
-        $batch_no = "$batch _1";
+
+        $batch_no = $batch ."_1";
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
         $batch_file = BatchFile::create([
@@ -248,13 +252,15 @@ class JobService
             'number_of_entries' => $total,
             'is_ready' => 0
         ]);
+
         $batch_file->campaigns()->attach($uniq_campaign_ids);
 
         Log::info("numBatches - $numBatches");
-        for ($batch = 0; $batch < $numBatches; $batch++) {
-            $offset = $batch * $batchSize;
-            $is_last = $batch == ($numBatches + 1) ? true : false;
-            Log::info('BATCH number - ' . $batch);
+
+        for ($batchCnt = 0; $batchCnt < $numBatches; $batchCnt++) {
+            $offset = $batchCnt * $batchSize;
+            $is_last = $batchCnt == ($numBatches + 1) ? true : false;
+            Log::info('BATCH number - ' . $batchCnt);
             dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last, $type, $type_id, $message_id));
         }
 

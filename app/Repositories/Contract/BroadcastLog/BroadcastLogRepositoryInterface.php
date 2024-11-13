@@ -11,6 +11,7 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
     public function paginateBroadcastLogs(array $inputs);
 
     public function requeueUnsent(array $inputs);
+
     public function getUnsent(array $inputs);
 
     public function getQueueStats();
