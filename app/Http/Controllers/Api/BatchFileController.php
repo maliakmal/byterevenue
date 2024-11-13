@@ -9,6 +9,7 @@ use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BatchFileController extends Controller
@@ -25,7 +26,10 @@ class BatchFileController extends Controller
 
     }
 
-
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getFormContentFromCampaign(Request $request){
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $result = [];
@@ -34,6 +38,10 @@ class BatchFileController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function checkStatus(Request $request){
         $file_ids = isset($_POST['files'])?$_POST['files']:[];
         $file_ids = is_array($file_ids)?$file_ids:[];
@@ -63,7 +71,10 @@ class BatchFileController extends Controller
         return response()->json($result);
     }
 
-
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function index(Request $request){
 
         $campaign_ids = $request->campaign_ids;

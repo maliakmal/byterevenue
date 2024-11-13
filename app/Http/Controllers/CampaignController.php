@@ -6,18 +6,11 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\CampaignStoreRequest;
 use App\Http\Requests\CampaignUpdateRequest;
 use App\Models\RecipientsList;
-use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Models\Campaign;
-use App\Models\Message;
-use App\Models\User;
-use App\Models\BroadcastLog;
-use App\Models\Transaction;
-use Illuminate\Support\Facades\DB;
 
 class CampaignController extends ApiController
 {
@@ -50,6 +43,55 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/campaigns",
+     *     summary="Get a list of campaigns",
+     *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Filter by campaign status"
+     *     ),
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Filter by user ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sortby",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort by field"
+     *     ),
+     *     @OA\Parameter(
+     *         name="count",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Number of items per page"
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Search term"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     * @param Request $request
      * @return JsonResponse
      */
     public function indexApi(Request $request)
@@ -59,6 +101,7 @@ class CampaignController extends ApiController
             'user_id' => $request->get('user_id'),
             'sortby' => $request->get('sortby', 'id_desc'),
             'count' => $request->get('count', 5),
+            'search' => $request->get('search'),
         ];
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
 
@@ -89,6 +132,27 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Post(
+     *     path="/campaigns",
+     *     summary="Store a new campaign",
+     *     tags={"Campaigns"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Campaign Name"),
+     *             @OA\Property(property="description", type="string", example="Campaign Description")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Campaign created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="description", type="string")
+     *         )
+     *     )
+     * )
      * @param CampaignStoreRequest $request
      *
      * @return JsonResponse
@@ -109,7 +173,7 @@ class CampaignController extends ApiController
      */
     public function show(Campaign $campaign)
     {
-        $campaignData = $this->campaignService->show($campaign->id);
+        $campaignData = $this->campaignService->show($campaign->id, []);
 
         if (request()->input('output') == 'json') {
             return response()->success(null, [
@@ -122,15 +186,85 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Get(
+     *     path="/campaigns/{id}",
+     *     summary="Get a campaign",
+     *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Campaign ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Number of items per page"
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer"),
+     *         description="Page number"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort by field"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Sort order (asc or desc)"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="campaign", type="object"),
+     *             @OA\Property(property="message", type="object"),
+     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="logs", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     * @param int $id
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function showApi(int $id, Request $request)
+    {
+        $filters = [
+            'per_page' => $request->get('per_page', 5),
+            'page' => $request->get('page', 1),
+            'sort_by' => $request->get('sort_by', 'id_desc'),
+            'sort_order' => $request->get('sort_order', 'asc'),
+        ];
+        $campaignData = $this->campaignService->show($id, $filters);
+
+        return $this->responseSuccess($campaignData);
+    }
+
+    /**
      * @param int $id
      *
      * @return JsonResponse
      */
-    public function showApi(int $id)
+    public function campaignStats(int $id)
     {
-        $campaignData = $this->campaignService->show($id);
+        $campaignStats = $this->campaignService->getCampaignStats($id);
 
-        return $this->responseSuccess($campaignData);
+        return $this->responseSuccess($campaignStats);
     }
 
     /**
@@ -150,6 +284,26 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Post(
+     *     path="/campaigns/mark-processed/{id}",
+     *     summary="Mark a campaign as processed",
+     *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Campaign ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Campaign marked as processed",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Campaign marked as processed.")
+     *         )
+     *     )
+     * )
      * @param int $id
      *
      * @return JsonResponse
@@ -184,6 +338,34 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Put(
+     *     path="/campaigns/{id}",
+     *     summary="Update a campaign",
+     *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Campaign ID"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Updated Campaign Name"),
+     *             @OA\Property(property="description", type="string", example="Updated Campaign Description")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Campaign updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="description", type="string")
+     *         )
+     *     )
+     * )
      * @param int $id
      * @param CampaignUpdateRequest $request
      *
@@ -207,6 +389,26 @@ class CampaignController extends ApiController
     }
 
     /**
+     * @OA\Delete(
+     *     path="/campaigns/{id}",
+     *     summary="Delete a campaign",
+     *     tags={"Campaigns"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Campaign ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Campaign deleted successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Campaign deleted successfully.")
+     *         )
+     *     )
+     * )
      * @param int $id
      *
      * @return JsonResponse

@@ -10,6 +10,7 @@
     "require": {
         "php": "^8.2",
         "bjoernffm/spintax": "^1.1",
+        "darkaonline/l5-swagger": "^8.6",
         "filament/filament": "^3.2",
         "laravel/framework": "^11.0",
         "laravel/horizon": "^5.27",
@@ -23,7 +24,8 @@
         "opcodesio/log-viewer": "^3.11",
         "predis/predis": "^2.2",
         "spatie/laravel-permission": "^6.7",
-        "tuupola/base62": "^2.1"
+        "tuupola/base62": "^2.1",
+        "zircote/swagger-php": "^4.11"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.14",

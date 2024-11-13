@@ -58,6 +58,22 @@ class JobsController extends ApiController
         return $this->responseSuccess($this->jobService->campaigns($request->validated()));
     }
 
+    /**
+     * @OA\Get(
+     *     path="/jobs",
+     *     summary="Get a list of jobs",
+     *     tags={"Jobs"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of jobs",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     * @return JsonResponse
+     */
     public function index(Request $request)
     {
         $download_me = null;
@@ -246,7 +262,6 @@ class JobsController extends ApiController
 
     /**
      * @param JobRegenerateRequest $request
-     *
      * @return JsonResponse
      */
     public function regenerateUnsentApi(JobRegenerateRequest $request)
@@ -306,6 +321,10 @@ class JobsController extends ApiController
 
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function updateSentMessage(Request $request)
     {
         $request->validate(['uid' => 'required|numeric|min:1']);
@@ -326,6 +345,10 @@ class JobsController extends ApiController
         return response()->success();
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function updateClickMessage(Request $request)
     {
         $request->validate(['uid' => 'required|numeric|min:1']);

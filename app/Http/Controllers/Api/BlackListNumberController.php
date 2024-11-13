@@ -18,6 +18,7 @@ class BlackListNumberController extends Controller
     )
     {
     }
+
     /**
      * @param Request $request
      * @return mixed

@@ -11,13 +11,45 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
 
+/**
+ * @OA\Info(
+ *     title="Auth API",
+ *     version="1.0.0"
+ * )
+ * @OA\Server(
+ *      url="/api",
+ *      description="API Server"
+ *  )
+ */
 class AuthController extends ApiController
 {
     use PasswordValidationRules;
+
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/login",
+     *     summary="Login user",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful login",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="token", type="string", example="token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials"
+     *     )
+     * )
      */
     public function login(Request $request): JsonResponse
     {
@@ -38,9 +70,28 @@ class AuthController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/register",
+     *     summary="Register user",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","terms"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password"),
+     *             @OA\Property(property="terms", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful registration",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="token", type="string", example="token")
+     *         )
+     *     )
+     * )
      */
     public function register(Request $request): JsonResponse
     {
@@ -63,7 +114,15 @@ class AuthController extends ApiController
     }
 
     /**
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/logout",
+     *     summary="Logout user",
+     *     tags={"Auth"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful logout"
+     *     )
+     * )
      */
     public function logout(): JsonResponse
     {
@@ -75,7 +134,22 @@ class AuthController extends ApiController
     }
 
     /**
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/refresh",
+     *     summary="Refresh token",
+     *     tags={"Auth"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="token", type="string", example="token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     )
+     * )
      */
     public function refresh(): JsonResponse
     {
@@ -93,9 +167,18 @@ class AuthController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
+     * @OA\Get(
+     *     path="/me",
+     *     summary="Get authenticated user",
+     *     tags={"Auth"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Authenticated user",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     )
+     * )
      */
     public function me(Request $request): JsonResponse
     {
@@ -105,9 +188,29 @@ class AuthController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/forgot-password",
+     *     summary="Forgot password",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password reset link sent",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="We have emailed your password reset link!")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid email"
+     *     )
+     * )
      */
     public function forgotPassword(Request $request)
     {
@@ -123,9 +226,32 @@ class AuthController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/reset-password",
+     *     summary="Reset password",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"token","email","password","password_confirmation"},
+     *             @OA\Property(property="token", type="string", example="token"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="newpassword"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="newpassword")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password reset successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Your password has been reset!")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid token or email"
+     *     )
+     * )
      */
     public function resetPassword(Request $request)
     {
