@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\DB;
 class RecipientListService
 {
     /**
-     * @param string|null $perPage
      * @param string|null $nameFilter
      * @param string|null $isImportedFilter
+     * @param string|null $perPage
      *
      * @return LengthAwarePaginator
      */
-    public function getRecipientLists(?string $perPage, ?string $nameFilter, ?string $isImportedFilter): LengthAwarePaginator
+    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, ?int $perPage = 5): LengthAwarePaginator
     {
         $recipient_lists = auth()->user()->hasRole('admin')
             ? RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
