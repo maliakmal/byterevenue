@@ -1,49 +1,76 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\RecipientStoreRequest;
+use App\Http\Requests\RecipientUpdateRequest;
 use App\Models\RecipientsList;
 use App\Models\Contact;
-use App\Models\User;
+use App\Services\RecipientList\RecipientListService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ContactsImport;
-use Illuminate\Support\Facades\Log;
 
-use League\Csv\Reader;
-use App\Jobs\ProcessRecipientsImportCsvChunk;
-use Illuminate\Support\Facades\Redis;
-
-
-class RecipientsListController extends Controller
+/**
+ * @OA\Tag(
+ *     name="RecipientLists",
+ *     description="Operations about user"
+ * )
+ */
+class RecipientsListController extends ApiController
 {
+    /**
+     * @param RecipientListService $recipientListService
+     */
+    public function __construct(
+        private RecipientListService $recipientListService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $per_page = 12;
-        $recipient_lists = null;
-        if(auth()->user()->hasRole('admin')):
-            $recipient_lists = RecipientsList::select()->with('user')->withCount(['contacts', 'campaigns']);
-        else:
-            $recipient_lists = auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
-        endif;
+        $nameFilter = request()->input('name');
+        $isImportedFilter = request()->input('is_imported', '');
 
-        if(\request()->input('name')){
-            $recipient_lists = $recipient_lists->where('name', 'like', '%'.\request()->input('name').'%');
-        }
-        if(is_numeric(\request()->input('is_imported', ''))){
-            $recipient_lists = $recipient_lists->where('is_imported', \request()->input('is_imported'));
-        }
+        $recipient_lists = $this->recipientListService->getRecipientLists($nameFilter, $isImportedFilter);
 
-        $recipient_lists = $recipient_lists->orderby('id', 'desc')->paginate($per_page);
-
-        if(\request()->input('output') == 'json'){
+        if (request()->input('output') == 'json') {
             return response()->success(null, $recipient_lists);
         }
         return view('recipient_lists.index', compact('recipient_lists'));
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/recipient_lists",
+     *     summary="Get a list of recipient lists",
+     *     tags={"Recipient Lists"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function indexApi(Request $request)
+    {
+        $nameFilter = $request->get('name');
+        $isImportedFilter = $request->get('is_imported', '');
+        $perPage = $request->get('per_page',5);
+        $recipientList = $this->recipientListService->getRecipientLists(
+            $perPage,
+            $nameFilter,
+            $isImportedFilter
+        );
+
+        return $this->responseSuccess($recipientList);
     }
 
     /**
@@ -58,182 +85,54 @@ class RecipientsListController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(RecipientStoreRequest $request)
     {
-        $request->validate([
-            'source' => 'nullable|string|min:1|max:100'
-        ]);
-        if(auth()->user()->show_introductory_screen == true){
-            User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
+        $file = $request->file('csv_file');
+
+        [$success, $message] = $this->recipientListService->store($request->validated(), $file);
+
+        if ($success) {
+            return redirect()->route('recipient_lists.index')->with('success', $message);
         }
 
-        if($request->entry_type =='file'){
-            DB::beginTransaction();
+        return redirect()->back()->with('error', $message);
+    }
 
-            $user_id = auth()->user()->id;
-            $file = $request->file('csv_file');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $newFileName = $user_id . '_' . time() . '.' . $extension;
-            $filePath = $file->storeAs('uploads', $newFileName);
-            $fullPath = storage_path('app/' . $filePath);
+    /**
+     * @OA\Post(
+     *     path="/recipient_lists",
+     *     summary="Store a new recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="List Name"),
+     *             @OA\Property(property="csv_file", type="string", format="binary")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     * @param RecipientStoreRequest $request
+     * @return JsonResponse
+     */
+    public function storeApi(RecipientStoreRequest $request)
+    {
+        $file = $request->file('csv_file');
 
-            $nameColumn = $request->input('name_column');
-            $emailColumn = $request->input('email_column');
-            $phoneColumn = $request->input('phone_column');
-            $totalColumns = $request->input('total_columns');
-            $dummyVariables = array_fill(0, $totalColumns, '@dummy');
-            $headers = null;
-            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
-                // Get the first row (headers)
-                $headers = fgetcsv($handle);
-                
+        [$success, $message] = $this->recipientListService->store($request->validated(), $file);
 
-            }else{
-                throw new \Exception('Could not parse CSV headers!');
-            }
-    
-
-            Log::info('RECIPIENTS IMPORT');
-            Log::info(request()->all());
-            Log::info($nameColumn);
-            Log::info($emailColumn);
-            Log::info($phoneColumn);
-            $recipientsList = auth()->user()->recipientLists()->create([
-                'name' => $request->name,
-            ]);
-
-            $nameVar = '@dummy';
-            $emailVar = '@dummy';
-            Log::info($headers);
-
-            if($nameColumn!=null && $nameColumn!='-1'){
-                $dummyVariables[$nameColumn] = $headers[$nameColumn];
-                $nameVar = $headers[$nameColumn];
-            }
-
-            if($emailColumn!=null && $emailColumn!='-1'){
-                $dummyVariables[$emailColumn] = $headers[$emailColumn];
-                $emailVar =  $headers[$emailColumn];
-            }
-
-            $phoneVar = $headers[$phoneColumn];
-
-            $dummyVariables[$phoneColumn] = $phoneVar;
-            Log::info(['nameVar'=>$nameVar, 'emailVar'=>$emailVar, 'phoneVar'=>$phoneVar]);
-
-
-            try {
-                $_sql_load = "LOAD DATA LOCAL INFILE '$fullPath'
-                               INTO TABLE contacts
-                               FIELDS TERMINATED BY ','
-                               OPTIONALLY ENCLOSED BY '\"'
-
-                               LINES TERMINATED BY '\n'
-                               IGNORE 1 ROWS
-                               (" . implode(', ', $dummyVariables) . ")
-                            SET name = ".($nameVar!='@dummy'?"`".$nameVar."`":"''").", 
-                                email =  ".($emailVar!='@dummy'?"`".$emailVar."`":"''").", 
-                                phone = TRIM(`".$phoneVar."`), created_at = NOW(), 
-                                user_id='$user_id', file_tag='$newFileName', updated_at = NOW()";
-
-                Log::info($_sql_load);
-
-                $_sql_insert = "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-                                SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-                                FROM contacts
-                                WHERE file_tag='$newFileName'";
-
-                Log::info("INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-                                SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-                                FROM contacts
-                                WHERE file_tag='$newFileName'");
-
-
-                DB::statement($_sql_load);
-                DB::statement($_sql_insert);
-
-$recipientsList->is_imported = true;
-$recipientsList->source = $request->source;
-                $recipientsList->save();
-
-                            DB::commit();
-
-                return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
-            } catch (\Exception $e) {
-                DB::rollback();
-
-                return redirect()->back()->with('error', 'Error importing CSV file: ' . $e->getMessage());
-            }
-
-
-        }else{
-            $data = explode(',', $request->numbers);
+        if ($success) {
+            return $this->responseSuccess($message);
         }
 
-        if(count($data)==0){
-            return redirect()->back()->withErrors(['error' => 'Cannot create an empty recipient list.']);
-        }
-
-        DB::beginTransaction();
-        $recipientsList = auth()->user()->recipientLists()->create([
-            'name' => $request->name,
-        ]);
-
-        try {
-            $insertables = [];
-            $now = now()->toDateTimeString();
-            $existing_phones_for_user = Contact::select()->where(['user_id'=>auth()->user()->id])->pluck('phone', 'id')->toArray();
-            foreach ($data as $row) {
-                if(is_array($row)):
-
-                    if(!in_array($row['phone'], $existing_phones_for_user)):
-                        $insertables[] =[
-                            'phone' => $row['phone'],
-                            'user_id'=>auth()->user()->id,
-                            'name' => $row['name'],
-                            'email' => $row['email'],
-                            'created_at'=>$now,
-                            'updated_at'=>$now,
-                            ];
-                        else:
-                            $attachable_id = array_search($row['phone'], $existing_phones_for_user);
-                            $recipient_list->contacts()->attach($attachable_id, ['user_id'=>$user_id]);
-                        endif;
-
-                else:
-
-                    $insertables[] =[
-                        'phone' => $row,
-                        'user_id'=>auth()->user()->id,
-                        'name' => $row,
-                        'email' => '',
-                        'created_at'=>$now,
-                        'updated_at'=>$now,
-                    ];
-
-                endif;
-            }
-
-            foreach($insertables as $insertable){
-                $contact = Contact::create($insertable);
-                $recipientsList->contacts()->attach($contact->id, ['user_id'=>auth()->id()]);
-            }
-
-            $recipientsList->is_imported = true;
-            $recipientsList->save();
-
-
-            DB::commit();
-            return redirect()->route('recipient_lists.index')->with('success', 'Contacts imported successfully.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return redirect()->back()->withErrors(['error' => 'An error occurred while importing contacts.']);
-        }
-
-
-
-        return redirect()->route('recipient_lists.index')->with('success', 'Recipients List created successfully.');
+        return $this->responseError($message);
     }
 
     /**
@@ -249,6 +148,44 @@ $recipientsList->source = $request->source;
     }
 
     /**
+     * @OA\Get(
+     *     path="/recipient_lists/{id}",
+     *     summary="Get a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="recipientList", type="object"),
+     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function showApi(int $id): JsonResponse
+    {
+        $recipientsList = RecipientsList::findOrFail($id);
+        $contacts = $recipientsList->contacts()->paginate(10);
+
+        return $this->responseSuccess(
+            [
+                'recipientList' => $recipientsList,
+                'contacts' => $contacts,
+            ]
+        );
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit($id)
@@ -261,21 +198,53 @@ $recipientsList->source = $request->source;
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(RecipientUpdateRequest $request, $id)
     {
-        $request->validate([
-            'name' => 'string|max:255',
-            'source' => 'nullable|string|max:255',
-        ]);
-
         $recipientsList = RecipientsList::findOrFail($id);
 
-        $recipientsList->update([
-            'name' => $request->name,
-            'source' => $request->source,
-        ]);
+        $recipientsList->update($request->validated());
 
         return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/recipient_lists/{id}",
+     *     summary="Update a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Updated List Name")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="recipientList", type="object")
+     *         )
+     *     )
+     * )
+     * @param int $id
+     * @param RecipientUpdateRequest $request
+     * @return JsonResponse
+     */
+    public function updateApi(int $id, RecipientUpdateRequest $request): JsonResponse
+    {
+        $recipientsList = RecipientsList::findOrFail($id);
+
+        $recipientsList->update($request->validated());
+
+        return $this->responseSuccess($recipientsList, 'List updated successfully.');
     }
 
     /**
@@ -283,8 +252,8 @@ $recipientsList->source = $request->source;
      */
     public function destroy($id)
     {
-        $item = RecipientsList::findOrFail($id);
-        if($item->campaigns->count()>0){
+        $item = RecipientsList::withCount('campaigns')->findOrFail($id);
+        if ($item->campaigns_count > 0) {
             return redirect()->back()->withErrors(['error' => 'List is associated with a campaign - this cannot be deleted.']);
         }
 
@@ -294,10 +263,46 @@ $recipientsList->source = $request->source;
     }
 
     /**
+     * @OA\Delete(
+     *     path="/recipient_lists/{id}",
+     *     summary="Delete a recipient list",
+     *     tags={"Recipient Lists"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Recipient List ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recipient list deleted successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="List deleted successfully.")
+     *         )
+     *     )
+     * )
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroyApi(int $id)
+    {
+        $item = RecipientsList::withCount('campaigns')->findOrFail($id);
+        if ($item->campaigns_count > 0) {
+            return $this->responseError('List is associated with a campaign - this cannot be deleted.');
+        }
+
+        $item->delete();
+
+        return $this->responseSuccess('List deleted successfully.');
+    }
+
+    /**
      * @param $userID
      * @return array
      */
-    private function getSourceForUser($userID) : array
+    private function getSourceForUser($userID): array
     {
         return RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
             ->where('user_id', $userID)

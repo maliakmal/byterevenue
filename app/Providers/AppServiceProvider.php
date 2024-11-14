@@ -3,9 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Response;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
-    
+
     }
 
     /**
@@ -42,15 +47,29 @@ class AppServiceProvider extends ServiceProvider
                 'message' => $errorMessages,
             ], $code, $headers);
         });
+
+        LogViewer::auth(function ($request) {
+            return Auth::check() && Auth::user()->hasRole('admin');
+        });
+
+        ResetPassword::createUrlUsing(function (User $user, string $token) {
+            return config('app.front_base_url')
+                . '/reset-password?token='
+                . $token
+                . '&email='
+                . $user->getEmailForPasswordReset();
+        });
     }
 
     private function registerConfigs()
     {
-        Setting::orderBy('id')->chunk(100, function ($items){
-            foreach ($items as $item){
-                $key = 'setting.'.$item->name;
-                Config::set($key, $item->value);
-            }
-        });
+        if (Schema::hasTable((new Setting)->getTable())) {
+            Setting::on('mysql')->orderBy('id')->chunk(100, function ($items){
+                foreach ($items as $item){
+                    $key = 'setting.'.$item->name;
+                    Config::set($key, $item->value);
+                }
+            });
+        }
     }
 }

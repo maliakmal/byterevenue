@@ -108,10 +108,13 @@
 
                                     <tr>
                                         <td class="border-b border-gray-200 px-4 py-2">{{ $campaign->id }}</td>
-                                        <td class="border-b border-gray-200 px-4 py-2">{{ $campaign->title }}</td>
+                                        <td class="border-b border-gray-200 px-4 py-2">
+                                            <a class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center"
+                                               href="{{ route('campaigns.show', $campaign->id) }}">{{ $campaign->title }}</a></td>
 
                                         @if(auth()->user()->hasRole('admin'))
-                                            <td class="border-b border-gray-200 px-4 py-2"><a href="{{ route('accounts.show', $campaign->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
+                                            <td class="border-b border-gray-200 px-4 py-2">
+                                                <a href="{{ route('accounts.show', $campaign->user_id) }}" class="flex text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 items-center">
                                                     {{ $campaign->user->name }}</a></td>
                                         @endif
                                         <td class="border-b border-gray-200 px-4 py-2">{{ number_format($campaign->total_recipients) }}</td>

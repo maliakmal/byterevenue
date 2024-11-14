@@ -136,12 +136,12 @@
             </tbody>
     </table>
 <br/>
-{{ $list->appends($filter)->links()}}
+{{ $list->links()}}
 @else
 <div class="flex w-full items-center  space-x-6 p-6">
   <div class="flex-1 truncate">
     <div class="flex items-center space-x-3">
-      <h3 class="truncate text-sm font-medium text-gray-900">No Settings found</h3>
+      <h3 class="truncate text-sm font-medium text-gray-900">No Messages found</h3>
 
     </div>
   </div>

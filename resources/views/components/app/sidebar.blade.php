@@ -420,7 +420,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['black-list-numbers'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['black-list-numbers'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif"  d="M48,0A48,48,0,1,0,96,48,48.0512,48.0512,0,0,0,48,0Zm0,12a35.71,35.71,0,0,1,20.7993,6.7214L18.717,68.7935A35.8886,35.8886,0,0,1,48,12Zm0,72a35.71,35.71,0,0,1-20.7993-6.7214L77.283,27.2065A35.8886,35.8886,0,0,1,48,84Z"/></svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Black List Number</span>
                                 </div>
@@ -453,7 +453,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['black-list-words'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['black-list-words'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif"  d="M48,0A48,48,0,1,0,96,48,48.0512,48.0512,0,0,0,48,0Zm0,12a35.71,35.71,0,0,1,20.7993,6.7214L18.717,68.7935A35.8886,35.8886,0,0,1,48,12Zm0,72a35.71,35.71,0,0,1-20.7993-6.7214L77.283,27.2065A35.8886,35.8886,0,0,1,48,84Z"/></svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Black List Word</span>
                                 </div>
@@ -487,7 +487,7 @@
                         <a class="block text-slate-200 hover:text-white truncate transition duration-150 @if(in_array(Request::segment(1), ['reports'])){{ 'hover:text-slate-200' }}@endif" href="#0" @click.prevent="sidebarExpanded ? open = !open : sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="" width="25px" height=25px" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg"><title/>
+                                    <svg class="" width="25px" height="25px" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg"><title/>
                                         <path class="fill-current @if(in_array(Request::segment(1), ['reports'])){{ 'text-indigo-600' }}@else{{ 'text-slate-400' }}@endif" d="M6 11h4v17h-4v-17zM22 16v12h4v-12h-4zM14 28h4v-24h-4v24z"></path>
                                     </svg>
                                     <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Reports</span>
@@ -514,6 +514,34 @@
                                 </li>
                             </ul>
                         </div>
+                    </li>
+
+                    <li class="px-3 py-2 rounded-sm mb-0.5 last:mb-0">
+                        <a class="block text-slate-200 hover:text-white truncate transition duration-150" href="/telescope">
+                            <div class="flex items-center justify-between">
+                                <div class="grow flex items-center">
+                                    <svg width="40px" height="40px" class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
+                                        <path class="fill-current text-slate-500" d="M10.75 2H12.75C15.5784 2 16.9926 2 17.8713 2.87868C18.75 3.75736 18.75 5.17157 18.75 8V16C18.75 18.8284 18.75 20.2426 17.8713 21.1213C16.9926 22 15.5784 22 12.75 22H10.75C7.92157 22 6.50736 22 5.62868 21.1213C4.75 20.2426 4.75 18.8284 4.75 16V8C4.75 5.17157 4.75 3.75736 5.62868 2.87868C6.50736 2 7.92157 2 10.75 2ZM8 13C8 12.5858 8.33579 12.25 8.75 12.25H14.75C15.1642 12.25 15.5 12.5858 15.5 13C15.5 13.4142 15.1642 13.75 14.75 13.75H8.75C8.33579 13.75 8 13.4142 8 13ZM8 9C8 8.58579 8.33579 8.25 8.75 8.25H14.75C15.1642 8.25 15.5 8.58579 15.5 9C15.5 9.41421 15.1642 9.75 14.75 9.75H8.75C8.33579 9.75 8 9.41421 8 9ZM8 17C8 16.5858 8.33579 16.25 8.75 16.25H11.75C12.1642 16.25 12.5 16.5858 12.5 17C12.5 17.4142 12.1642 17.75 11.75 17.75H8.75C8.33579 17.75 8 17.4142 8 17Z"/>
+                                        <path class="fill-current text-slate-400" d="M5 11.5C5 9.61438 5 8.67157 5.58579 8.08579C6.17157 7.5 7.11438 7.5 9 7.5H15C16.8856 7.5 17.8284 7.5 18.4142 8.08579C19 8.67157 19 9.61438 19 11.5V12.5C19 14.3856 19 15.3284 18.4142 15.9142C17.8284 16.5 16.8856 16.5 15 16.5H9C7.11438 16.5 6.17157 16.5 5.58579 15.9142C5 15.3284 5 14.3856 5 12.5V11.5Z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Telescope</span>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="px-3 py-2 rounded-sm mb-0.5 last:mb-0">
+                        <a class="block text-slate-200 hover:text-white truncate transition duration-150" href="{{ '/'. config('log-viewer.route_path') }}">
+                            <div class="flex items-center justify-between">
+                                <div class="grow flex items-center">
+                                    <svg width="40px" height="40px" class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
+                                        <path class="fill-current text-slate-500" d="M7.375 7.875C7.375 6.94039 7.375 6.47308 7.57596 6.125C7.70761 5.89697 7.89697 5.70762 8.125 5.57596C8.47308 5.375 8.94038 5.375 9.875 5.375L18.875 5.375C19.8096 5.375 20.2769 5.375 20.625 5.57596C20.853 5.70761 21.0424 5.89697 21.174 6.125C21.375 6.47308 21.375 6.94038 21.375 7.875C21.375 8.80962 21.375 9.27692 21.174 9.625C21.0424 9.85303 20.853 10.0424 20.625 10.174C20.2769 10.375 19.8096 10.375 18.875 10.375L9.875 10.375C8.94038 10.375 8.47308 10.375 8.125 10.174C7.89697 10.0424 7.70761 9.85303 7.57596 9.625C7.375 9.27692 7.375 8.80962 7.375 7.875Z"/>
+                                        <path class="fill-current text-slate-500" d="M7.375 16.875C7.375 15.9404 7.375 15.4731 7.57596 15.125C7.70761 14.897 7.89697 14.7076 8.125 14.576C8.47308 14.375 8.94038 14.375 9.875 14.375H15.875C16.8096 14.375 17.2769 14.375 17.625 14.576C17.853 14.7076 18.0424 14.897 18.174 15.125C18.375 15.4731 18.375 15.9404 18.375 16.875C18.375 17.8096 18.375 18.2769 18.174 18.625C18.0424 18.853 17.853 19.0424 17.625 19.174C17.2769 19.375 16.8096 19.375 15.875 19.375H9.875C8.94038 19.375 8.47308 19.375 8.125 19.174C7.89697 19.0424 7.70761 18.853 7.57596 18.625C7.375 18.2769 7.375 17.8096 7.375 16.875Z"/>
+                                        <path class="fill-current text-slate-300" d="M3.375 23.125C3.78921 23.125 4.125 22.7892 4.125 22.375L4.125 2.375C4.125 1.96079 3.78921 1.625 3.375 1.625C2.96079 1.625 2.625 1.96079 2.625 2.375L2.625 22.375C2.625 22.7892 2.96079 23.125 3.375 23.125Z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Log-Viewer</span>
+                                </div>
+                            </div>
+                        </a>
                     </li>
 </ul>
 </div>

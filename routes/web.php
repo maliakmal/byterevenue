@@ -14,9 +14,6 @@ use App\Http\Controllers\UrlShortenerController;
 use App\Http\Controllers\AccountsController;
 use App\Http\Middleware\CheckAdminRole;
 
-use Filament\Http\Middleware\Authenticate;
-
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -29,6 +26,7 @@ Route::middleware([
     Route::any('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
     Route::get('/tokens', [AccountsController::class, 'tokens'])->name('accounts.tokens');
+    Route::get('/data-source/info', [ContactController::class, 'contactsInfo']);
 
     Route::resource('data-source', ContactController::class);
     Route::resource('simcards', SimcardController::class);
@@ -40,13 +38,10 @@ Route::middleware([
     Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
     Route::get('/user', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
 
-    Route::get('/mark-processed/{id}', [CampaignController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
     Route::get('black-list-numbers/user', [\App\Http\Controllers\BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
     Route::get('/introductory/disable', [\App\Http\Controllers\DashboardController::class, 'disableIntroductory'])->name('block_numbers_user');
-
-
-
 });
+
 Route::middleware([CheckAdminRole::class])->group(function () {
 
     Route::get('/jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');

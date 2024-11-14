@@ -13,3 +13,8 @@ Schedule::job(new \App\Jobs\CheckDomainPropagationJob())->$check_propagation_sch
 
 $check_update_click_schedule = config('setting.schedule_update_click', 'everyTenMinutes');
 Schedule::command('keitaro:update-clicks')->$check_update_click_schedule();
+
+$collect_logs_schedule = config('settings.storage.archive_logs.period', 'hourly');
+Schedule::command('storage:collect-logs')->$collect_logs_schedule()->withoutOverlapping();
+
+Schedule::command('auth:clear-resets')->everyFifteenMinutes();

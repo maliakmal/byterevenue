@@ -24,15 +24,21 @@ class Contact extends Model
     {
         return $this->hasMany(BroadcastLog::class, 'contact_id', 'id')->where('is_sent', true);
     }
+
     public function campaigns()
     {
         return $this->hasMany(BroadcastLog::class, 'contact_id', 'id')->groupBy('campaign_id');
     }
+
+    public function campaignsCount()
+    {
+        // TODO:: implement this through separate pivot table Contacts<->ContactCampaigns<->Campaigns table
+    }
+
     public function blackListNumber()
     {
         return $this->hasMany(BlackListNumber::class, 'phone_number', 'phone');
     }
-
 
     protected static function boot()
     {

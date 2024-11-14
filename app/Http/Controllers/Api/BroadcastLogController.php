@@ -22,10 +22,7 @@ class BroadcastLogController extends Controller
 
     use CSVReader;
 
-    /**
-     * @param Request $request
-     * @return mixed
-     */
+
     public function updateSentMessage(Request $request)
     {
         $max_allowed_csv_upload_file = config('app.csv.upload_max_size_allowed');

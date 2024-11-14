@@ -64,7 +64,7 @@ class Campaign extends Model
     }
 
     public function isDispatched(){
-        return $this->status == self::STATUS_DRAFT ? false : true;
+        return $this->status != self::STATUS_DRAFT;
     }
 
     public function canBeDeleted(){

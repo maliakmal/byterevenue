@@ -111,7 +111,7 @@
             </tbody>
     </table>
 <br/>
-{{ $list->appends($filter)->links()}}
+{{ $list->links()}}
 @else
 <div class="flex w-full items-center  space-x-6 p-6">
   <div class="flex-1 truncate">

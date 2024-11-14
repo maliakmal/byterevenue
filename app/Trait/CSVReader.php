@@ -43,7 +43,7 @@ trait CSVReader
     {
         $result = '';
         try{
-            $keys = ($collection[0]->toArray());
+            $keys = $collection[0]->toArray();
             if(count($unset) > 0){
                 foreach ($unset as $item){
                     unset($keys[$item]);
@@ -60,7 +60,7 @@ trait CSVReader
                     }
                 }
                 $tmp = join(',', array_values($row_array));
-                $result .= ("\n".$tmp);
+                $result .= "\n$tmp";
             }
 
         }catch (\Exception $exception){
