@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * @OA\Info(
@@ -127,11 +128,23 @@ class AuthController extends ApiController
      *     )
      * )
      */
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
         $user = auth()->user();
 
-        $user->tokens()->delete();
+        if (!$user) {
+            $token = PersonalAccessToken::where(
+                    'token',
+                    $request->bearerToken()
+                )
+                ->first();
+
+            $user = $token ? User::find($token->tokenable_id) : null;
+        }
+
+        if ($user) {
+            $user->tokens()->delete();
+        }
 
         return $this->responseSuccess([], 'Logged out successfully');
     }
