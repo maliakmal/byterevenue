@@ -12,7 +12,7 @@ return [
                 /*
                  * Route for accessing api documentation interface
                  */
-                'api' => 'api/documentation',
+                'api' => 'api-docs/documentation',
             ],
             'paths' => [
                 /*
@@ -65,10 +65,10 @@ return [
              * Middleware allows to prevent unexpected access to API documentation
              */
             'middleware' => [
-                'api' => [],
-                'asset' => [],
-                'docs' => [],
-                'oauth2_callback' => [],
+                'api' => ['web', 'swagger.allowed.access'],
+                'asset' => ['web', 'swagger.allowed.access'],
+                'docs' => ['web', 'swagger.allowed.access'],
+                'oauth2_callback' => ['web', 'swagger.allowed.access'],
             ],
 
             /*

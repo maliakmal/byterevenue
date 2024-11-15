@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RepositoryServiceProvider::class);
-        if ($this->app->environment('local')) {
+        if (!$this->app->environment('production')) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
@@ -46,10 +46,6 @@ class AppServiceProvider extends ServiceProvider
                 'success' => false,
                 'message' => $errorMessages,
             ], $code, $headers);
-        });
-
-        LogViewer::auth(function ($request) {
-            return Auth::check() && Auth::user()->hasRole('admin');
         });
 
         ResetPassword::createUrlUsing(function (User $user, string $token) {
