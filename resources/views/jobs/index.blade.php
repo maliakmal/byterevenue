@@ -57,7 +57,7 @@
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
                 <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
+                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
                   <option value="{{$num}}">{{$num}} messages</option>
                 @endforeach
                 </select>
@@ -95,10 +95,13 @@
             @foreach ($params['files'] as $file)
               <tr>
                 <td class="border-b border-gray-200 px-4 py-2">
+                  @if($file['is_ready'])
                   <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv</a>
+                  @else
+                  <span>File {{ $file['id'] }}.csv (preparation)</span>
+                  @endif
                   @if(strstr($file['filename'], 'regen'))
                     <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN</span>
-
                   @else
                   @endif
                 </td>
@@ -109,12 +112,10 @@
                 {{ count($file['campaigns']) }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
-                  <a href="/download/{{$file['id'] }}">
                   @if($file['is_ready'] == 1)
                     (pending)
                   @endif
                     {{ $file['created_at']->diffForHumans() }}
-                  </a>
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                   <div class="inline-flex">

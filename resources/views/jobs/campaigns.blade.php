@@ -59,7 +59,7 @@
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
                 <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
+                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
                   <option value="{{$num}}">{{$num}} messages</option>
                 @endforeach
                 </select>
@@ -124,7 +124,7 @@
                             <p class="text-sm font-semibold leading-6 text-gray-900">{{ $campaign->id}}:{{ $campaign->title}}</p>
                             <p class="mt-1 truncate text-xs leading-5 text-gray-500">
                             <a href="/accounts/{{ $campaign->user_id }}">Created by: {{ $campaign->user->name }}</a>
-                              
+
 
                             </p>
                         </div>
@@ -147,7 +147,7 @@
 
 
 
-        </div>    
+        </div>
       </div>
     </div>
     <div class="">
@@ -155,8 +155,8 @@
     <div class="p-4   bg-white border-b border-gray-200">
     <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2"><span id="total_selected_campaigns"></span> Campaign(s) selected</div>
     <div class="text-xl pt-5 font-semibold text-slate-800 dark:text-slate-100 mr-2">
-      <span id="total_recipients"></span> Recipients, 
-      <span id="total_exported"></span> Messages Exported, 
+      <span id="total_recipients"></span> Recipients,
+      <span id="total_exported"></span> Messages Exported,
       <span id="total_pending_export"></span> Messages Pending Export,
       <span id="total_sent"></span> Messages sent,
       <span id="total_clicked"></span> Messages Clicked
@@ -178,7 +178,7 @@
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
                 <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([50, 100, 250, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
+                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
                   <option value="{{$num}}">{{$num}} messages</option>
                 @endforeach
                 </select>
@@ -197,7 +197,7 @@
           </div>
         </div>
     <div class="bg-white rounded-lg p-4 relative show-when-campaign-clicked hidden overflow-y-auto"  style="max-height:600px;">
-    <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generated Files</div> 
+    <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generated Files</div>
         <table id="data-table" class="mt-5  table-auto w-full ">
         <thead>
           <tr class="bg-gray-100">
@@ -243,7 +243,7 @@
             @csrf
             <div class="p-4 md:p-5 space-y-4">
                 <p>This will generate a unique csv list with regenerated messages using the spintax and selected short domain below.
-                  Once done the messages would be removed from the original csv and shifted to a new csv for download. 
+                  Once done the messages would be removed from the original csv and shifted to a new csv for download.
                   Proceed if this is what you intend to do.</p>
 
                 <div class="form-group hideable-message-edit">
@@ -260,7 +260,7 @@
                   </div>
               </div>
             </div>
-                
+
                 <div class="form-group">
                     <label>Domain: </label>
                     <select name="url_shortener"  id="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -315,7 +315,7 @@
       this.is_running = false;
       this.interval = 5000;
       this.files_to_observe = [];
-      
+
       this.startService = function(){
         if(this.is_running == true){
           return;
@@ -338,8 +338,8 @@
         $.ajax({
             url: '/api/batch_files/check-status', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                files: this.files_to_observe, 
+            data: {
+                files: this.files_to_observe,
             },
             success: function(response) {
               if(response.data.length == 0){
@@ -367,8 +367,6 @@
 
       }
 
-
-
       this.addBatchFileToObserve = function(file_id){
         this.files_to_observe.push(file_id);
       }
@@ -385,11 +383,11 @@
         $.ajax({
             url: '/api/jobs/generate-csv', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                campaign_ids: campaignServiceManager.selected_campaign, 
+            data: {
+                campaign_ids: campaignServiceManager.selected_campaign,
                 type:'campaign',
-                number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
-                url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+                number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(),
+                url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(),
             },
             success: function(response) {
 
@@ -480,7 +478,7 @@
         this.getCampaignsAndBatchFiles(campaign_ids);
       }
 
-        
+
       this.getCampaignsAndBatchFiles = function(campaign_ids){
         var _this = this;
 
@@ -492,12 +490,12 @@
             data: { campaign_ids: campaign_ids },
             success: function(response) {
               campaignServiceManager.initializeModal();
-              
+
                 var template = $('#files-template').html();
-              
+
               // Clear previous content
               $('#data-table').find('tbody').empty();
-              
+
               // Set Mustache.js delimiters
               Mustache.tags = ['[[', ']]'];
               hidePreloader();
@@ -530,7 +528,7 @@
 
               let total_exported = vals['total_recipients_in_process'].reduce(function (x, y) {
                   return x + y;
-              }, 0);  
+              }, 0);
               $('#total_exported').html(total_exported.toLocaleString());
               $('#total_pending_export').html(vals['pending_export'].reduce(function (x, y) {
                   return x + y;
@@ -542,7 +540,7 @@
                   return x + y;
               }, 0));
 
-              if(total_recipients == total_exported 
+              if(total_recipients == total_exported
                   && ((total_recipients + total_exported) > 0)){
                 $('.show-if-no-exportable').removeClass('hidden');
                 $('.show-if-exportable').addClass('hidden');
@@ -641,19 +639,22 @@
       $.ajax({
         url: '/api/jobs/generate-csv', // Replace with your API endpoint
         method: 'POST',
-        data: { 
-          campaign_ids: campaignServiceManager.getCampaignIds(), 
+        data: {
+          campaign_ids: campaignServiceManager.getCampaignIds(),
           type:'campaign',
-          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
-          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(),
+          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(),
         },
         success: function(response) {
           hidePreloader();
-
-          $.growl.notice({ message: "CSV has started generating" });
+          if (response.error) {
+            $.growl.error({ message: response.error });
+          } else {
+            $.growl.notice({ message: "CSV has started generating" });
+          }
           var html = Mustache.render(template, response.data);
           $('#data-table').find('tbody').prepend(html);
-          
+
           jobService.addBatchFileToObserve(response.data.id);
           jobService.startService();
         },
@@ -671,8 +672,8 @@
         $.ajax({
           url: '/api/campaigns/ignore', // Replace with your API endpoint
           method: 'POST',
-          data: { 
-              campaign_id: $(this).data('id'), 
+          data: {
+              campaign_id: $(this).data('id'),
           },
           success: function(response) {
             hidePreloader();
@@ -694,8 +695,8 @@
         $.ajax({
             url: '/api/campaigns/unignore', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                campaign_id: $(this).data('id'), 
+            data: {
+                campaign_id: $(this).data('id'),
             },
             success: function(response) {
               hidePreloader();
@@ -725,7 +726,7 @@
       // $('#default-modal').removeClass('hidden');
       campaignServiceManager.showModal();
     });
-    
+
     $('body').on('click', '#btn-regenerate-csv', function(e){
         e.preventDefault();
         showPreloader();
@@ -733,12 +734,12 @@
         $.ajax({
             url: '/api/jobs/regenerate-csv', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                campaign_ids: campaignServiceManager.getCampaignIds(), 
+            data: {
+                campaign_ids: campaignServiceManager.getCampaignIds(),
                 type:'campaign',
                 message_body: $('#default-modal').find('textarea#message_body').first().val(),
                 batch: $('#default-modal').find('input#modal_batch').first().val(),
-                url_shortener: $('#default-modal').find('select#url_shortener').first().val(), 
+                url_shortener: $('#default-modal').find('select#url_shortener').first().val(),
             },
             success: function(response) {
 
@@ -772,12 +773,12 @@
           data: { campaign_id: id },
           success: function(response) {
             campaignServiceManager.initializeModal();
-            
+
             var template = $('#files-template').html();
-                      
+
             // Clear previous content
             $('#data-table').find('tbody').empty();
-            
+
             // Set Mustache.js delimiters
             Mustache.tags = ['[[', ']]'];
             hidePreloader();
@@ -786,7 +787,7 @@
 
             $('#_campaign_id').html(response.data.campaign.id);
             $('#campaign_name').html(response.data.campaign.title);
-            
+
             $('#campaign_user').html(response.data.campaign.username);
             $('#campaign_user').prop('href', '/accounts/'+ response.data.campaign.user_id);
             $('#campaign_total_recipients').html(response.data.campaign.total_recipients.toLocaleString());

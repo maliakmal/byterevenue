@@ -47,7 +47,7 @@ Route::middleware([
         Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
     });
     Route::prefix('jobs')->group(function () {
-        Route::post('/generate-csv', [JobsController::class, 'index']);
+        Route::post('/generate-csv', [JobsController::class, 'postIndex']);
         Route::post('/generate/csv', [JobsController::class, 'indexApi']);
         Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
         Route::post('/regenerate/csv', [JobsController::class, 'regenerateUnsentApi']);

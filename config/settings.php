@@ -8,7 +8,7 @@ return [
             // max count is <= 65535 / (count of rows in a single insert)
             'count'  => 10000,
             'not_clicked_period' => 3, // days
-            'total_period'       => 5, // days
+            'not_send_period'    => 5, // days
         ],
     ],
 ];

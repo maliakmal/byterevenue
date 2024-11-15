@@ -45,12 +45,12 @@ class MoveLogsToStorage extends Command
                 $query
                     ->whereNotNull('sent_at')
                     ->whereNull('clicked_at')
-                    ->where('created_at', '<', now()->subDays(config('settings.storage.not_clicked_period')));
+                    ->where('created_at', '<', now()->subDays(config('settings.storage.archive_logs.not_clicked_period', 7)));
             })
             ->orWhere(function ($query) {
                 $query
                     ->whereNull('sent_at')
-                    ->where('created_at', '<', now()->subDays(config('settings.storage.total_period')));
+                    ->where('created_at', '<', now()->subDays(config('settings.storage.archive_logs.not_send_period', 7)));
             })
             ->limit(config('settings.storage.archive_logs.count'))
             ->get();
