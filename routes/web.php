@@ -49,7 +49,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::get('/jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
     Route::post('/jobs/campaigns/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
-    Route::post('/jobs', [JobsController::class, 'index'])->name('jobs.postIndex');
+    Route::post('/jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
     Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
     Route::resource('url_shorteners', UrlShortenerController::class);
     Route::prefix('settings')->group(function (){
