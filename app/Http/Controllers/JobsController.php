@@ -282,7 +282,7 @@ class JobsController extends ApiController
             $rows = BroadcastLog::select()->where('batch', '=', $batch_no)->orderby('id', 'ASC')->cursor();
             foreach ($rows as $row) {
                 fputcsv($handle, [
-                    $row->id,
+                    $row->slug,
                     $row->recipient_phone,
                     '',
                     $row->message_body,
@@ -317,11 +317,11 @@ class JobsController extends ApiController
     public function updateSentMessage(Request $request)
     {
         $request->validate([
-            'uid' => ['required', 'string', 'size:26'],
+            'u' => ['required', 'string', 'size:8'],
         ]);
 
-        $uid = $request->uid;
-        $model = $this->broadcastLogRepository->find($uid);
+        $uid = $request->u;
+        $model = $this->broadcastLogRepository->findBy('slug', $uid);
 
         if (!$model) {
             return response()->error('not found');
@@ -347,11 +347,11 @@ class JobsController extends ApiController
     public function updateClickMessage(Request $request)
     {
         $request->validate([
-            'uid' => ['required', 'string', 'size:26'],
+            'u' => ['required', 'string', 'size:8'],
         ]);
 
-        $uid = $request->uid;
-        $model = $this->broadcastLogRepository->find($uid);
+        $uid = $request->u;
+        $model = $this->broadcastLogRepository->findBy('slug', $uid);
 
         if (!$model) {
             return response()->error('not found');
