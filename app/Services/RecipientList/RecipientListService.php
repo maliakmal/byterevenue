@@ -16,8 +16,10 @@ class RecipientListService
      *
      * @return LengthAwarePaginator
      */
-    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, ?int $perPage = 5): LengthAwarePaginator
+    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, $perPage = 5): LengthAwarePaginator
     {
+        $perPage = intval($perPage);
+
         $recipient_lists = auth()->user()->hasRole('admin')
             ? RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
             : auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
