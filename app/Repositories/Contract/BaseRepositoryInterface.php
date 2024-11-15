@@ -22,5 +22,7 @@ interface BaseRepositoryInterface
 
     public function find($id);
 
+    public function findBy($field, $value);
+
     public function paginate($perPage, $latest = true);
 }

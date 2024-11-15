@@ -96,6 +96,16 @@ class BaseRepository implements BaseRepositoryInterface
     }
 
     /**
+     * @param $field
+     * @param $value
+     * @return mixed
+     */
+    public function findBy($field, $value)
+    {
+        return $this->model->where($field, $value)->first();
+    }
+
+    /**
      * @param $perPage
      * @param $latest
      * @return LengthAwarePaginator
