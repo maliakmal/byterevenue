@@ -10,16 +10,19 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * @OA\Info(
  *     title="Auth API",
  *     version="1.0.0"
  * )
- * @OA\Server(
- *      url="/api",
- *      description="API Server"
- *  )
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     securityScheme="bearerAuth",
+ *     scheme="bearer",
+ *     bearerFormat="JWT"
+ * )
  */
 class AuthController extends ApiController
 {
@@ -118,17 +121,30 @@ class AuthController extends ApiController
      *     path="/logout",
      *     summary="Logout user",
      *     tags={"Auth"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful logout"
      *     )
      * )
      */
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
         $user = auth()->user();
 
-        $user->tokens()->delete();
+        if (!$user) {
+            $token = PersonalAccessToken::where(
+                    'token',
+                    $request->bearerToken()
+                )
+                ->first();
+
+            $user = $token ? User::find($token->tokenable_id) : null;
+        }
+
+        if ($user) {
+            $user->tokens()->delete();
+        }
 
         return $this->responseSuccess([], 'Logged out successfully');
     }
@@ -138,6 +154,7 @@ class AuthController extends ApiController
      *     path="/refresh",
      *     summary="Refresh token",
      *     tags={"Auth"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Token refreshed",
@@ -153,7 +170,7 @@ class AuthController extends ApiController
      */
     public function refresh(): JsonResponse
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         if (!$user) {
             return $this->responseError([], 'User not found', 404);
@@ -171,6 +188,7 @@ class AuthController extends ApiController
      *     path="/me",
      *     summary="Get authenticated user",
      *     tags={"Auth"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Authenticated user",
@@ -180,9 +198,9 @@ class AuthController extends ApiController
      *     )
      * )
      */
-    public function me(Request $request): JsonResponse
+    public function me(): JsonResponse
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user();
 
         return $this->responseSuccess(compact('user'));
     }

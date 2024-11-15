@@ -543,6 +543,19 @@
                             </div>
                         </a>
                     </li>
+                    <li class="px-3 py-2 rounded-sm mb-0.5 last:mb-0">
+                        <a class="block text-slate-200 hover:text-white truncate transition duration-150" href="{{ '/'. config('l5-swagger.documentations.default.routes.api') }}">
+                            <div class="flex items-center justify-between">
+                                <div class="grow flex items-center">
+                                    <svg width="40px" height="40px" class="shrink-0 h-6 w-6">
+                                        <path class="fill-current text-slate-300" d="M3 21L11 13M11 13H5M11 13V19" stroke="#c0c0c0" stroke-width="2"></path>
+                                        <path class="fill-current text-slate-500" opacity="0.5" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Swagger</span>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
 </ul>
 </div>
 @endrole

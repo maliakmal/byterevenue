@@ -14,6 +14,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SimcardController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UrlShortenerController;
+use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -187,6 +188,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::get('/user/campaigns', [CampaignController::class, 'getCampaignsForUserApi']);
         Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokensApi']);
+
+        Route::controller(UserController::class)->prefix('user')->group(function () {
+            Route::put('/edit', 'edit');
+            Route::post('/change_password', 'changePassword');
+        });
     });
 });
 
