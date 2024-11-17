@@ -14,6 +14,8 @@ interface BaseRepositoryInterface
 
     public function updateByID(array $data, $id);
 
+    public function updateBySlug(array $data, $slug);
+
     public function updateByModel(array $data, Model $model);
 
     public function delete($id);

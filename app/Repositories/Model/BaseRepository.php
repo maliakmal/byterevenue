@@ -57,6 +57,16 @@ class BaseRepository implements BaseRepositoryInterface
 
     /**
      * @param array $data
+     * @param $slug
+     * @return mixed
+     */
+    public function updateBySlug(array $data, $slug)
+    {
+        return $this->model->where('slug', $slug)->update($data);
+    }
+
+    /**
+     * @param array $data
      * @param Model $model
      * @return Model
      */
