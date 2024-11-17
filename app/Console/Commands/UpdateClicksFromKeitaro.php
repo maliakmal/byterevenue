@@ -60,13 +60,16 @@ class UpdateClicksFromKeitaro extends Command
             }
             foreach ($response['rows'] as $row){
                 $log_id = $row['sub_id_1'];
-                if (!is_numeric($log_id)) {
-                    \Log::error('log id is not numeric', ['log_id' => $log_id]);
-                    continue;
-                }
+
+//                if (!is_numeric($log_id)) {
+//                    \Log::error('log id is not numeric', ['log_id' => $log_id]);
+//                    continue;
+//                }
+
                 $log_data = $this->tryGetLog($row);
                 $date_time_string = $row['datetime'];
                 $date_time = null;
+
                 try {
                     $date_time = Carbon::parse($date_time_string);
                 }
@@ -74,24 +77,30 @@ class UpdateClicksFromKeitaro extends Command
                     \Log::error('error parse date', ['date' => $date_time_string]);
                     $date_time = Carbon::now();
                 }
+
                 $updateData = [
                     'is_click' => true,
                     'clicked_at' => $date_time,
                     'keitaro_click_log' => $log_data,
                 ];
+
                 if (isset($row['is_bot'])){
                     $updateData['is_bot'] = $row['is_bot'];
                 }
+
                 if (isset($row['is_unique_global'])){
                     $updateData['is_unique_global'] = $row['is_unique_global'];
                 }
+
                 if (isset($row['is_unique_campaign'])){
                     $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
                 }
+
                 if ($this->broadcastLogRepository->updateByID($updateData, $log_id) === false){
                     Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
                 }
             }
+
             $offset += $limit;
             $total = $response['total'];
         }
