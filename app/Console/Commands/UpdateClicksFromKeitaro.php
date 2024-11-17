@@ -34,6 +34,7 @@ class UpdateClicksFromKeitaro extends Command
      */
     public function handle()
     {
+        \Log::info('start update clicks from keitaro');
         $this->broadcastLogRepository = app()->make(BroadcastLogRepositoryInterface::class);
         $click_service = new ClickService();
         $form = $end = Carbon::now()->format('Y-m-d');
@@ -43,7 +44,9 @@ class UpdateClicksFromKeitaro extends Command
         $response = null;
         while ($offset == 0 || $total > $offset) {
             try {
+                \Log::info('run request to keitaro');
                 $response = $click_service->getClicksOnKeitaro($form, $end, $limit, $offset);
+                \Log::info('complete request to keitaro. Count of records: ' . count($response['rows'] ?? []));
             } catch (\Exception $exception) {
                 Log::error('error read clicks from keitaro', [
                     'form' => $form,
@@ -122,7 +125,8 @@ class UpdateClicksFromKeitaro extends Command
                 "ip" => $row['ip'] ?? null,
             ];
             return $data;
-        }catch (\Exception $exception){
+        } catch (\Exception $exception) {
+            \Log::error('error get log data');
             report($exception);
         }
         return null;
