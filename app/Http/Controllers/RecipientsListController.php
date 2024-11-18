@@ -24,7 +24,8 @@ class RecipientsListController extends ApiController
      */
     public function __construct(
         private RecipientListService $recipientListService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
@@ -63,11 +64,11 @@ class RecipientsListController extends ApiController
     {
         $nameFilter = $request->get('name');
         $isImportedFilter = $request->get('is_imported', '');
-        $perPage = $request->get('per_page',5);
+        $perPage = $request->get('per_page', 5);
         $recipientList = $this->recipientListService->getRecipientLists(
-            $perPage,
             $nameFilter,
-            $isImportedFilter
+            $isImportedFilter,
+            $perPage,
         );
 
         return $this->responseSuccess($recipientList);
