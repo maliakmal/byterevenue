@@ -66,9 +66,7 @@
 
         <h1 class="text-2xl md:text-3xl text-slate-800 dark:text-slate-100 font-bold mb-1">Dashboard</h1>
 
-        @if ($cache_updated_at)
-            <div class="text-sm">Last update: {{ $cache_updated_at }}</div>
-        @endif
+        <div class="text-sm">Last update: {{ $cache_updated_at ?? '- direct -' }}</div>
 
           <div class="mt-5">
 
@@ -125,11 +123,6 @@
                   </div>
                 </div>
               </li>
-
-
-
-
-
               </ul>
 
             </div>

@@ -49,7 +49,7 @@ class DashboardController extends ApiController
                 'clicks_graph'       => $dashboardData['clicks_graph'],
                 'ctr'                => $dashboardData['ctr'],
                 'labels'             => $dashboardData['labels'],
-                'cache_updated_at'   => $dashboardData['updated_cache'],
+                'cache_updated_at'   => $dashboardData['cache_updated_at'],
             ]
         );
     }
