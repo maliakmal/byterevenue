@@ -5,6 +5,7 @@ namespace App\Repositories\Model\BroadcastLog;
 use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -55,28 +56,6 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     }
 
     /**
-     * @param array $inputs
-     */
-    // abandoned?
-    public function requeueUnsent(array $inputs)
-    {
-        $query = $this->model->newQuery();
-        $query = $query->where('is_sent', '0');
-
-        if (!empty($inputs['campaign_id'])) {
-            $query = $query->where('campaign_id', $inputs['campaign_id']);
-        }
-
-        if (!empty($inputs['batch'])) {
-            $query = $query->where('batch', $inputs['batch']);
-        }
-
-        if (!empty($inputs['count'])) {
-            $query = $query->limit($inputs['count']);
-        }
-    }
-
-    /**
      * @params array $inputs
      * @return mixed
      */
@@ -104,7 +83,11 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     }
 
     public function getUniqueCampaignsIDsFromExistingBatch($batch){
-        $query = $this->model->newQuery()->select('campaign_id')->distinct();
+        $query = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->select('campaign_id')
+            ->distinct();
+
         $query = $query->where('batch', $batch);
 
         return $query->pluck('campaign_id');
@@ -112,8 +95,12 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     public function getUniqueCampaignsIDs($limit = null)
     {
-        $query = $this->model->newQuery()->select('campaign_id');
+        $query = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->select('campaign_id');
+
         //$query = $query->whereNull('batch');
+
         if (!is_null($limit)) {
             $query = $query->take($limit);
         }
@@ -136,35 +123,53 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     public function getTotalSentAndClicksByCampaign($campaign_id)
     {
-        $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->select([
-            DB::raw('COUNT(id) as total'),
-            DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
-            DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
-            DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
-        ])->first();
+        $totals = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->where('campaign_id', $campaign_id)
+            ->select([
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ])
+            ->first();
+
+        // TODO:: add archived campaigns for campaign mode
 
         return $totals;
      }
 
     public function getTotalSentAndClicksByBatch($batch_no)
     {
-        $totals = $this->model->newQuery()->where('batch', $batch_no)->select([
-            DB::raw('COUNT(id) as total'),
-            DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
-            DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
-            DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
-        ])->first();
+        $totals = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->where('batch', $batch_no)
+            ->select([
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ])
+            ->first();
+
+        // TODO:: add archived campaigns for campaign mode
 
         return $totals;
     }
 
     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no)
     {
-        $totals = $this->model->newQuery()->where('campaign_id', $campaign_id)->where('batch', $batch_no)->select([
-            DB::raw('COUNT(id) as total'),
-            DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
-            DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
-        ])->first();
+        $totals = \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->where('campaign_id', $campaign_id)
+            ->where('batch', $batch_no)->select([
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
+            ])
+            ->first();
+
+        // TODO:: add archived campaigns for campaign mode
 
         return $totals;
     }
@@ -177,7 +182,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
      */
     public function getTotals($startDate, $endDate)
     {
-        return DB::connection('mysql')
+        return \DB::connection('mysql')
             ->table('broadcast_logs')
             ->selectRaw("
                             COUNT(CASE WHEN is_sent = 1 AND sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
@@ -194,7 +199,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
      */
     public function getArchivedTotals($startDate, $endDate)
     {
-        return DB::connection('storage_mysql')
+        return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
             ->selectRaw("
                             COUNT(CASE WHEN sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
@@ -204,19 +209,21 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     }
 
     /**
-     * @param $startDate
-     * @param $endDate
+     * @param Carbon $startDate
+     * @param Carbon $endDate
      *
      * @return mixed
      */
-    public function getClicked($startDate, $endDate)
+    public function getClicked(Carbon $startDate, Carbon $endDate)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->where('is_click', true)
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+            ->select(DB::raw("DATE(clicked_at) AS date, COUNT(*) AS count"))
+            ->whereNotNull('clicked_at')
+            ->where('clicked_at', '>=', $startDate->toDateTimeString())
+            ->where('clicked_at', '<=', $endDate->toDateTimeString())
+            ->groupBy(DB::raw('DATE(clicked_at)'))
+            ->get();
     }
 
     /**
@@ -229,10 +236,12 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
+            ->select(DB::raw("DATE(clicked_at) AS date, COUNT(*) AS count"))
             ->whereNotNull('clicked_at')
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+            ->where('clicked_at', '>=', $startDate->toDateTimeString())
+            ->where('clicked_at', '<=', $endDate->toDateTimeString())
+            ->groupBy(DB::raw('DATE(clicked_at)'))
+            ->get();
     }
 
     /**
@@ -245,10 +254,12 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
-            ->where('is_sent', true)
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+            ->select(DB::raw("DATE(sent_at) AS date, COUNT(*) AS count"))
+            ->whereNotNull('sent_at')
+            ->where('sent_at', '>=', $startDate->toDateTimeString())
+            ->where('sent_at', '<=', $endDate->toDateTimeString())
+            ->groupBy(DB::raw('DATE(sent_at)'))
+            ->get();
     }
 
     /**
@@ -261,9 +272,11 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(created_at) AS date, COUNT(*) AS count"))
-            ->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)
+            ->select(DB::raw("DATE(sent_at) AS date, COUNT(*) AS count"))
             ->whereNotNull('sent_at')
-            ->groupBy(DB::raw('DATE(created_at)'))->get();
+            ->where('sent_at', '>=', $startDate->toDateTimeString())
+            ->where('sent_at', '<=', $endDate->toDateTimeString())
+            ->groupBy(DB::raw('DATE(sent_at)'))
+            ->get();
     }
 }
