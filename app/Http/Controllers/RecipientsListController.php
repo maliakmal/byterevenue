@@ -1,15 +1,19 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\RecipientStoreRequest;
 use App\Http\Requests\RecipientUpdateRequest;
+use App\Models\ImportRecipientsList;
 use App\Models\RecipientsList;
 use App\Models\Contact;
 use App\Services\RecipientList\RecipientListService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\ImportRecipientListsJob;
 
 /**
  * @OA\Tag(
@@ -24,8 +28,7 @@ class RecipientsListController extends ApiController
      */
     public function __construct(
         private RecipientListService $recipientListService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -40,7 +43,13 @@ class RecipientsListController extends ApiController
         if (request()->input('output') == 'json') {
             return response()->success(null, $recipient_lists);
         }
-        return view('recipient_lists.index', compact('recipient_lists'));
+
+        $processing = ImportRecipientsList::query()
+            ->whereNull('processed_at')
+            ->where('is_failed', 0)
+            ->exists();
+
+        return view('recipient_lists.index', compact('recipient_lists', 'processing'));
     }
 
     /**
@@ -80,6 +89,7 @@ class RecipientsListController extends ApiController
     public function create()
     {
         $sources = $this->getSourceForUser(auth()->id());
+
         return view('recipient_lists.create', compact('sources'));
     }
 
@@ -90,13 +100,30 @@ class RecipientsListController extends ApiController
     {
         $file = $request->file('csv_file');
 
-        [$success, $message] = $this->recipientListService->store($request->validated(), $file);
+            $newFileName = uniqid() . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('recipient_lists', $newFileName);
 
-        if ($success) {
-            return redirect()->route('recipient_lists.index')->with('success', $message);
-        }
+            $data = $request->validated();
+            unset($data['csv_file']);
 
-        return redirect()->back()->with('error', $message);
+            $interfaceBusy = ImportRecipientsList::query()
+                ->whereNull('processed_at')
+                ->whereNull('is_failed')
+                ->first();
+
+            if ($interfaceBusy) {
+                return redirect()->back()->with('error', 'Already processing');
+            }
+
+            $importRecipientsListId = ImportRecipientsList::create([
+                'user_id'   => auth()->id(),
+                'data'      => $data,
+                'file_path' => $filePath,
+            ]);
+
+            ImportRecipientListsJob::dispatch($importRecipientsListId);
+
+            return redirect()->route('recipient_lists.index')->with('success', 'The list is being processed and created');
     }
 
     /**

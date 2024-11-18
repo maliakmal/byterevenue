@@ -54,13 +54,13 @@
             @csrf
             <div class="mb-4 mt-4">
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name of List</label>
-              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="name" name="name" >
+              <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="name" name="name" value="{{ old('name') }}">
               <input type="hidden" class="" id="total_columns" name="total_columns" >
 
             </div>
             <div class="mb-4 mt-4">
               <label for="source" class="block text-gray-700 text-sm font-bold mb-2">Source</label>
-              <input list="sources" type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="source" name="source" >
+              <input list="sources" type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required="required" id="source" name="source" value="{{ old('source') }}">
                 <datalist id="sources">
                     @foreach($sources as $source)
                         <option value="{{$source}}" />

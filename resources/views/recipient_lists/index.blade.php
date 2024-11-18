@@ -24,16 +24,19 @@
           </div>
         </div>
         <div class="mt-5 flex xl:mt-0 xl:ml-4">
-
           <span class="ml-3 hidden sm:block">
-            <a href="{{ route('recipient_lists.create') }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
-<svg  class="-ml-1 mr-2 h-5 w-5 text-gray-400"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" >
-  <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
+              @if(!isset($processing) || !$processing)
+                  <a href="{{ route('recipient_lists.create') }}"
+                     class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">
+<svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+     fill="currentColor">
+  <path fill-rule="evenodd"
+        d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z"
+        clip-rule="evenodd"/>
 </svg>
-
-
               Add Recipient List
 </a>
+              @endif
           </span>
 
 
@@ -45,6 +48,14 @@
   <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
     @include('partials.alerts')
+        @if(isset($processing) && $processing)
+            <div class="bg-blue-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-3" role="alert">
+                <span class="block sm:inline">File in process of importing...</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onclick="this.parentElement.parentElement.style.display='none';"><title>Close</title><path d="M14.348 14.849a1 1 0 001.415-1.414l-4.829-4.829 4.829-4.829A1 1 0 0014.348 2.93l-4.829 4.829-4.829-4.829A1 1 0 102.93 4.606l4.829 4.829-4.829 4.829a1 1 0 101.414 1.414l4.829-4.829 4.829 4.829z"/></svg>
+            </span>
+            </div>
+        @endif
     <div class=" sm:rounded-lg">
     <div  class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
         <div id="card-container" class="p-6 bg-white border-b border-gray-200">

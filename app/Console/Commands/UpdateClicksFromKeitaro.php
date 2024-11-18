@@ -64,7 +64,7 @@ class UpdateClicksFromKeitaro extends Command
             }
 
             foreach ($response['rows'] as $row){
-                $log_id = $row['sub_id_1'];
+                $log_id = $row['u'];
 
                 if (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
                     \Log::error('log id is not valid', ['log_id' => $log_id]);
