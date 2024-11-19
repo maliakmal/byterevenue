@@ -37,7 +37,7 @@ class CampaignService
 
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        $param = config('app.keitaro.uid_param', 'sub_id_1');
+        $param = config('app.keitaro.uid_param', 'u');
         return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 
