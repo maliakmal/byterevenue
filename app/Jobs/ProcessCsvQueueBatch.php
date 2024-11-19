@@ -162,7 +162,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 $new_campaigns->add($_new_campaign);
             }
 
-            $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->id);
+            $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->slug);
 
             $message_body = $message->getParsedMessage($generated_url);
             $cases .= "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
