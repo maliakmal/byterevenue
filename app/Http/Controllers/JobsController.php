@@ -74,28 +74,13 @@ class JobsController extends ApiController
      * )
      * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index()
     {
-        $download_me = null;
-        $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
-        $files = BatchFile::orderby('id', 'desc')->paginate(15);
+        $params = $this->jobService->index();
 
-        // $batches = [];
-
-        // get individual batches
-        // foreach ($files as $_file) {
-        //    $batches[] = $_file->getBatchFromFilename();
-        // }
-
-        // $message_ids = BroadcastLog::whereIn('batch', $batches)->distinct()->pluck('message_id');
-
-        // get count of all messages in the queue
-        $queue_stats = $this->broadcastLogRepository->getQueueStats();
-        $params['total_in_queue'] = $queue_stats['total_in_queue'];//BroadcastLog::select()->count();
-        $params['files'] = $files;
-        $params['download_me'] = $download_me;
-        $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];// BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
+        if (request()->wantsJson()) {
+            return $this->responseSuccess($params);
+        }
 
         return view('jobs.index', compact('params'));
     }
@@ -162,24 +147,23 @@ class JobsController extends ApiController
 
         $batch_file->campaigns()->attach($campaign_ids);
 
-        Log::info('numBatches - ' . $numBatches);
-
         for ($batch = 0; $batch < $numBatches; $batch++) {
+            \Log::debug('BATCH number - '. $batch .' total - '. $numBatches);
             $offset = $batch * $batchSize;
             $is_last = $batch >= $numBatches - 1;
 
-            Log::info('BATCH number - ' . $batch);
-            Log::info('BATCH number - ' . $numBatches);
+            Log::info('BATCH number - '. $batch .' total - '. $numBatches);
 
-            $params = [];
-            $params['offset'] = $offset;
-            $params['batchSize'] = $batchSize;
-            $params['url_shortener'] = $urlShortenerName;
-            $params['batch_no'] = $batch_no;
-            $params['batch_file'] = $batch_file;
-            $params['is_last'] = $is_last;
-            $params['type'] = $type;
-            $params['campaigns_ids'] = $campaign_ids;
+            $params = [
+                'offset' => $offset,
+                'batchSize' => $batchSize,
+                'url_shortener' => $urlShortenerName,
+                'batch_no' => $batch_no,
+                'batch_file' => $batch_file,
+                'is_last' => $is_last,
+                'type' => $type,
+                'campaigns_ids' => $campaign_ids,
+            ];
 
             dispatch(new ProcessCsvQueueBatch($params));
         }
@@ -204,14 +188,6 @@ class JobsController extends ApiController
         }
 
         return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
-    }
-
-    /**
-     * @return JsonResponse
-     */
-    public function indexApi()
-    {
-        return $this->responseSuccess($this->jobService->index());
     }
 
     /**
@@ -241,30 +217,18 @@ class JobsController extends ApiController
         $batch_file = $this->jobService->regenerateUnsent($request->validated());
 
         if (!$batch_file) {
-            return $this->responseError('CSV generation failed.');
+            if ($request->ajax()) {
+                return $this->responseError('CSV generation failed.');
+            }
+
+            return redirect()->route('jobs.index')->with('error', 'CSV generation failed.');
         }
 
         if ($request->ajax()) {
             return response()->json(['data' => $batch_file]);
-        } else {
-            return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
         }
 
-    }
-
-    /**
-     * @param JobRegenerateRequest $request
-     * @return JsonResponse
-     */
-    public function regenerateUnsentApi(JobRegenerateRequest $request)
-    {
-        $batch_file = $this->jobService->regenerateUnsent($request->validated());
-
-        if ($batch_file) {
-            return $this->responseSuccess($batch_file, 'CSV is being generated.');
-        }
-
-        return $this->responseError('CSV generation failed.');
+        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
     }
 
     public function downloadFile($filename)

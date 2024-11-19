@@ -101,7 +101,7 @@
                   <span>File {{ $file['id'] }}.csv (preparation)</span>
                   @endif
                   @if(strstr($file['filename'], 'regen'))
-                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN</span>
+                    <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN {{ $file['prev_batch_id'] ?? '' }}</span>
                   @else
                   @endif
                 </td>

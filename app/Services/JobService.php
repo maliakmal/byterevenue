@@ -30,16 +30,7 @@ class JobService
     {
         $download_me = null;
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
-
         $files = BatchFile::orderby('id', 'desc')->paginate(15);
-
-        $batches = [];
-        // get individual batches
-        foreach ($files as $_file) {
-            $batches[] = $_file->getBatchFromFilename();
-        }
-
-        $message_ids = BroadcastLog::whereIn('batch', $batches)->distinct()->pluck('message_id');
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
@@ -47,104 +38,9 @@ class JobService
         $params['files'] = $files;
         $params['download_me'] = $download_me;
         $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];
+        $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];// BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
 
         return $params;
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return array
-     */
-    public function createJob(array $data)
-    {
-        // old version of code
-        // TODO:: get changes from app/Http/Controllers/JobsController.php
-        $total = $data['number_messages'];
-        $urlShortenerName = $data['url_shortener'];
-        $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
-        $domain_id = $urlShortener->asset_id;
-        $batchSize = 100;
-        $type = 'fifo';
-        $type_id = null;
-
-        if ($data['type'] === 'campaign') {
-            $uniq_campaign_ids = array_filter($data['campaign_ids'], function ($value) {
-                return $value !== 0 && !empty($value);
-            });
-
-            $campaign_short_urls = $this->createCampaignShortUrls(
-                $uniq_campaign_ids,
-                $urlShortenerName,
-                $urlShortener
-            );
-
-            $type = 'campaign';
-            $type_id = $uniq_campaign_ids;
-            //$uniq_campaign_ids = [$uniq_campaign_id];
-
-        } else {
-            $uniq_campaign_ids = array_filter(
-                $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray(),
-                function ($value) {
-                    return $value !== 0 && !empty($value);
-                }
-            );
-
-            $campaign_short_urls = $this->createCampaignShortUrls(
-                $uniq_campaign_ids,
-                $urlShortenerName,
-                $urlShortener
-            );
-        }
-
-        $numBatches = ceil($total / $batchSize);
-        $batch_no = preg_replace("/[^A-Za-z0-9]/", '', microtime());
-
-        $filename = "/csv/byterevenue-messages-$batch_no.csv";
-
-        $batch_file = BatchFile::create([
-            'filename' => $filename,
-            'path' => env('DO_SPACES_ENDPOINT') . $filename,
-            'number_of_entries' => $total,
-            'is_ready' => 0
-        ]);
-
-        $batch_file->campaigns()->attach($uniq_campaign_ids);
-
-        Log::info('numBatches - ' . $numBatches);
-        for ($batch = 0; $batch < $numBatches; $batch++) {
-            $offset = $batch * $batchSize;
-            $is_last = $batch == ($numBatches - 1) ? true : false;
-            Log::info('BATCH number - ' . $batch);
-            Log::info('BATCH number - ' . $numBatches);
-            $params = [];
-            $params['offset'] = $offset;
-            $params['batchSize'] = $batchSize;
-            $params['url_shortener'] = $urlShortenerName;
-            $params['batch_no'] = $batch_no;
-            $params['batch_file'] = $batch_file;
-            $params['is_last'] = $is_last;
-            $params['type'] = $type;
-            $params['type_id'] = $type_id;
-            dispatch(new ProcessCsvQueueBatch($params));//$offset, $batchSize, $urlShortenerName, $batch_no, $batch_file, $is_last, $type, $type_id));
-        }
-
-        $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
-        dispatch(new CreateCampaignsOnKeitaro($params));
-
-        $one = $batch_file->toArray();
-        $_batch_no = $batch_file->getBatchFromFilename();
-        // get all entries with the campaig id and the batch no
-        $specs = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($_batch_no);
-        $one['total_entries'] = $specs['total'];
-        $one['total_sent'] = $specs['total_sent'];
-        $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
-        $one['total_clicked'] = $specs['total_clicked'];
-        $one['created_at_ago'] = $batch_file->created_at->diffForHumans();
-
-        return $one;
     }
 
     /**
@@ -200,8 +96,7 @@ class JobService
         $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
         $domain_id = $_url_shortener->asset_id;
         $original_batch_no = $batch;
-        $campaign_short_urls = [];
-        $batchSize = 100;
+        $batchSize = 100; // ids scope for each job
         $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch' => $batch]);
         $total = count($unsent_logs);
         $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($batch);
@@ -241,34 +136,50 @@ class JobService
         }
 
         $numBatches = ceil($total / $batchSize);
-        $campaign_short_url_map = []; // maps campaign_id -> short url
-
         $batch_no = $batch ."_1";
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
+        if ($numBatches == 0) {
+            return null;
+        }
+
         $batch_file = BatchFile::create([
-            'filename' => $filename,
-            'path' => env('DO_SPACES_ENDPOINT') . $filename,
+            'filename'          => $filename,
+            'path'              => env('DO_SPACES_ENDPOINT') . $filename,
             'number_of_entries' => $total,
-            'is_ready' => 0
+            'is_ready'          => 0,
+            'prev_batch_id'     => $batch_id,
         ]);
 
         $batch_file->campaigns()->attach($uniq_campaign_ids);
 
-        Log::info("numBatches - $numBatches");
-
         for ($batchCnt = 0; $batchCnt < $numBatches; $batchCnt++) {
             $offset = $batchCnt * $batchSize;
-            $is_last = $batchCnt == ($numBatches + 1) ? true : false;
-            Log::info('BATCH number - ' . $batchCnt);
-            dispatch(new ProcessCsvRegenQueueBatch($offset, $batchSize, $url_shortener, $original_batch_no, $batch_no, $batch_file, $is_last, $type, $type_id, $message_id));
+            $is_last = $batch >= $numBatches - 1;
+
+            $params = [
+                'offset' => $offset,
+                'batchSize' => $batchSize,
+                'url_shortener' => $url_shortener,
+                'original_batch_no' => $original_batch_no,
+                'batch_no' => $batch_no,
+                'batch_file' => $batch_file,
+                'is_last' => $is_last,
+                'type' => $type,
+                'type_id' => $type_id,
+                'message_id' => $message_id
+            ];
+
+            dispatch(new ProcessCsvRegenQueueBatch($params));
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
-        dispatch(new CreateCampaignsOnKeitaro($params));
-        $original_filename = "/csv/byterevenue-messages-$batch.csv";
 
+        dispatch(new CreateCampaignsOnKeitaro($params));
+
+        $original_filename = "/csv/byterevenue-messages-$batch.csv";
         $original_batch_file = BatchFile::select()->where('filename', $original_filename)->get()->first();
+
         if ($original_batch_file) {
             $original_batch_file->number_of_entries -= $total;
             $original_batch_file->save();

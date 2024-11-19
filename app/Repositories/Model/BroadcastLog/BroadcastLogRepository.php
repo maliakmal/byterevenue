@@ -136,7 +136,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         // TODO:: add archived campaigns for campaign mode
 
-        return $totals;
+        return (array)$totals;
      }
 
     public function getTotalSentAndClicksByBatch($batch_no)
@@ -154,7 +154,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         // TODO:: add archived campaigns for campaign mode
 
-        return $totals;
+        return (array)$totals;
     }
 
     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no)
@@ -171,7 +171,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         // TODO:: add archived campaigns for campaign mode
 
-        return $totals;
+        return (array)$totals;
     }
 
     /**
