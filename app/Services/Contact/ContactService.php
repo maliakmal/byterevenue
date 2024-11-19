@@ -38,7 +38,11 @@ class ContactService
             ->when($name, function ($query, $name) {
                 return $query->where('name', $name);
             })->orderBy('id', 'desc')->paginate($perPage);
-
+        foreach ($contacts as $contact) {
+            $info = $this->getInfo([$contact->id]);
+            $contact['sent_count'] = $info['sent'];
+            $contact['campaigns_count'] = $info['campaigns'];
+        }
         return $contacts;
     }
 
@@ -57,14 +61,14 @@ class ContactService
             ->groupBy('campaign_id')
             ->count();
 
-        $recipientLists = DB::table('contact_recipient_list')
-            ->whereIn('contact_id', $ids)
-            ->count();
+        // $recipientLists = DB::table('contact_recipient_list')
+        //     ->whereIn('contact_id', $ids)
+        //     ->count();
 
         return [
             'sent' => $sent,
             'campaigns' => $campaigns,
-            'recipientLists' => $recipientLists,
+            // 'recipientLists' => $recipientLists,
         ];
     }
 }

@@ -49,6 +49,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
+        'roles',
     ];
 
     /**
@@ -109,5 +110,10 @@ class User extends Authenticatable
         ]);
         $this->tokens += $amount;
         $this->save();
+    }
+
+    public function getRolesAttribute()
+    {
+        return $this->roles()->pluck('name');
     }
 }
