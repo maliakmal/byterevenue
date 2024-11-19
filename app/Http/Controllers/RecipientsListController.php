@@ -241,7 +241,7 @@ class RecipientsListController extends ApiController
      */
     public function updateApi(int $id, RecipientUpdateRequest $request): JsonResponse
     {
-        $recipientsList = RecipientsList::findOrFail($id);
+        $recipientsList = RecipientsList::withCount(['contacts', 'campaigns'])->findOrFail($id);
 
         $recipientsList->update($request->validated());
 

@@ -115,10 +115,7 @@ class ContactController extends ApiController
             'provinces' => $this->areaCodeService->getAllProvinces(true),
         ];
 
-        return $this->responseSuccess([
-            'contacts' => $contacts,
-            'area_data' => $areaData,
-        ]);
+        return $this->responseSuccess($contacts);
     }
 
     public function create()
@@ -316,7 +313,7 @@ class ContactController extends ApiController
      */
     public function updateApi(int $id, ContactUpdateRequest $request)
     {
-        $contact = Contact::find($id);
+        $contact = Contact::withCount(['blackListNumber'])->find($id);
 
         if (!$contact) {
             return $this->responseError([], 'Contact not found.', 404);
@@ -327,6 +324,9 @@ class ContactController extends ApiController
             'email' => $request->email,
             'phone' => $request->phone,
         ]);
+        $info = $this->contactService->getInfo([$id]);
+        $contact['sent_count'] = $info['sent'];
+        $contact['campaigns_count'] = $info['campaigns'];
 
         return $this->responseSuccess($contact);
     }
