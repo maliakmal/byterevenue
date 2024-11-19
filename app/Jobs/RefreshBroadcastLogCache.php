@@ -39,11 +39,11 @@ class RefreshBroadcastLogCache implements ShouldQueue
      */
     public function handle(BroadcastLogRepository $broadcastLogRepository): void
     {
+        \Log::debug('Refreshing broadcast log cache');
+
         sleep(30);
 
         $start = microtime(true);
-
-        \Log::debug('Refreshing broadcast log cache');
 
         Cache::forever('ready_'. $this->startEndString, true);
 

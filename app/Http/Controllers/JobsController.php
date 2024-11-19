@@ -58,7 +58,6 @@ class JobsController extends ApiController
         return $this->responseSuccess($this->jobService->campaigns($request->validated()));
     }
 
-    // TODO:: POST method for generate CSV
     /**
      * @OA\Get(
      *     path="/jobs",

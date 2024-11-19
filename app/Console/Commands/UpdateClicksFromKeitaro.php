@@ -64,13 +64,12 @@ class UpdateClicksFromKeitaro extends Command
             }
 
             foreach ($response['rows'] as $row){
-                $log_id = $row['u'];
+                $log_id = $row['sub_id_1'];
 
                 if (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
-                    \Log::error('log id is not valid', ['log_id' => $log_id]);
+                    \Log::error('log id is not valid', ['log' => $row]);
                     continue;
                 }
-
 
                 $log_data = $this->tryGetLog($row);
                 $date_time_string = $row['datetime'];
@@ -113,7 +112,7 @@ class UpdateClicksFromKeitaro extends Command
             $total = $response['total'];
         }
 
-        if ($this->hasChanges) {
+        //if ($this->hasChanges) {
 
             if (!Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
                 Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
@@ -121,7 +120,7 @@ class UpdateClicksFromKeitaro extends Command
             } else {
                 $this->info('Broadcast log cache is already running.');
             }
-        }
+        //}
     }
 
     /**
