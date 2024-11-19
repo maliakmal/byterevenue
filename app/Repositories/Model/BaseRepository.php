@@ -57,6 +57,16 @@ class BaseRepository implements BaseRepositoryInterface
 
     /**
      * @param array $data
+     * @param $slug
+     * @return mixed
+     */
+    public function updateBySlug(array $data, $slug)
+    {
+        return $this->model->where('slug', $slug)->update($data);
+    }
+
+    /**
+     * @param array $data
      * @param Model $model
      * @return Model
      */
@@ -93,6 +103,16 @@ class BaseRepository implements BaseRepositoryInterface
     public function find($id)
     {
         return $this->model->find($id);
+    }
+
+    /**
+     * @param $field
+     * @param $value
+     * @return mixed
+     */
+    public function findBy($field, $value)
+    {
+        return $this->model->where($field, $value)->first();
     }
 
     /**

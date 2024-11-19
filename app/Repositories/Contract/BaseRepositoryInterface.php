@@ -14,6 +14,8 @@ interface BaseRepositoryInterface
 
     public function updateByID(array $data, $id);
 
+    public function updateBySlug(array $data, $slug);
+
     public function updateByModel(array $data, Model $model);
 
     public function delete($id);
@@ -21,6 +23,8 @@ interface BaseRepositoryInterface
     public function deleteByModel(Model $model);
 
     public function find($id);
+
+    public function findBy($field, $value);
 
     public function paginate($perPage, $latest = true);
 }

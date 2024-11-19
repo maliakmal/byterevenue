@@ -30,6 +30,7 @@ class CreateCampaignRequest extends AbstractRequest
     private $position;
     private $uniqueness_use_cookies;
     private $traffic_loss;
+    private $parameter;
 
     /**
      * @param $alias
@@ -54,7 +55,7 @@ class CreateCampaignRequest extends AbstractRequest
                                 $cost_type = null, $cost_value = null, $cost_currency = null, $cost_auto = null,
                                 $bind_visitors = null, $traffic_source_id = null, $parameters = null,
                                 $postbacks = null, $notes = null, $uniqueness_method = null, $position = null, $uniqueness_use_cookies = true,
-                                $traffic_loss = 0
+                                $traffic_loss = 0, $parameter = ['sub_id_1' => ['name' => 'u', 'placeholder' => '', 'alias' => 'u']]
     )
     {
         $this->alias = $alias;
@@ -78,6 +79,7 @@ class CreateCampaignRequest extends AbstractRequest
         $this->position = $position;
         $this->uniqueness_use_cookies = $uniqueness_use_cookies;
         $this->traffic_loss = $traffic_loss;
+        $this->parameter = $parameter;
     }
 
 
@@ -105,7 +107,7 @@ class CreateCampaignRequest extends AbstractRequest
             'position'          => $this->position,
             'uniqueness_use_cookies' => $this->uniqueness_use_cookies,
             'traffic_loss'      => $this->traffic_loss,
-
+            'parameter'         => $this->parameter,
         ];
     }
 }

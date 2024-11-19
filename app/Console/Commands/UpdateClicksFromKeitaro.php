@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\RefreshBroadcastLogCache;
 use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Services\Clicks\ClickService;
@@ -29,21 +30,26 @@ class UpdateClicksFromKeitaro extends Command
      */
     protected $description = 'update clicks for today from keitaro';
 
+    protected $hasChanges = false;
+
     /**
      * Execute the console command.
      */
     public function handle()
     {
+        \Log::info('start update clicks from keitaro');
+
         $this->broadcastLogRepository = app()->make(BroadcastLogRepositoryInterface::class);
         $click_service = new ClickService();
         $form = $end = Carbon::now()->format('Y-m-d');
         $limit = 1000;
         $offset = 0;
         $total = null;
-        $response = null;
+
         while ($offset == 0 || $total > $offset) {
             try {
                 $response = $click_service->getClicksOnKeitaro($form, $end, $limit, $offset);
+                \Log::info('complete request to keitaro. Count of records: ' . count($response['rows'] ?? []));
             } catch (\Exception $exception) {
                 Log::error('error read clicks from keitaro', [
                     'form' => $form,
@@ -53,47 +59,68 @@ class UpdateClicksFromKeitaro extends Command
                 ]);
                 report($exception);
                 $this->error('error read from keitaro');
+
                 exit();
             }
+
             foreach ($response['rows'] as $row){
                 $log_id = $row['sub_id_1'];
-                if(!is_numeric($log_id)){
+
+                if (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
+                    \Log::error('log id is not valid', ['log' => $row]);
                     continue;
                 }
+
                 $log_data = $this->tryGetLog($row);
                 $date_time_string = $row['datetime'];
                 $date_time = null;
+
                 try {
                     $date_time = Carbon::parse($date_time_string);
                 }
-                catch (\Exception $exception){
+                catch (\Exception $exception) {
+                    \Log::error('error parse date', ['date' => $date_time_string]);
                     $date_time = Carbon::now();
                 }
+
                 $updateData = [
                     'is_click' => true,
                     'clicked_at' => $date_time,
                     'keitaro_click_log' => $log_data,
                 ];
-                if(isset($row['is_bot'])){
+
+                if (isset($row['is_bot'])){
                     $updateData['is_bot'] = $row['is_bot'];
                 }
-                if(isset($row['is_unique_global'])){
+
+                if (isset($row['is_unique_global'])){
                     $updateData['is_unique_global'] = $row['is_unique_global'];
                 }
-                if(isset($row['is_unique_campaign'])){
+
+                if (isset($row['is_unique_campaign'])){
                     $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
                 }
-                if($this->broadcastLogRepository->updateByID($updateData, $log_id) === false){
+
+                if ($this->broadcastLogRepository->updateByID($updateData, $log_id) === false) {
                     Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
+                } else {
+                    $this->hasChanges = true;
                 }
             }
+
             $offset += $limit;
             $total = $response['total'];
         }
 
-        if ($total && (int) $total > 0) {
-            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true);
-        }
+        //if ($this->hasChanges) {
+
+            if (!Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
+                Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
+                RefreshBroadcastLogCache::dispatch();
+            } else {
+                $this->info('Broadcast log cache is already running.');
+            }
+        //}
     }
 
     /**
@@ -121,11 +148,13 @@ class UpdateClicksFromKeitaro extends Command
                 "browser_icon" => $row['browser_icon'] ?? null,
                 "ip" => $row['ip'] ?? null,
             ];
+
             return $data;
-        }catch (\Exception $exception){
+        } catch (\Exception $exception) {
+            \Log::error('error get log data');
             report($exception);
         }
-        return null;
 
+        return null;
     }
 }

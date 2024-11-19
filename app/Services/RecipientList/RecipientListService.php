@@ -4,8 +4,12 @@ namespace App\Services\RecipientList;
 
 use App\Models\Contact;
 use App\Models\RecipientsList;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\File;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class RecipientListService
 {
@@ -16,8 +20,10 @@ class RecipientListService
      *
      * @return LengthAwarePaginator
      */
-    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, ?int $perPage = 5): LengthAwarePaginator
+    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, $perPage = 5): LengthAwarePaginator
     {
+        $perPage = intval($perPage);
+
         $recipient_lists = auth()->user()->hasRole('admin')
             ? RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
             : auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
@@ -25,6 +31,7 @@ class RecipientListService
         if (isset($nameFilter)) {
             $recipient_lists = $recipient_lists->whereLike('name', "%$nameFilter%");
         }
+
         if (is_numeric($isImportedFilter)) {
             $recipient_lists = $recipient_lists->where('is_imported', $isImportedFilter);
         }
@@ -37,12 +44,14 @@ class RecipientListService
     /**
      * @param array $data
      * @param $file
+     * @param User|null $user
      *
      * @return array
      */
-    public function store(array $data, $file)
+    public function store(array $data, $file, ?User $user = null)
     {
-        $user = auth()->user();
+        $user = auth()->user() ?? $user;
+
         if ($user->show_introductory_screen) {
             $user->update(['show_introductory_screen' => false]);
         }
@@ -54,10 +63,25 @@ class RecipientListService
             ]);
 
             $user_id = $user->id;
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
+
+            if ($file instanceof UploadedFile) {
+                $extension = $file->getClientOriginalExtension();
+            } elseif ($file instanceof File) {
+                $extension = $file->extension();
+            } else {
+                throw new \InvalidArgumentException('Unsupported file type.');
+            }
+
             $newFileName = $user_id . '_' . time() . '.' . $extension;
-            $filePath = $file->storeAs('uploads', $newFileName);
+
+            if ($file instanceof UploadedFile) {
+                $filePath = $file->storeAs('uploads', $newFileName);
+            } elseif ($file instanceof File) {
+                $filePath = Storage::putFileAs('uploads', $file, $newFileName);
+            } else {
+                throw new \InvalidArgumentException('Unsupported file type.');
+            }
+
             $fullPath = storage_path('app/' . $filePath);
 
             $nameColumn = $data['name_column'] ?? null;
@@ -68,6 +92,7 @@ class RecipientListService
 
             $nameVar = '@dummy';
             $emailVar = '@dummy';
+
             if ($nameColumn != null && $nameColumn != '-1') {
                 $dummyVariables[$nameColumn] = 'name';
                 $nameVar = 'name';
@@ -92,9 +117,9 @@ class RecipientListService
                                SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'name' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
                     "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-                                SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
-                                FROM contacts
-                                WHERE file_tag='$newFileName'"
+                           SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+                           FROM contacts
+                           WHERE file_tag='$newFileName'"
                 );
 
                 $recipientsList->is_imported = true;
@@ -109,8 +134,6 @@ class RecipientListService
 
                 return [false, 'Error importing CSV file: ' . $e->getMessage()];
             }
-
-
         } else {
             $data = explode(',', $data['numbers']);
         }

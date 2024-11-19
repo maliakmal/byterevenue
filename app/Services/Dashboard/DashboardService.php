@@ -25,7 +25,7 @@ class DashboardService
     public function getAdminGraphData(Carbon $startDate, Carbon $endDate)
     {
         $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
-        $getFromCache = $this->dataRangeInCache($startDate, $endDate);
+        $getFromCache = !!Cache::get('ready_'. $startEndString);
 
         // operation table data
         $click_data = $getFromCache
@@ -115,8 +115,8 @@ class DashboardService
         $accounts = [];
         $params = [];
         $_dateFormat = 'm/d/Y';
-        $start_date = Carbon::now()->subDays(1)->format($_dateFormat);
-        $end_date = Carbon::now()->format($_dateFormat);
+        $start_date = Carbon::now()->subDay()->format($_dateFormat);
+        $end_date = Carbon::now()->addDay()->format($_dateFormat);
         $campaigns_graph = $send_graph = $clicks_graph = $ctr = $labels = [];
         $cacheUpdatedAt = null;
 
@@ -145,6 +145,7 @@ class DashboardService
                 ->orderBy('updated_at', 'desc')
                 ->limit(10)
                 ->get();
+
             $startDate = Carbon::createFromFormat('m/d/Y', $start_date);
             $endDate = Carbon::createFromFormat('m/d/Y', $end_date);
             $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
@@ -173,23 +174,23 @@ class DashboardService
                 ->distinct('campaign_id')
                 ->count();
 
-            // if archived data from storage needs to be considered
-//            $params['campaigns_remaining_in_queue'] += \DB::connection('storage_mysql')
-//                ->table('broadcast_storage_master')
-//                ->whereNull('sent_at')
-//                ->distinct('campaign_id')
-//                ->count();
+            // archived data from storage
+            $params['campaigns_remaining_in_queue'] += \DB::connection('storage_mysql')
+                ->table('broadcast_storage_master')
+                ->whereNull('sent_at')
+                ->distinct('campaign_id')
+                ->count();
 
             $params['campaigns_in_queue'] = \DB::connection('mysql')
                 ->table('broadcast_logs')
                 ->distinct('campaign_id')
                 ->count();
 
-            // if archived data from storage needs to be considered
-//            $params['campaigns_in_queue'] += \DB::connection('storage_mysql')
-//                ->table('broadcast_storage_master')
-//                ->distinct('campaign_id')
-//                ->count();
+            // archived data from storage
+            $params['campaigns_in_queue'] += \DB::connection('storage_mysql')
+                ->table('broadcast_storage_master')
+                ->distinct('campaign_id')
+                ->count();
 
             $params['campaigns_completed_from_queue'] =
                 $params['campaigns_in_queue'] - $params['campaigns_remaining_in_queue'];
@@ -220,7 +221,7 @@ class DashboardService
             'clicks_graph' => $clicks_graph,
             'ctr' => $ctr,
             'labels' => $labels,
-            'updated_cache' => $cacheUpdatedAt,
+            'cache_updated_at' => $cacheUpdatedAt,
         ];
     }
 
@@ -232,11 +233,9 @@ class DashboardService
      */
     public function dataRangeInCache(Carbon $startDate, Carbon $endDate): bool
     {
-        $startEndString = $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d');
-        $cachedPeriod = Carbon::now()->subDays(1)->format('Y-m-d')
-            . '_'
-            . Carbon::now()->format('Y-m-d');
-        return $cachedPeriod === $startEndString;
+        $startEndString = $startDate->format('Y-m-d') .'_'. $endDate->format('Y-m-d');
+
+        return !!Cache::get('ready_'. $startEndString);
     }
 
     /**

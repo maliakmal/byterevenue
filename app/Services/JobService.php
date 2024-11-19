@@ -59,11 +59,12 @@ class JobService
      */
     public function createJob(array $data)
     {
+        // old version of code
+        // TODO:: get changes from app/Http/Controllers/JobsController.php
         $total = $data['number_messages'];
         $urlShortenerName = $data['url_shortener'];
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
         $domain_id = $urlShortener->asset_id;
-        $campaign_short_urls = [];
         $batchSize = 100;
         $type = 'fifo';
         $type_id = null;
@@ -99,7 +100,6 @@ class JobService
         }
 
         $numBatches = ceil($total / $batchSize);
-        $campaign_short_url_map = []; // maps campaign_id -> short url
         $batch_no = preg_replace("/[^A-Za-z0-9]/", '', microtime());
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";

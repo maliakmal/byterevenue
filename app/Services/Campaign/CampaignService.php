@@ -18,10 +18,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Hidehalo\Nanoid\Client;
 
 class CampaignService
 {
     private $campaignRepository;
+    private $nanoid;
 
     /**
      * CampaignService constructor.
@@ -30,11 +32,12 @@ class CampaignService
     public function __construct(CampaignRepository $campaignRepository)
     {
         $this->campaignRepository = $campaignRepository;
+        $this->nanoid = new Client();
     }
 
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        $param = config('app.keitaro.uid_param', 'sub_id_1');
+        $param = config('app.keitaro.uid_param', 'u');
         return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 
@@ -273,6 +276,7 @@ class CampaignService
 
                 $data[] = [
                     'id' => Str::ulid(),
+                    'slug' => $this->nanoid->generateId(size: 8, mode: Client::MODE_DYNAMIC),
                     'user_id' => $user->id,
                     'recipients_list_id' => $recepientListId,
                     'message_id' => $message->id,
@@ -286,7 +290,7 @@ class CampaignService
                 ];
             }
 
-            $columns = ['id', 'user_id', 'recipients_list_id', 'message_id', 'message_body', 'recipient_phone', 'contact_id', 'is_downloaded_as_csv', 'campaign_id', 'created_at', 'updated_at'];
+            $columns = ['id', 'slug', 'user_id', 'recipients_list_id', 'message_id', 'message_body', 'recipient_phone', 'contact_id', 'is_downloaded_as_csv', 'campaign_id', 'created_at', 'updated_at'];
             $values = collect($data)->map(function ($item) {
                 return '("' . implode('","', $item) . '")';
             })->implode(',');

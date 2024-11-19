@@ -8,10 +8,6 @@
         {
             "url": "/api",
             "description": "API Server"
-        },
-        {
-            "url": "/api",
-            "description": "API Server"
         }
     ],
     "paths": {
@@ -228,7 +224,12 @@
                     "200": {
                         "description": "Successful logout"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/refresh": {
@@ -258,7 +259,12 @@
                     "404": {
                         "description": "User not found"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/me": {
@@ -284,7 +290,12 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/forgot-password": {
@@ -2019,6 +2030,15 @@
                         }
                     }
                 }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },

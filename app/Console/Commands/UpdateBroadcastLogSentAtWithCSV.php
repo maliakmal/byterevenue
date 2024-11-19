@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\RefreshBroadcastLogCache;
 use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
@@ -50,7 +51,12 @@ class UpdateBroadcastLogSentAtWithCSV extends Command
         ]);
 
         if (count($message_ids) > 0) {
-            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true);
+            if (!Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
+                Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
+                RefreshBroadcastLogCache::dispatch();
+            } else {
+                $this->info('Broadcast log cache is already running.');
+            }
         }
 
         $this->info("broadcast_logs sent at column updated for $number_of_updated_rows number of rows");

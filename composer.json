@@ -12,6 +12,7 @@
         "bjoernffm/spintax": "^1.1",
         "darkaonline/l5-swagger": "^8.6",
         "filament/filament": "^3.2",
+        "hidehalo/nanoid-php": "^2.0",
         "laravel/framework": "^11.0",
         "laravel/horizon": "^5.27",
         "laravel/jetstream": "^5.1",
@@ -43,7 +44,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
