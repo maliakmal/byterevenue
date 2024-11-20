@@ -22,10 +22,8 @@ class ReportService
     public function getMessages(Request $request)
     {
         $inputs = $request->all();
-        $userId = $request->filled('user_id') ? $request->user_id : null;
-        $inputs['per_page'] = $request->filled('per_page')
-            ? request()->per_page
-            : 15;
+        $userId = $request->user_id;
+        $inputs['per_page'] = request('per_page', 15);
         $list = $this->broadcastLogRepository->paginateBroadcastLogs($inputs);
         $users = $this->userRepository->all();
         $campaigns = [];
@@ -51,9 +49,7 @@ class ReportService
             'user_id'
         ];
         $inputs = $request->all();
-        $inputs['per_page'] = $request->filled('per_page')
-            ? request()->per_page
-            : 15;
+        $inputs['per_page'] = request('per_page', 15);
         $list = $this->campaignRepository->reportCampaigns($inputs, $columns);
         foreach ($list as $index => $item) {
             $list[$index]->user_name = '';

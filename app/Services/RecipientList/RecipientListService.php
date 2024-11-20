@@ -48,7 +48,7 @@ class RecipientListService
      *
      * @return array
      */
-    public function store(array $data, $file, ?User $user = null)
+    public function store(array $data, File $file, ?User $user = null)
     {
         $user = auth()->user() ?? $user;
 
@@ -57,32 +57,18 @@ class RecipientListService
         }
 
         if ($data['entry_type'] === 'file') {
+            if ($file instanceof UploadedFile) {
+                throw new \Exception('Invalid file type. Use app/Jobs/ImportRecipientListsJob.php example.');
+            }
+
             DB::beginTransaction();
             $recipientsList = $user->recipientLists()->create([
                 'name' => $data['name'],
             ]);
 
             $user_id = $user->id;
-
-            if ($file instanceof UploadedFile) {
-                $extension = $file->getClientOriginalExtension();
-            } elseif ($file instanceof File) {
-                $extension = $file->extension();
-            } else {
-                throw new \InvalidArgumentException('Unsupported file type.');
-            }
-
-            $newFileName = $user_id . '_' . time() . '.' . $extension;
-
-            if ($file instanceof UploadedFile) {
-                $filePath = $file->storeAs('uploads', $newFileName);
-            } elseif ($file instanceof File) {
-                $filePath = Storage::putFileAs('uploads', $file, $newFileName);
-            } else {
-                throw new \InvalidArgumentException('Unsupported file type.');
-            }
-
-            $fullPath = storage_path('app/' . $filePath);
+            $newFileName = $file->getFilename();
+            $fullPath = $file->getPathname();
 
             $nameColumn = $data['name_column'] ?? null;
             $emailColumn = $data['email_column'] ?? null;
