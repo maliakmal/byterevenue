@@ -28,26 +28,6 @@ class BlackListWordController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function indexApi(Request $request)
-    {
-        $filter = [
-            'count'=> request('count', 5),
-        ];
-        $list = $this->blacklistWordService->list($filter['count']);
-
-        return $this->responseSuccess(
-            [
-                'list' =>$list,
-                'filter' => $filter,
-            ]
-        );
-    }
-
-    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -67,18 +47,6 @@ class BlackListWordController extends ApiController
         $this->blacklistWordService->store($request->validated());
 
         return redirect()->route('black-list-words.index')->with('success', 'The Item created successfully.');
-    }
-
-    /**
-     * @param BlacklistWordStoreRequest $request
-     *
-     * @return JsonResponse
-     */
-    public function storeApi(BlacklistWordStoreRequest $request)
-    {
-        $blacklist = $this->blacklistWordService->store($request->validated());
-
-        return $this->responseSuccess($blacklist);
     }
 
     /**
@@ -104,43 +72,12 @@ class BlackListWordController extends ApiController
     }
 
     /**
-     * @param int $id
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function updateApi(int $id, Request $request)
-    {
-        $blackListWord = BlackListWord::findOrFail($id);
-        $request->validate([
-            'word' => "required|unique:black_list_words,word,$id|string|min:1|max:255",
-        ]);
-        $blackListWord->word = $request->word;
-        $blackListWord->save();
-
-        return $this->responseSuccess($blackListWord);
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(BlackListWord $blackListWord)
     {
         $blackListWord->delete();
         return redirect()->route('black-list-words.index')->with('success', 'Item deleted successfully.');
-    }
-
-    /**
-     * @param int $id
-     *
-     * @return JsonResponse
-     */
-    public function destroyApi(int $id)
-    {
-        $blackListWord = BlackListWord::findOrFail($id);
-        $blackListWord->delete();
-
-        return $this->responseSuccess($blackListWord);
     }
 
     /**

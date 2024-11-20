@@ -14,7 +14,7 @@ class ApiController extends Controller
      *
      * @return JsonResponse
      */
-    protected function responseSuccess($data, $message = '', $status = 200): JsonResponse
+    protected function responseSuccess($data = [], $message = '', $status = 200): JsonResponse
     {
         return response()->json([
             'status'  => 'success',
@@ -30,7 +30,7 @@ class ApiController extends Controller
      *
      * @return JsonResponse
      */
-    protected function responseError($data, $message = '', $status = 400): JsonResponse
+    protected function responseError($data = [], $message = '', $status = 400): JsonResponse
     {
         return response()->json([
             'status'  => 'error',

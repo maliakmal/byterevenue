@@ -24,7 +24,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  *     bearerFormat="JWT"
  * )
  */
-class AuthController extends ApiController
+class AuthApiController extends ApiController
 {
     use PasswordValidationRules;
 

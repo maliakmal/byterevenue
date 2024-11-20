@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Services\AreaCode\AreaCodeService;
 
-class AreasController extends Controller
+class AreasApiController extends ApiController
 {
     public function __construct(private AreaCodeService $areaCodeService)
     {

@@ -7,11 +7,9 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\CampaignsGetRequest;
 use App\Http\Requests\JobRegenerateRequest;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
-use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
 use App\Jobs\ProcessCsvQueueBatch;
-use App\Jobs\ProcessCsvRegenQueueBatch;
 use App\Jobs\CreateCampaignsOnKeitaro;
 use App\Services\JobService;
 use Carbon\Carbon;
@@ -23,7 +21,6 @@ use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\BatchFile;
 use App\Models\UrlShortener;
-use App\Models\User;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Log;
 
@@ -34,8 +31,7 @@ class JobsController extends ApiController
         protected CampaignService $campaignService,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected JobService $jobService
-    ) {
-    }
+    ) {}
 
     /**
      * @param CampaignsGetRequest $request
@@ -50,30 +46,6 @@ class JobsController extends ApiController
 
     }
 
-    /**
-     * @return JsonResponse
-     */
-    public function campaignsApi(CampaignsGetRequest $request)
-    {
-        return $this->responseSuccess($this->jobService->campaigns($request->validated()));
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/jobs",
-     *     summary="Get a list of jobs",
-     *     tags={"Jobs"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of jobs",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
-     * @return JsonResponse
-     */
     public function index()
     {
         $params = $this->jobService->index();
@@ -192,23 +164,6 @@ class JobsController extends ApiController
     }
 
     /**
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function createJobApi(Request $request)
-    {
-        $request->validate([
-            'number_messages' => 'required|numeric|min:1',
-            'url_shortener' => 'required|string',
-            'type' => 'required|string',
-            'campaign_ids' => 'array|required_if:type,campaign',
-        ]);
-
-        return $this->responseSuccess($this->jobService->createJob($request->all()));
-    }
-
-    /**
      * @param JobRegenerateRequest $request
      *
      * @return JsonResponse|RedirectResponse
@@ -265,13 +220,13 @@ class JobsController extends ApiController
     public function download(Request $request)
     {
         // if user posted to select n non downloaded messages
-        $limit = $request->limit;
-        $Limit = $limit > 0 ? $limit : 100;
-        $shortener = $request->shortener;
-        $messages = BroadcastLog::where('is_downloaded_as_csv', 0)->take($limit)->get();
-
-        BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->take($limit)->get()->last()->id)
-            ->update(['is_downloaded_as_csv' => 1]);
+//        $limit = $request->limit;
+//        $Limit = $limit > 0 ? $limit : 100;
+//        $shortener = $request->shortener;
+//        $messages = BroadcastLog::where('is_downloaded_as_csv', 0)->take($limit)->get();
+//
+//        BroadcastLog::where('id', '<=', BroadcastLog::where('is_downloaded_as_csv', 0)->take($limit)->get()->last()->id)
+//            ->update(['is_downloaded_as_csv' => 1]);
     }
 
     /**
@@ -332,5 +287,4 @@ class JobsController extends ApiController
 
         return response()->success();
     }
-
 }

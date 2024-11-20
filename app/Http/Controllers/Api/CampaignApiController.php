@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use Illuminate\Http\Request;
 
-class CampaignController extends Controller
+class CampaignApiController extends ApiController
 {
     public function __construct(
         protected CampaignRepositoryInterface $campaignRepository,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository
-    )
-    {
-    }
-
+    ) {}
 
     /**
      * @param Request $request
@@ -28,7 +24,10 @@ class CampaignController extends Controller
         $campaign->save();
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
-        return response()->json($result);
+
+        // todo check on frontend
+        // return response()->json($result);
+        $this->responseSuccess($result);
     }
 
     /**
@@ -42,6 +41,9 @@ class CampaignController extends Controller
         $campaign->save();
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
-        return response()->json($result);
+
+        // todo check on frontend
+        // return response()->json($result);
+        $this->responseSuccess($result);
     }
 }

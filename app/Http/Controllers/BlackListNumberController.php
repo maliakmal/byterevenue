@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\BlacklistNumberStoreRequest;
 use App\Services\BlacklistNumber\BlacklistNumberService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\BlackListNumber;
 use Illuminate\Contracts\View\View;
@@ -20,9 +19,7 @@ class BlackListNumberController extends ApiController
         protected BlackListNumberRepositoryInterface $blackListNumberRepository,
         protected ContactRepositoryInterface $contactRepository,
         protected BlacklistNumberService $blacklistNumberService
-    )
-    {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -34,24 +31,6 @@ class BlackListNumberController extends ApiController
         ];
         $list = $this->blackListNumberRepository->paginate($request->count);
         return view('black_list_number.index', compact('list', 'filter' ));
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function indexAPi(Request $request)
-    {
-        $filter = [
-            'count'=> request('count', 5),
-        ];
-        $list = $this->blackListNumberRepository->paginate($request->count);
-
-        return $this->responseSuccess([
-            'list' => $list,
-            'filter' => $filter,
-        ]);
     }
 
     /**
@@ -70,18 +49,6 @@ class BlackListNumberController extends ApiController
         $this->blacklistNumberService->store($request->validated());
 
         return redirect()->route('black-list-numbers.index')->with('success', 'The Item created successfully.');
-    }
-
-    /**
-     * @param BlacklistNumberStoreRequest $request
-     *
-     * @return JsonResponse
-     */
-    public function storeApi(BlacklistNumberStoreRequest $request)
-    {
-        $blacklistNumber = $this->blacklistNumberService->store($request->validated());
-
-        return $this->responseSuccess($blacklistNumber, 'The Item created successfully.');
     }
 
     /**
@@ -107,45 +74,12 @@ class BlackListNumberController extends ApiController
     }
 
     /**
-     * @param int $id
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function updateApi(int $id, Request $request)
-    {
-        $blackListNumber = BlackListNumber::findOrFail($id);
-
-        $request->validate([
-            'phone_number' => "required|unique:black_list_numbers,phone_number,$id|string|min:1|max:255",
-        ]);
-
-        $blackListNumber->phone_number = $request->phone_number;
-        $blackListNumber->save();
-
-        return $this->responseSuccess($blackListNumber, 'Item Updated successfully.');
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(BlackListNumber $blackListNumber)
     {
         $blackListNumber->delete();
         return redirect()->route('black-list-numbers.index')->with('success', 'Item deleted successfully.');
-    }
-
-    /**
-     * @param int $id
-     *
-     * @return JsonResponse
-     */
-    public function destroyApi(int $id)
-    {
-        $blackListNumber = BlackListNumber::findOrFail($id);
-        $blackListNumber->delete();
-
-        return $this->responseSuccess([], 'Item deleted successfully.');
     }
 
     /**
@@ -160,37 +94,5 @@ class BlackListNumberController extends ApiController
         $user_id = auth()->id();
         $list = $this->contactRepository->getBlockedListUserContacts($user_id, $filter['count']);
         return view('black_list_number.black_list_user', compact('list', 'filter'));
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/black-list-numbers/user",
-     *     summary="Get black list numbers for a user",
-     *     tags={"Black List Numbers"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="list", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="filter", type="object")
-     *         )
-     *     )
-     * )
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getBlackListNumberForUserApi(Request $request)
-    {
-        $filter = [
-            'count' => request('count', 5),
-        ];
-        $user_id = auth()->id();
-        $list = $this->contactRepository->getBlockedListUserContacts($user_id, $filter['count']);
-
-        return $this->responseSuccess([
-            'list' => $list,
-            'filter' => $filter,
-        ]);
     }
 }

@@ -22,55 +22,13 @@ use Illuminate\Http\Request;
 class SettingController extends ApiController
 {
     use CSVReader;
+
     public function __construct(
         protected SettingRepositoryInterface $settingRepository,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected BlackListNumberRepositoryInterface $blackListNumberRepository,
         private SettingService $settingService
-    ) {
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function indexApi(Request $request)
-    {
-        $response = $this->settingService->getAll($request);
-        return response()->json($response);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function storeApi(Request $request)
-    {
-        $response = $this->settingService->store($request);
-        if (isset($response['errors'])) {
-            return response()->json($response, 400);
-        }
-        return response()->json($response);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function updateApi($id, Request $request)
-    {
-        $response = $this->settingService->update($id, $request);
-        if (isset($response['errors'])) {
-            return response()->json($response, 400);
-        }
-        return response()->json($response);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function deleteApi($id)
-    {
-        $response = $this->settingService->delete($id);
-        return response()->json($response);
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -80,7 +38,9 @@ class SettingController extends ApiController
         $filter = [
             'count' => request('count', 5),
         ];
+
         $list = Setting::latest()->paginate($request->count);
+
         return view('settings.index', compact('list', 'filter'));
     }
 
@@ -108,6 +68,7 @@ class SettingController extends ApiController
             'value' => $inputs['value'],
             'label' => $inputs['label'],
         ]);
+
         return redirect()->route('settings.index', $setting)->with('success', 'Setting created successfully.');
     }
 
@@ -124,13 +85,14 @@ class SettingController extends ApiController
      */
     public function update(Request $request, Setting $setting)
     {
-        $id = $setting->id;
         $request->validate([
-            'name' => "required|unique:settings,name,$id|string|min:1|max:255",
+            'name' => "required|unique:settings,name,". $setting->id ."|string|min:1|max:255",
             'value' => "required|min:1",
             'label' => "nullable|string|min:1|max:255",
         ]);
+
         $value = $request->value;
+
         if (is_array($value)) {
             $value = collect($value)->whereNotNull()->toArray();
             $value = json_encode(array_values($value));
@@ -140,6 +102,7 @@ class SettingController extends ApiController
         $setting->value = $value;
         $setting->label = $request->label;
         $setting->save();
+
         return redirect()->route('settings.index', $setting)->with('success', 'Setting Updated successfully.');
     }
 
@@ -149,6 +112,7 @@ class SettingController extends ApiController
     public function destroy(Setting $setting)
     {
         $setting->delete();
+
         return redirect()->route('settings.index')->with('success', 'Setting deleted successfully.');
     }
 
@@ -167,25 +131,6 @@ class SettingController extends ApiController
         }
 
         return redirect()->route('messages.uploadMessageSendDataIndex')->with('error', 'error parse csv');
-    }
-
-    /**
-     * @param SettingUploadSendDataRequest $request
-     *
-     * @return JsonResponse
-     */
-    public function uploadSendDataApi(SettingUploadSendDataRequest $request)
-    {
-        [$result, $number_of_updated_rows] = $this->settingService->uploadSendData($request);
-
-        if ($result) {
-            return $this->responseSuccess(
-                ['updated_rows' => $number_of_updated_rows],
-                "Send Data Updated for $number_of_updated_rows Message"
-            );
-        }
-
-        return $this->responseError('Error parse csv');
     }
 
     /**
@@ -219,27 +164,5 @@ class SettingController extends ApiController
 
         return redirect()->route('messages.uploadBlackListNumberIndex')
             ->with('success', "Update Was Successful");
-    }
-
-    /**
-     * @param SettingUploadSendDataRequest $request
-     *
-     * @return JsonResponse
-     */
-    public function uploadBlackListNumberApi(SettingUploadSendDataRequest $request)
-    {
-        [$result, $error] = $this->settingService->uploadBlacklistNumber($request);
-
-        if (!$result) {
-            if ($error === 'parse_error') {
-                return $this->responseError('Error parse csv');
-            }
-
-            if ($error === 'phone_number') {
-                return $this->responseError('First column should be phone_number');
-            }
-        }
-
-        return $this->responseSuccess([], 'Update Was Successful');
     }
 }

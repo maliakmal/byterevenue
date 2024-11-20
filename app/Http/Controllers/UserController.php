@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 
 class UserController extends ApiController
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserService $userService,
+    ) {}
 
     /**
      * @param Request $request

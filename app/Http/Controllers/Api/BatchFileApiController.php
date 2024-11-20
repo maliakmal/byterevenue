@@ -2,32 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\BatchFile;
 use App\Models\Campaign;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
-use App\Trait\CSVReader;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class BatchFileController extends Controller
+class BatchFileApiController extends ApiController
 {
-
     /**
      * @param CampaignRepositoryInterface $campaignRepository
      */
     public function __construct(
         protected CampaignRepositoryInterface $campaignRepository,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository
-    )
-    {
-
-    }
+    ) {}
 
     /**
      * @param Request $request
+     *
      * @return JsonResponse
      */
     public function getFormContentFromCampaign(Request $request){
@@ -35,19 +29,22 @@ class BatchFileController extends Controller
         $result = [];
         $result['data'] = $campaign->message;
 
-        return response()->json($result);
+        // todo check on frontend
+        // return response()->json($result);
+        return $this->responseSuccess($result);
     }
 
     /**
      * @param Request $request
+     *
      * @return JsonResponse
      */
     public function checkStatus(Request $request){
         $file_ids = isset($_POST['files'])?$_POST['files']:[];
-        $file_ids = is_array($file_ids)?$file_ids:[];
+        $file_ids = is_array($file_ids) ? $file_ids : [];
         $file_ids[] = 0;
-
         $files = [];
+
         foreach(BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file){
             $one = $file->toArray();
             $batch_no = $file->getBatchFromFilename();
@@ -57,37 +54,47 @@ class BatchFileController extends Controller
             $one['total_sent'] =  $specs['total_sent'];
             $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
             $one['total_clicked'] = $specs['total_clicked'];
-
             $one['created_at_ago'] = $file->created_at->diffForHumans();;
 
             $files[] = $one;
         }
 
-
         $result = [];
         $result['data'] = $files;
         $result['ids'] = $request->files;
 
-        return response()->json($result);
+        // todo check on frontend
+        // return response()->json($result);
+        return $this->responseSuccess($result);
     }
 
     /**
      * @param Request $request
+     *
      * @return JsonResponse
      */
-    public function index(Request $request){
-
+    public function index(Request $request)
+    {
         $campaign_ids = $request->campaign_ids;
         $campaign_ids = is_array($campaign_ids)?$campaign_ids:[];
         $campaign_ids[] = 0;
 
         $campaigns = Campaign::whereIn('id', $campaign_ids)->get();
         $message = null;
-        if(count($campaigns) == 1){
+
+        if (count($campaigns) == 1) {
             $message = $campaigns[0]->message;
         }
+
         $files = [];
-        $result = ['data'=>['files'=>[], 'campaigns'=>$campaigns->toArray(), 'message'=>$message]];
+        $result = [
+            'data' => [
+                'files'=> [],
+                'campaigns' => $campaigns->toArray(),
+                'message' => $message
+            ]
+        ];
+
         foreach($campaigns as $campaign){
 
             foreach($campaign->batchFiles()->orderby('id', 'desc')->get() as $file){
@@ -99,15 +106,16 @@ class BatchFileController extends Controller
                 $one['total_sent'] =  $specs['total_sent'];
                 $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
                 $one['total_clicked'] = $specs['total_clicked'];
-
                 $one['created_at_ago'] = $file->created_at->diffForHumans();;
 
                 $files[] = $one;
             }
         }
+
         $result['data']['files'] = $files;
 
-        return response()->json($result);
+        // todo check on frontend
+        // return response()->json($result);
+        return $this->responseSuccess($result);
     }
-
 }
