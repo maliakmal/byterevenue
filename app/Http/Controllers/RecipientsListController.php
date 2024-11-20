@@ -154,13 +154,30 @@ class RecipientsListController extends ApiController
     {
         $file = $request->file('csv_file');
 
-        [$success, $message] = $this->recipientListService->store($request->validated(), $file);
+        $newFileName = uniqid() . '.' . $file->getClientOriginalExtension();
+        $filePath = $file->storeAs('recipient_lists', $newFileName);
 
-        if ($success) {
-            return $this->responseSuccess($message);
+        $data = $request->validated();
+        unset($data['csv_file']);
+
+        $interfaceBusy = ImportRecipientsList::query()
+            ->whereNull('processed_at')
+            ->whereNull('is_failed')
+            ->first();
+
+        if ($interfaceBusy) {
+            return $this->responseError('Already processing');
         }
 
-        return $this->responseError($message);
+        $importRecipientsListId = ImportRecipientsList::create([
+            'user_id'   => auth()->id(),
+            'data'      => $data,
+            'file_path' => $filePath,
+        ]);
+
+        ImportRecipientListsJob::dispatch($importRecipientsListId);
+
+        return $this->responseSuccess('The list is being processed and created');
     }
 
     /**
