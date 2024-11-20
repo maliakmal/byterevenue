@@ -140,9 +140,10 @@ class JobsController extends ApiController
 
         $batch_file = BatchFile::create([
             'filename' => $filename,
-            'path' => env('DO_SPACES_ENDPOINT') . $filename,
+            'path' => /*env('DO_SPACES_ENDPOINT') .*/ $filename,
             'number_of_entries' => $total,
-            'is_ready' => 0
+            'is_ready' => 0,
+            'url_shortener_id' => $urlShortener->id,
         ]);
 
         $batch_file->campaigns()->attach($campaign_ids);

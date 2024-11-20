@@ -30,7 +30,7 @@ class JobService
     {
         $download_me = null;
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
-        $files = BatchFile::orderby('id', 'desc')->paginate(15);
+        $files = BatchFile::with('urlShortener')->orderby('id', 'desc')->paginate(15);
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();

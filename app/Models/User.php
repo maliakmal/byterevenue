@@ -13,11 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
-    use HasFactory;
-    use HasProfilePhoto;
-    use Notifiable, HasRoles;
-    use TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasProfilePhoto, Notifiable, HasRoles, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -49,7 +45,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
-        'roles',
+        'hasRoles',
     ];
 
     /**
@@ -112,7 +108,7 @@ class User extends Authenticatable
         $this->save();
     }
 
-    public function getRolesAttribute()
+    public function getHasRolesAttribute()
     {
         return $this->roles()->pluck('name');
     }

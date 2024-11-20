@@ -87,6 +87,7 @@
             <th class="px-4 py-2">Filename</th>
             <th class="px-4 py-2">No. Entries</th>
             <th class="px-4 py-2">Campaigns</th>
+            <th class="px-4 py-2">UrlShortener</th>
             <th class="px-4 py-2">Created At</th>
             <th class="px-4 py-2">Operation</th>
           </tr>
@@ -94,15 +95,18 @@
         <tbody>
             @foreach ($params['files'] as $file)
               <tr>
-                <td class="border-b border-gray-200 px-4 py-2">
-                  @if($file['is_ready'])
-                  <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv</a>
+                <td class="border-b border-gray-200 px-4 py-2" style="cursor: default">
+                  @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                    <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv
                   @else
-                  <span>File {{ $file['id'] }}.csv (preparation)</span>
+                    <span>File {{ $file['id'] }}.csv (preparation)</span>
                   @endif
                   @if(strstr($file['filename'], 'regen'))
                     <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN {{ $file['prev_batch_id'] ?? '' }}</span>
                   @else
+                  @endif
+                  @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                    </a>
                   @endif
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
@@ -110,6 +114,9 @@
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                 {{ count($file['campaigns']) }}
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                  {{ !$file['urlShortener'] ? 'no info' : $file['urlShortener']['name'] }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                   @if($file['is_ready'] == 1)
