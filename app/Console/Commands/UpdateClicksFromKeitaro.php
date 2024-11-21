@@ -67,8 +67,8 @@ class UpdateClicksFromKeitaro extends Command
             foreach ($response['rows'] as $row){
                 $log_id = $row[$uid_param];
 
-                if (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
-                    \Log::error('log id is not valid', ['log' => $row]);
+                if (trim($log_id) == '') { // (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
+                    \Log::error('log id is not valid', ['log_Id'=>$log_id, 'log' => $row]);
                     continue;
                 }
 
@@ -102,7 +102,7 @@ class UpdateClicksFromKeitaro extends Command
                     $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
                 }
 
-                if ($this->broadcastLogRepository->updateByID($updateData, $log_id) === false) {
+                if ($this->broadcastLogRepository->updateBySlug($log_id, $updateData) === false) { // FIX THIS HERE <---
                     Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
                 } else {
                     $this->hasChanges = true;

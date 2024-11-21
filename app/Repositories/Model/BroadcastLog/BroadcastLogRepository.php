@@ -28,6 +28,10 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return $this->model->whereIn('id', $ids)->update($fieldsToUpdate);
     }
+    public function updateBySlug($slug, $fieldsToUpdate)
+    {
+        return $this->model->where('slug', '=', $slug)->update($fieldsToUpdate);
+    }
 
     /**
      * @param array $inputs

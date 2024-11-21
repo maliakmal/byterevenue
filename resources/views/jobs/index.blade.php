@@ -129,6 +129,13 @@
                     <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
                         Regen
                     </a>
+                    @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                    <a href="/download/{{$file['id'] }}" class="border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                        Download
+                    </a>
+
+                    @endif
+
                   </div>
                 </td>
               </tr>
