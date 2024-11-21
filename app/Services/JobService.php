@@ -82,31 +82,33 @@ class JobService
     public function regenerateUnsent(array $data)
     {
         // get all unsent
-        $batch_id = $data['batch'];
-        $_batch = BatchFile::find($batch_id);
-        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $_batch->filename, $matches);
+        $original_batch = BatchFile::find($data['batch']);
+        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $original_batch->filename, $matches);
 
-        if (!$matches[1]) {
+        if (!$original_batch || $original_batch->number_of_entries <= 0) {
             return false;
+        }
+
+        if ($matches[1] ?? null) {
+            $original_batch_no = $matches[1];
         } else {
-            $batch = $matches[1];
+            return false;
         }
 
         $url_shortener = $data['url_shortener'];
         $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
         $domain_id = $_url_shortener->asset_id;
-        $original_batch_no = $batch;
         $batchSize = 100; // ids scope for each job
-        $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch' => $batch]);
+        $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch' => $original_batch_no]);
         $total = count($unsent_logs);
-        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($batch);
+        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($original_batch_no);
         $type = 'fifo';
         $type_id = null;
         $message_id = null;
 
         if (($data['type'] ?? '') == 'campaign') {
             $campaign_ids = $data['campaign_ids'];
-            if (count($campaign_ids) == 1) {
+            if (count($campaign_ids)) {
                 $campaign = Campaign::find($campaign_ids[0]);
                 if ($campaign->message->body != $data['message_body']) {
                     $new_message = $campaign->message->replicate();
@@ -136,7 +138,7 @@ class JobService
         }
 
         $numBatches = ceil($total / $batchSize);
-        $batch_no = $batch ."_1";
+        $batch_no = $original_batch_no ."_1";
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
         if ($numBatches == 0) {
@@ -145,17 +147,17 @@ class JobService
 
         $batch_file = BatchFile::create([
             'filename'          => $filename,
-            'path'              => env('DO_SPACES_ENDPOINT') . $filename,
+            'path'              => /*env('DO_SPACES_ENDPOINT') . */$filename,
             'number_of_entries' => $total,
             'is_ready'          => 0,
-            'prev_batch_id'     => $batch_id,
+            'prev_batch_id'     => $original_batch->id,
         ]);
 
         $batch_file->campaigns()->attach($uniq_campaign_ids);
 
         for ($batchCnt = 0; $batchCnt < $numBatches; $batchCnt++) {
             $offset = $batchCnt * $batchSize;
-            $is_last = $batch >= $numBatches - 1;
+            $is_last = $batchCnt >= $numBatches - 1;
 
             $params = [
                 'offset' => $offset,
@@ -177,13 +179,7 @@ class JobService
 
         dispatch(new CreateCampaignsOnKeitaro($params));
 
-        $original_filename = "/csv/byterevenue-messages-$batch.csv";
-        $original_batch_file = BatchFile::select()->where('filename', $original_filename)->get()->first();
-
-        if ($original_batch_file) {
-            $original_batch_file->number_of_entries -= $total;
-            $original_batch_file->save();
-        }
+        $original_batch->update(['number_of_entries' => $original_batch->number_of_entries - $total]);
 
         return $batch_file;
     }

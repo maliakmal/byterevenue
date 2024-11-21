@@ -4,13 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
-use App\Trait\CSVReader;
 use Illuminate\Http\Request;
 
-class BlackListNumberApiController extends ApiController
+class _JobsApiController extends ApiController
 {
-    use CSVReader;
-
     /**
      * @param BlackListNumberRepositoryInterface $blackListNumberRepository
      */
@@ -25,7 +22,7 @@ class BlackListNumberApiController extends ApiController
     public function updateBlackListNumber(Request $request)
     {
         $request->validate([
-            'black_list_file' => "required|max:". config('app.csv.upload_max_size_allowed'),
+            'black_list_file' => "required|max:" . config('app.csv.upload_max_size_allowed'),
         ], $request->all());
 
         $file = $request->file('black_list_file');
@@ -33,15 +30,17 @@ class BlackListNumberApiController extends ApiController
         $csv = $this->csvToCollection($content);
 
         if (!$csv || count($csv) == 0) {
-            return $this->responseError(message: 'error parse csv');
+            response()->error('error parse csv');
         }
 
         if (isset($csv->first()['phone_number']) == false) {
-            return $this->responseError(message: 'column phone number not found');
+            return response()->error('column phone number not found');
         }
 
         $this->blackListNumberRepository->upsertPhoneNumber($csv->toArray());
 
-        return $this->responseSuccess(message: 'success');
+        // todo check on frontend
+        // return response()->success();
+        $this->responseSuccess();
     }
 }

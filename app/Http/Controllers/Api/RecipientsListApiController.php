@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\ApiController;
 use App\Http\Requests\RecipientStoreRequest;
 use App\Http\Requests\RecipientUpdateRequest;
+use App\Jobs\ImportRecipientListsJob;
 use App\Models\ImportRecipientsList;
 use App\Models\RecipientsList;
-use App\Models\Contact;
 use App\Services\RecipientList\RecipientListService;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\ImportRecipientListsJob;
 
 /**
  * @OA\Tag(
@@ -21,36 +19,14 @@ use App\Jobs\ImportRecipientListsJob;
  *     description="Operations about user"
  * )
  */
-class RecipientsListController extends ApiController
+class RecipientsListApiController extends ApiController
 {
     /**
      * @param RecipientListService $recipientListService
      */
     public function __construct(
-        private RecipientListService $recipientListService
+        private RecipientListService $recipientListService,
     ) {}
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $nameFilter = request()->input('name');
-        $isImportedFilter = request()->input('is_imported', '');
-
-        $recipient_lists = $this->recipientListService->getRecipientLists($nameFilter, $isImportedFilter);
-
-        if (request()->input('output') == 'json') {
-            return response()->success(null, $recipient_lists);
-        }
-
-        $processing = ImportRecipientsList::query()
-            ->whereNull('processed_at')
-            ->where('is_failed', 0)
-            ->exists();
-
-        return view('recipient_lists.index', compact('recipient_lists', 'processing'));
-    }
 
     /**
      * @OA\Get(
@@ -69,7 +45,7 @@ class RecipientsListController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function indexApi(Request $request)
+    public function index(Request $request)
     {
         $nameFilter = $request->get('name');
         $isImportedFilter = $request->get('is_imported', '');
@@ -81,49 +57,6 @@ class RecipientsListController extends ApiController
         );
 
         return $this->responseSuccess($recipientList);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $sources = $this->getSourceForUser(auth()->id());
-
-        return view('recipient_lists.create', compact('sources'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(RecipientStoreRequest $request)
-    {
-        $file = $request->file('csv_file');
-
-        $newFileName = uniqid() . '.' . $file->getClientOriginalExtension();
-        $filePath = $file->storeAs('recipient_lists', $newFileName);
-
-        $data = $request->validated();
-        unset($data['csv_file']);
-
-        $interfaceBusy = ImportRecipientsList::query()
-            ->whereNull('processed_at')
-            ->whereNull('is_failed')
-            ->first();
-
-        if ($interfaceBusy) {
-            return redirect()->back()->with('error', 'Already processing');
-        }
-
-        $importRecipientsListId = ImportRecipientsList::create([
-            'user_id'   => auth()->id(),
-            'data'      => $data,
-            'file_path' => $filePath,
-        ]);
-
-        ImportRecipientListsJob::dispatch($importRecipientsListId);
-
-        return redirect()->route('recipient_lists.index')->with('success', 'The list is being processed and created');
     }
 
     /**
@@ -150,7 +83,7 @@ class RecipientsListController extends ApiController
      * @param RecipientStoreRequest $request
      * @return JsonResponse
      */
-    public function storeApi(RecipientStoreRequest $request)
+    public function store(RecipientStoreRequest $request)
     {
         $file = $request->file('csv_file');
 
@@ -166,7 +99,7 @@ class RecipientsListController extends ApiController
             ->first();
 
         if ($interfaceBusy) {
-            return $this->responseError('Already processing');
+            return $this->responseError(message: 'Already processing');
         }
 
         $importRecipientsListId = ImportRecipientsList::create([
@@ -177,19 +110,7 @@ class RecipientsListController extends ApiController
 
         ImportRecipientListsJob::dispatch($importRecipientsListId);
 
-        return $this->responseSuccess('The list is being processed and created');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-
-        $recipientsList = RecipientsList::findOrFail($id);
-        $contacts = $recipientsList->contacts()->paginate(10);
-
-        return view('recipient_lists.show', compact('recipientsList', 'contacts'));
+        return $this->responseSuccess(message: 'The list is being processed and created');
     }
 
     /**
@@ -217,7 +138,7 @@ class RecipientsListController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function showApi(int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $recipientsList = RecipientsList::findOrFail($id);
         $contacts = $recipientsList->contacts()->paginate(10);
@@ -228,28 +149,6 @@ class RecipientsListController extends ApiController
                 'contacts' => $contacts,
             ]
         );
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        $sources = $this->getSourceForUser(auth()->id());
-        $recipientsList = RecipientsList::findOrFail($id);
-        return view('recipient_lists.edit', compact('recipientsList', 'sources'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(RecipientUpdateRequest $request, $id)
-    {
-        $recipientsList = RecipientsList::findOrFail($id);
-
-        $recipientsList->update($request->validated());
-
-        return redirect()->route('recipient_lists.index')->with('success', 'List updated successfully.');
     }
 
     /**
@@ -283,28 +182,13 @@ class RecipientsListController extends ApiController
      * @param RecipientUpdateRequest $request
      * @return JsonResponse
      */
-    public function updateApi(int $id, RecipientUpdateRequest $request): JsonResponse
+    public function update(int $id, RecipientUpdateRequest $request): JsonResponse
     {
         $recipientsList = RecipientsList::withCount(['contacts', 'campaigns'])->findOrFail($id);
 
         $recipientsList->update($request->validated());
 
         return $this->responseSuccess($recipientsList, 'List updated successfully.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $item = RecipientsList::withCount('campaigns')->findOrFail($id);
-        if ($item->campaigns_count > 0) {
-            return redirect()->back()->withErrors(['error' => 'List is associated with a campaign - this cannot be deleted.']);
-        }
-
-        $item->delete();
-
-        return redirect()->route('recipient_lists.index')->with('success', 'List deleted successfully.');
     }
 
     /**
@@ -331,7 +215,7 @@ class RecipientsListController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function destroyApi(int $id)
+    public function destroy(int $id)
     {
         $item = RecipientsList::withCount('campaigns')->findOrFail($id);
         if ($item->campaigns_count > 0) {
@@ -340,19 +224,21 @@ class RecipientsListController extends ApiController
 
         $item->delete();
 
-        return $this->responseSuccess('List deleted successfully.');
+        return $this->responseSuccess(message: 'List deleted successfully.');
     }
 
     /**
      * @param $userID
-     * @return array
+     * @return JsonResponse
      */
     private function getSourceForUser($userID): array
     {
-        return RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
+        $recipientList = RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
             ->where('user_id', $userID)
             ->whereNotNull('source')
-            ->get()->pluck('source')->toArray();
+            ->get()->pluck('source')
+            ->toArray();
 
+        return $this->responseSuccess($recipientList);
     }
 }

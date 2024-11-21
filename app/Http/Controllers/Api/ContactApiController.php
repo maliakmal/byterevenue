@@ -1,60 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\ApiController;
-use App\Http\Requests\ContactUpdateRequest;
+use App\Http\Controllers\ApiController;
 use App\Http\Requests\ContactStoreRequest;
+use App\Http\Requests\ContactUpdateRequest;
 use App\Models\Contact;
 use App\Services\AreaCode\AreaCodeService;
 use App\Services\Contact\ContactService;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class ContactController extends ApiController
+class ContactApiController extends ApiController
 {
-    private AreaCodeService $areaCodeService;
-    private ContactService $contactService;
-
     /**
      * @param AreaCodeService $areaCodeService
      * @param ContactService $contactService
      */
     public function __construct(
-        AreaCodeService $areaCodeService,
-        ContactService $contactService
-    ) {
-        //$this->authorizeResource(Contact::class);
-        $this->areaCodeService = $areaCodeService;
-        $this->contactService = $contactService;
-    }
-
-    /**
-     * @return View
-     */
-    public function index()
-    {
-        $user       = auth()->user();
-        $perPage    = request('per_page', 12);
-        $name       = request('name');
-        $area_code  = request('area_code', '');
-        $phone      = request('phone', '');
-
-        $contacts = $this->contactService->getContacts($user, $perPage, $name, $area_code, $phone);
-
-        if ('json' === request()->input('output')) {
-            return response()->success(null, $contacts);
-        }
-
-        $area_data = [
-            'provinces' => $this->areaCodeService->getAllProvinces(true),
-            //'cities'  => $this->areaCodeService->getAllCities('true') // legacy data
-        ];
-
-        return view('contacts.index', compact('contacts', 'area_data'));
-    }
+        private AreaCodeService $areaCodeService,
+        private ContactService $contactService
+    ) {}
 
     /**
      * @OA\Get(
@@ -102,7 +68,7 @@ class ContactController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function indexApi(Request $request)
+    public function index(Request $request)
     {
         $user       = auth()->user();
         $perPage    = $request->input('per_page', 12);
@@ -116,27 +82,6 @@ class ContactController extends ApiController
         ];
 
         return $this->responseSuccess($contacts);
-    }
-
-    public function create()
-    {
-        return view('contacts.create');
-    }
-
-    /**
-     * @param ContactStoreRequest $request
-     *
-     * @return RedirectResponse
-     */
-    public function store(ContactStoreRequest $request)
-    {
-        auth()->user()->contacts()->create([
-            'name'  => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-        ]);
-
-        return redirect()->route('data-source.index')->with('success', 'Contact created successfully.');
     }
 
     /**
@@ -166,7 +111,7 @@ class ContactController extends ApiController
      * @param ContactStoreRequest $request
      * @return JsonResponse
      */
-    public function storeApi(ContactStoreRequest $request)
+    public function store(ContactStoreRequest $request)
     {
         $contact = auth()->user()->contacts()->create([
             'name'  => $request->name,
@@ -175,16 +120,6 @@ class ContactController extends ApiController
         ]);
 
         return $this->responseSuccess($contact);
-    }
-
-    /**
-     * @param Contact $dataSource
-     *
-     * @return View
-     */
-    public function show(Contact $dataSource)
-    {
-        return view('contacts.show', compact('dataSource'));
     }
 
     /**
@@ -213,19 +148,9 @@ class ContactController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function showApi(int $id)
+    public function show(int $id)
     {
         return $this->responseSuccess(Contact::find($id));
-    }
-
-    /**
-     * @param Contact $dataSource
-     *
-     * @return View
-     */
-    public function edit(Contact $dataSource)
-    {
-        return view('contacts.edit', compact('dataSource'));
     }
 
     /**
@@ -254,26 +179,9 @@ class ContactController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function editApi(int $id)
+    public function edit(int $id)
     {
         return $this->responseSuccess(Contact::find($id));
-    }
-
-    /**
-     * @param ContactUpdateRequest $request
-     * @param Contact $dataSource
-     *
-     * @return RedirectResponse
-     */
-    public function update(ContactUpdateRequest $request, Contact $dataSource)
-    {
-        $dataSource->update([
-            'name'  => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-        ]);
-
-        return redirect()->route('data-source.index')->with('success', 'Contact updated successfully.');
     }
 
     /**
@@ -311,7 +219,7 @@ class ContactController extends ApiController
      * @param ContactUpdateRequest $request
      * @return JsonResponse
      */
-    public function updateApi(int $id, ContactUpdateRequest $request)
+    public function update(int $id, ContactUpdateRequest $request)
     {
         $contact = Contact::withCount(['blackListNumber'])->find($id);
 
@@ -329,18 +237,6 @@ class ContactController extends ApiController
         $contact['campaigns_count'] = $info['campaigns'];
 
         return $this->responseSuccess($contact);
-    }
-
-    /**
-     * @param Contact $dataSource
-     *
-     * @return RedirectResponse
-     */
-    public function destroy(Contact $dataSource)
-    {
-        $dataSource->delete();
-
-        return redirect()->route('data-source.index')->with('success', 'Contact deleted successfully.');
     }
 
     /**
@@ -367,7 +263,7 @@ class ContactController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function destroyApi(int $id)
+    public function destroy(int $id)
     {
         $contact = Contact::find($id)->delete();
 

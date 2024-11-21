@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
 use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class UserController extends ApiController
+class UserController extends Controller
 {
     public function __construct(
         private UserService $userService,

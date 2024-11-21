@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
-use App\Enums\BroadcastLog\BroadcastLogStatus;
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\SettingUploadSendDataRequest;
 use App\Models\Setting;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
@@ -11,15 +10,13 @@ use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Setting\SettingRepositoryInterface;
 use App\Services\Settings\SettingService;
 use App\Trait\CSVReader;
-use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class SettingController extends ApiController
+class SettingController extends Controller
 {
     use CSVReader;
 

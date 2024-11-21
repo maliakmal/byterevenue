@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\ApiController;
 use App\Models\BatchFile;
 use App\Models\Campaign;
-use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
+use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,12 +27,9 @@ class BatchFileApiController extends ApiController
      */
     public function getFormContentFromCampaign(Request $request){
         $campaign = $this->campaignRepository->find($request->campaign_id);
-        $result = [];
-        $result['data'] = $campaign->message;
+        $result = $campaign->message;
 
-        // todo check on frontend
-        // return response()->json($result);
-        return $this->responseSuccess($result);
+        return $this->responseSuccess(options: $result);
     }
 
     /**
@@ -40,7 +38,7 @@ class BatchFileApiController extends ApiController
      * @return JsonResponse
      */
     public function checkStatus(Request $request){
-        $file_ids = isset($_POST['files'])?$_POST['files']:[];
+        $file_ids = isset($_POST['files']) ? $_POST['files'] : [];
         $file_ids = is_array($file_ids) ? $file_ids : [];
         $file_ids[] = 0;
         $files = [];
@@ -55,17 +53,10 @@ class BatchFileApiController extends ApiController
             $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
             $one['total_clicked'] = $specs['total_clicked'];
             $one['created_at_ago'] = $file->created_at->diffForHumans();;
-
             $files[] = $one;
         }
 
-        $result = [];
-        $result['data'] = $files;
-        $result['ids'] = $request->files;
-
-        // todo check on frontend
-        // return response()->json($result);
-        return $this->responseSuccess($result);
+        return $this->responseSuccess(data: $files, options: ['ids' => $request->files]);
     }
 
     /**
@@ -76,26 +67,22 @@ class BatchFileApiController extends ApiController
     public function index(Request $request)
     {
         $campaign_ids = $request->campaign_ids;
-        $campaign_ids = is_array($campaign_ids)?$campaign_ids:[];
-        $campaign_ids[] = 0;
+        $campaign_ids = is_array($campaign_ids) ? $campaign_ids : [];
 
         $campaigns = Campaign::whereIn('id', $campaign_ids)->get();
         $message = null;
 
-        if (count($campaigns) == 1) {
+        if (count($campaigns)) {
             $message = $campaigns[0]->message;
         }
 
         $files = [];
         $result = [
-            'data' => [
-                'files'=> [],
-                'campaigns' => $campaigns->toArray(),
-                'message' => $message
-            ]
+            'campaigns' => $campaigns->toArray(),
+            'message' => $message,
         ];
 
-        foreach($campaigns as $campaign){
+        foreach($campaigns as $campaign) {
 
             foreach($campaign->batchFiles()->orderby('id', 'desc')->get() as $file){
                 $one = $file->toArray();
@@ -103,19 +90,16 @@ class BatchFileApiController extends ApiController
                 // get all entries with the campaig id and the batch no
                 $specs = $this->broadcastLogRepository->getTotalSentAndClicksByCampaignAndBatch($campaign->id, $batch_no);
                 $one['total_entries'] = $specs['total'];
-                $one['total_sent'] =  $specs['total_sent'];
+                $one['total_sent'] = $specs['total_sent'];
                 $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
                 $one['total_clicked'] = $specs['total_clicked'];
                 $one['created_at_ago'] = $file->created_at->diffForHumans();;
-
                 $files[] = $one;
             }
         }
 
-        $result['data']['files'] = $files;
+        $result['files'] = $files;
 
-        // todo check on frontend
-        // return response()->json($result);
         return $this->responseSuccess($result);
     }
 }

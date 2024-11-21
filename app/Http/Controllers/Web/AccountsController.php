@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Api\ApiController;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\Accounts\AccountsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class AccountsController extends ApiController
+class AccountsController extends Controller
 {
     private AccountsService $accountsService;
+
     /**
      * @param AccountsService $accountsService
      */
@@ -23,93 +24,17 @@ class AccountsController extends ApiController
     }
 
     /**
-     * @OA\Get(
-     *     path="/accounts",
-     *     summary="Get all accounts",
-     *     tags={"Accounts"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
-     * @return JsonResponse
-     */
-    public function indexApi()
-    {
-        $response = $this->accountsService->getAccounts();
-        return $this->responseSuccess($response);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/accounts/{id}",
-     *     summary="Get account transactions",
-     *     tags={"Accounts"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string"),
-     *         description="Account ID"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
-     * @param string $id
-     * @return JsonResponse
-     */
-    public function showApi($id)
-    {
-        $response = $this->accountsService->getAccountTransactions($id);
-
-        return $this->responseSuccess($response);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/tokens",
-     *     summary="Get tokens for the current user",
-     *     tags={"Accounts"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
-     * @return JsonResponse
-     */
-    public function showTokensApi()
-    {
-        $isCurrentUserAdmin = auth()->user()->hasRole('admin');
-        $userId = $isCurrentUserAdmin ? null : auth()->id();
-        $response = $this->accountsService->getAccountTransactions($userId);
-
-        return $this->responseSuccess($response);
-    }
-
-    /**
      * @return JsonResponse
      */
     public function storeTokensApi(Request $request)
     {
         $response = $this->accountsService->addTokensToAccount($request);
+
         if (isset($response['errors'])) {
             return $this->responseError($response['errors']);
         }
-        return $this->responseSuccess($response);
+
+        return response()->json($response);
     }
 
     public function index()

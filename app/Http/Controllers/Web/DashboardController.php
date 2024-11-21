@@ -1,22 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Dashboard\DashboardService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use App\Services\Dashboard\DashboardService;
 
-/**
- * @OA\Server(
- *      url="/api",
- *      description="API Server"
- *  )
- */
-class DashboardController extends ApiController
+class DashboardController extends Controller
 {
     private DashboardService $dashboardService;
 
@@ -52,38 +45,6 @@ class DashboardController extends ApiController
                 'cache_updated_at'   => $dashboardData['cache_updated_at'],
             ]
         );
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/api/dashboard",
-     *     summary="Get dashboard data",
-     *     tags={"Dashboard"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="dataFeed", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="campaigns", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="accounts", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="params", type="object"),
-     *             @OA\Property(property="has_campaign", type="boolean"),
-     *             @OA\Property(property="has_reception_list", type="boolean"),
-     *             @OA\Property(property="campaigns_graph", type="object"),
-     *             @OA\Property(property="send_graph", type="object"),
-     *             @OA\Property(property="clicks_graph", type="object"),
-     *             @OA\Property(property="ctr", type="number"),
-     *             @OA\Property(property="labels", type="array", @OA\Items(type="string")),
-     *             @OA\Property(property="cache_updated_at", type="string", format="date-time")
-     *         )
-     *     )
-     * )
-     * @return JsonResponse
-     */
-    public function indexApi()
-    {
-        return $this->responseSuccess($this->dashboardService->generateDashboardData());
     }
 
     /**

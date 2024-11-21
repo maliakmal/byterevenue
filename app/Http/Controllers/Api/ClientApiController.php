@@ -1,25 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\ApiController;
 use App\Http\Requests\ClientStoreRequest;
 use App\Http\Requests\ClientUpdateRequest;
 use App\Models\Client;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
-class ClientController extends ApiController
+class ClientApiController extends ApiController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $clients = Client::where('user_id', auth()->id())->latest()->paginate(5);
-        return view('clients.index', compact('clients'));
-    }
-
     /**
      * @OA\Get(
      *     path="/clients",
@@ -36,31 +26,11 @@ class ClientController extends ApiController
      * )
      * @return JsonResponse
      */
-    public function indexApi()
+    public function index()
     {
-        return $this->responseSuccess(
-            Client::where('user_id', auth()->id())
-                ->latest()
-                ->paginate(5)
-        );
-    }
+        $clients = Client::latest()->paginate(10);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('clients.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ClientStoreRequest $request)
-    {
-        auth()->user()->clients()->create($request->validated());
-
-        return redirect()->route('clients.index')->with('success', 'Client created successfully.');
+        return $this->responseSuccess($clients);
     }
 
     /**
@@ -88,7 +58,7 @@ class ClientController extends ApiController
      * @param ClientStoreRequest $request
      * @return JsonResponse
      */
-    public function storeApi(ClientStoreRequest $request)
+    public function store(ClientStoreRequest $request)
     {
         $client = Client::create(
             [
@@ -99,14 +69,6 @@ class ClientController extends ApiController
         );
 
         return $this->responseSuccess($client, 'Client created successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Client $client)
-    {
-        return view('clients.show', compact('client'));
     }
 
     /**
@@ -134,27 +96,9 @@ class ClientController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function showApi(int $id)
+    public function show(int $id)
     {
         return $this->responseSuccess(Client::findOrFail($id));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Client $client)
-    {
-        return view('clients.edit', compact('client'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ClientUpdateRequest $request, Client $client)
-    {
-        $client->update($request->validated());
-
-        return redirect()->route('clients.index')->with('success', 'Client updated successfully.');
     }
 
     /**
@@ -190,7 +134,7 @@ class ClientController extends ApiController
      * @param ClientUpdateRequest $request
      * @return JsonResponse
      */
-    public function updateApi(int $id, ClientUpdateRequest $request)
+    public function update(int $id, ClientUpdateRequest $request)
     {
         $client = Client::findOrFail($id);
 
@@ -201,16 +145,6 @@ class ClientController extends ApiController
         $client->update($request->validated());
 
         return $this->responseSuccess($client, 'Client updated successfully.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Client $client)
-    {
-        $client->delete();
-
-        return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
     }
 
     /**
@@ -237,10 +171,10 @@ class ClientController extends ApiController
      * @param int $id
      * @return JsonResponse
      */
-    public function destroyApi(int $id)
+    public function destroy(int $id)
     {
         Client::findOrFail($id)->delete();
 
-        return $this->responseSuccess([], 'Client deleted successfully.');
+        return $this->responseSuccess(message: 'Client deleted successfully.');
     }
 }

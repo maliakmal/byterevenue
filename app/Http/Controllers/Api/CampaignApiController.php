@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
+use App\Http\Controllers\ApiController;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
+use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use Illuminate\Http\Request;
 
 class CampaignApiController extends ApiController
@@ -25,9 +26,7 @@ class CampaignApiController extends ApiController
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
 
-        // todo check on frontend
-        // return response()->json($result);
-        $this->responseSuccess($result);
+        $this->responseSuccess(options: $result);
     }
 
     /**
@@ -42,8 +41,6 @@ class CampaignApiController extends ApiController
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
 
-        // todo check on frontend
-        // return response()->json($result);
-        $this->responseSuccess($result);
+        $this->responseSuccess(options: $result);
     }
 }

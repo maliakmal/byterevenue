@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class ApiController extends Controller
@@ -14,13 +13,14 @@ class ApiController extends Controller
      *
      * @return JsonResponse
      */
-    protected function responseSuccess($data = [], $message = '', $status = 200): JsonResponse
+    protected function responseSuccess($data = [], $message = '', $status = 200, $options = []): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'status'  => 'success',
             'data'    => $data,
-            'message' => $message
-        ], $status);
+            'message' => $message,
+        ] + $options, $status);
     }
 
     /**
@@ -30,12 +30,13 @@ class ApiController extends Controller
      *
      * @return JsonResponse
      */
-    protected function responseError($data = [], $message = '', $status = 400): JsonResponse
+    protected function responseError($data = [], $message = '', $status = 400, $options = []): JsonResponse
     {
         return response()->json([
+            'success' => false,
             'status'  => 'error',
             'data'    => $data,
-            'message' => $message
-        ], $status);
+            'message' => $message,
+        ] + $options, $status);
     }
 }

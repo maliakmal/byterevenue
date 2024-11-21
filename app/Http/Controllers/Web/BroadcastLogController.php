@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
 use App\Models\BroadcastLog;
 use Illuminate\Http\Request;
 
@@ -12,11 +13,8 @@ class BroadcastLogController extends Controller
      */
     public function index()
     {
-        
-        $logs = BroadcastLog::select()->orderby('id', 'DESC')->paginate(30);
+        //
     }
-
-
 
     /**
      * Show the form for creating a new resource.

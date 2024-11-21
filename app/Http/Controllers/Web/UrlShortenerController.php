@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
 use App\Models\UrlShortener;
-
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use App\Services\UrlShortener\UrlShortenerService;

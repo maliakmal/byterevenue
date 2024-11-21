@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\BlacklistWordStoreRequest;
 use App\Models\BlackListWord;
 use App\Services\BlacklistWord\BlacklistWordService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class BlackListWordController extends ApiController
+class BlackListWordController extends Controller
 {
     public function __construct(
         private BlacklistWordService $blacklistWordService
@@ -23,8 +23,10 @@ class BlackListWordController extends ApiController
         $filter = [
             'count'=> request('count', 5),
         ];
+
         $list = $this->blacklistWordService->list($filter['count']);
-        return view('black_list_word.index', compact('list', 'filter' ));
+
+        return view('black_list_word.index', compact('list', 'filter'));
     }
 
     /**
@@ -63,11 +65,14 @@ class BlackListWordController extends ApiController
     public function update(Request $request, BlackListWord $blackListWord)
     {
         $id = $blackListWord->id;
+
         $request->validate([
             'word' => "required|unique:black_list_words,word,$id|string|min:1|max:255",
         ]);
+
         $blackListWord->word = $request->word;
         $blackListWord->save();
+
         return redirect()->route('black-list-words.index', $blackListWord)->with('success', 'Item Updated successfully.');
     }
 
@@ -77,6 +82,7 @@ class BlackListWordController extends ApiController
     public function destroy(BlackListWord $blackListWord)
     {
         $blackListWord->delete();
+
         return redirect()->route('black-list-words.index')->with('success', 'Item deleted successfully.');
     }
 

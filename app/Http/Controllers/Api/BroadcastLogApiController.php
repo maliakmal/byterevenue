@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\BroadcastLog\BroadcastLogStatus;
+use App\Http\Controllers\ApiController;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
@@ -36,9 +37,7 @@ class BroadcastLogApiController extends ApiController
             'status' => BroadcastLogStatus::SENT,
         ]);
 
-        // todo check on frontend
-        // return response()->success(['updated_rows' => $number_of_updated_rows]);
-        $this->responseSuccess([
+        $this->responseSuccess(options: [
             'updated_rows' => $number_of_updated_rows
         ]);
     }

@@ -1,30 +1,30 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
 use App\Enums\BroadcastLog\BroadcastLogStatus;
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CampaignsGetRequest;
 use App\Http\Requests\JobRegenerateRequest;
+use App\Jobs\CreateCampaignsOnKeitaro;
+use App\Jobs\ProcessCsvQueueBatch;
+use App\Models\BatchFile;
+use App\Models\BroadcastLog;
+use App\Models\Campaign;
+use App\Models\UrlShortener;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
-use App\Jobs\ProcessCsvQueueBatch;
-use App\Jobs\CreateCampaignsOnKeitaro;
 use App\Services\JobService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Models\BroadcastLog;
-use App\Models\Campaign;
-use App\Models\BatchFile;
-use App\Models\UrlShortener;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class JobsController extends ApiController
+class JobsController extends Controller
 {
     public function __construct(
         protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
@@ -43,7 +43,6 @@ class JobsController extends ApiController
         $params = $this->jobService->campaigns($request->validated());
 
         return view('jobs.campaigns', compact('params'));
-
     }
 
     public function index()
@@ -78,14 +77,12 @@ class JobsController extends ApiController
             ->count();
 
         if (0 == $totalRecords) {
-            return $request->ajax() ?
-                response()->json(['error' => 'No messages ready for CSV generation.']) :
-                redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
+            redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
         }
 
         $sourceCampaignsIds = 'campaign' === $type ?
-        $request->campaign_ids :
-        $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
+            $request->campaign_ids :
+            $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
 
@@ -173,15 +170,7 @@ class JobsController extends ApiController
         $batch_file = $this->jobService->regenerateUnsent($request->validated());
 
         if (!$batch_file) {
-            if ($request->ajax()) {
-                return $this->responseError('CSV generation failed.');
-            }
-
             return redirect()->route('jobs.index')->with('error', 'CSV generation failed.');
-        }
-
-        if ($request->ajax()) {
-            return response()->json(['data' => $batch_file]);
         }
 
         return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
