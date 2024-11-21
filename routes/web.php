@@ -47,7 +47,7 @@ Route::middleware([CheckAdminRole::class])->group(function () {
     Route::get('/jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
     Route::post('/jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     Route::get('/jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
-    Route::post('/jobs/campaigns/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
+    // Route::post('/jobs/campaigns/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     Route::get('/download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
     Route::post('/jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
     Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');

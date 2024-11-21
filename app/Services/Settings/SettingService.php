@@ -32,7 +32,7 @@ class SettingService
     public function getAll(Request $request)
     {
         $settings = Setting::latest();
-        $perPage = $request->filled('count') ? $request->count : 15;
+        $perPage = request('count', 15);
         $list = $settings->paginate($perPage);
         return $list;
     }

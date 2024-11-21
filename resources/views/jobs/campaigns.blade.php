@@ -381,7 +381,7 @@
         }
 
         $.ajax({
-            url: '/api/jobs/generate-csv', // Replace with your API endpoint
+            url: '/api/jobs/internal/generate-csv', // Replace with your API endpoint
             method: 'POST',
             data: {
                 campaign_ids: campaignServiceManager.selected_campaign,
@@ -637,7 +637,7 @@
       var template = $('#files-template').html();
       showPreloader();
       $.ajax({
-        url: '/api/jobs/generate-csv', // Replace with your API endpoint
+        url: '/api/jobs/internal/generate-csv', // Replace with your API endpoint
         method: 'POST',
         data: {
           campaign_ids: campaignServiceManager.getCampaignIds(),
@@ -732,7 +732,7 @@
         showPreloader();
         var template = $('#files-template').html();
         $.ajax({
-            url: '/api/jobs/regenerate-csv', // Replace with your API endpoint
+            url: '/api/jobs/internal/regenerate-csv', // Replace with your API endpoint
             method: 'POST',
             data: {
                 campaign_ids: campaignServiceManager.getCampaignIds(),

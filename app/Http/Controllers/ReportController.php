@@ -57,11 +57,7 @@ class ReportController extends Controller
     {
         $download_csv = request()->get('download_csv') == 1;
         $inputs = request()->all();
-        $inputs['per_page'] = $download_csv
-            ? null
-            : (request()->filled('per_page')
-                ? request()->per_page
-                : 15);
+        $inputs['per_page'] = $download_csv ? null : request('per_page', 15);
         $userId = request()->get('user_id');
 
         $list = $this->broadcastLogRepository->paginateBroadcastLogs($inputs);
@@ -108,11 +104,7 @@ class ReportController extends Controller
             'user_id'
         ];
         $inputs = request()->all();
-        $inputs['per_page'] = $download_csv
-            ? null
-            : (request()->filled('per_page')
-                ? request()->per_page
-                : 15);
+        $inputs['per_page'] = $download_csv ? null : request('per_page', 15);
         $list = $this->campaignRepository->reportCampaigns($inputs, $columns);
         foreach ($list as $index => $item) {
             $list[$index]->user_name = '';

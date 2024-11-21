@@ -34,7 +34,7 @@ Route::post('/reset-password', [\App\Http\Controllers\Api\AuthController::class,
 Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
 Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
-// group routes that require external api token (webhooks)
+// group routes that require api token and internal requests
 Route::middleware([
     /*\App\Http\Middleware\CheckExternalApiToken::class, */
 ])->group(function () {
@@ -47,12 +47,12 @@ Route::middleware([
     Route::prefix('blacklist-numbers')->group(function () {
         Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
     });
+
     Route::prefix('jobs')->group(function () {
-        Route::post('/generate-csv', [JobsController::class, 'postIndex']);
-        Route::post('/generate/csv', [JobsController::class, 'indexApi']);
-        Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
-        Route::post('/regenerate/csv', [JobsController::class, 'regenerateUnsentApi']);
+        Route::post('internal/generate-csv', [JobsController::class, 'postIndex']);
+        Route::post('internal/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
     });
+
     Route::prefix('campaigns')->group(function () {
         Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
         Route::post('/unignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsNotIgnoreFromQueue']);
@@ -158,10 +158,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         Route::controller(JobsController::class)->prefix('jobs')->group(function () {
+            Route::post('/generate-csv', [JobsController::class, 'postIndex']);
+            Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
+
             Route::get('/fifo', 'indexApi');
             Route::post('/', 'createJobApi');
-            Route::post('/regenerate', 'regenerateUnsentApi');
-            Route::post('/campaigns/regenerate', 'regenerateUnsentApi');
             Route::get('/campaigns', 'campaignsApi');
         });
 

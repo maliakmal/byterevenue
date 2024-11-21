@@ -66,6 +66,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
 
+        // no need offset value btw whereNull('batch') every time
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
@@ -168,7 +169,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $cases .= "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
             $casesCount++;
 
-            $campaign_key = $campaign->id . '';
+            $campaign_key = (string)$campaign->id;
 
             if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
                 $unique_campaigns->add(['campaign' => $campaign, 'alias' => $alias_for_campaign]);
