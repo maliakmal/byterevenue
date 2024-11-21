@@ -329,7 +329,7 @@
     var jobService = new JobService();
 
     <?php
-    if(count($params['files_to_observe'])>0):
+    if(isset($params['files_to_observe']) && count($params['files_to_observe'])>0):
       foreach($params['files_to_observe'] as $file_id):
         ?>
         jobService.addBatchFileToObserve({{ $file_id }});      

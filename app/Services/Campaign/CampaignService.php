@@ -19,6 +19,8 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
+use Hidehalo\Nanoid\GeneratorInterface;
+
 
 class CampaignService
 {
@@ -37,7 +39,7 @@ class CampaignService
 
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        $param = config('app.keitaro.uid_param', 'u');
+        $param = config('app.keitaro.uid_param', 'sub_id_1');
         return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 

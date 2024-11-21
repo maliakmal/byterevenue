@@ -126,7 +126,7 @@ return [
     'keitaro' => [
         'token' => env('KEITARO_TOKEN', 'db20ad69d80eb6e235d02cf043a793ab'),
         'host' => env('KEITARO_HOST', 'http://3.84.28.36'),
-        'uid_param' => 'u'
+        'uid_param' => 'sub_id_1'
     ],
     'external_api' => [
         'token' => env('EXTERNAL_API_TOKEN', '8adhG9jWjRKLOvz6lgeD8hBppAD7Com86QYRk8VAy0PkfAJFvb')

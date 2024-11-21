@@ -62,9 +62,10 @@ class UpdateClicksFromKeitaro extends Command
 
                 exit();
             }
+            $uid_param = config('app.keitaro.uid_param', 'sub_id_1');
 
             foreach ($response['rows'] as $row){
-                $log_id = $row['sub_id_1'];
+                $log_id = $row[$uid_param];
 
                 if (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
                     \Log::error('log id is not valid', ['log' => $row]);
