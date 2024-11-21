@@ -186,6 +186,44 @@
     </div>
 </div>
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js" integrity="sha512-MlEyuwT6VkRXExjj8CdBKNgd+e2H+aYZOCUaCrt9KRk6MlZDOs91V1yK22rwm8aCIsb5Ec1euL8f0g58RKT/Pg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script id="files-template" type="text/x-mustache-template">
+
+<tr id="batch-file-[[ id ]]">
+                <td class="border-b border-gray-200 px-4 py-2">
+                  <a href="/download/[[ id ]]">File [[ id ]].csv</a>
+                  [[ #isRegen ]]
+                  <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN</span>
+                  [[ /isRegen ]]
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                [[ number_of_entries ]]
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                [[ campaign_count ]]
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                  <a href="/download/[[ id ]]">
+                    [[ ^is_ready ]]
+                      (pending)
+                    [[ /is_ready ]]
+                    [[ created_at_ago ]]
+                  </a>
+                </td>
+                <td class="border-b border-gray-200 px-4 py-2">
+                  <div class="inline-flex">
+                  [[ #is_ready ]]
+                    <a href="javascript:void(0)" data-batch_id="[[ id ]]" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                      Regen
+                    </a>
+                    [[ /is_ready ]]
+
+                  </div>
+                </td>
+              </tr>
+    </script>
+
+
 <script>
   $(function(){
     $('.btn-batch-regenerate').click(function(){
@@ -209,3 +247,144 @@
 
     @endif
 </script>
+
+
+<script>
+  $(function(){
+
+    var JobService = function(){
+      this.is_running = false;
+      this.interval = 5000;
+      this.files_to_observe = [];
+      
+      this.startService = function(){
+        if(this.is_running == true){
+          return;
+        }
+        if(this.files_to_observe.length == 0){
+          return;
+        }
+
+        this.is_running = true;
+        var _this = this;
+        window.setInterval( function(){
+          _this.probeObservableFiles();
+        },this.interval);
+      }
+
+      this.probeObservableFiles = function(){
+        var _this = this;
+        console.log('ping');
+        var template = $('#files-template').html();
+        $.ajax({
+            url: '/api/batch_files/check-status', // Replace with your API endpoint
+            method: 'POST',
+            data: { 
+                files: this.files_to_observe, 
+            },
+            success: function(response) {
+              if(response.data.length == 0){
+                return;
+              }
+
+              var files_ready = [];
+              for(let i = 0; i< response.data.length; i++){
+                files_ready.push(response.data[i].id);
+                _this.removeBatchFileToObserve(response.data[i].id);
+                // Render the template with data
+                var html = Mustache.render(template, response.data[i]);
+                // Append the generated HTML to the posts container
+                $('#data-table').find('#batch-file-'+response.data[i].id).replaceWith(html);
+                $('#batch-file-'+response.data[i].id).effect("highlight", {}, 3000);
+              }
+
+              $.growl.notice({ message: "CSV file(s) "+(files_ready.join(','))+" are ready" });
+
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error);
+            }
+        });
+
+      }
+
+
+
+      this.addBatchFileToObserve = function(file_id){
+        this.files_to_observe.push(file_id);
+      }
+
+      this.removeBatchFileToObserve = function(file_id){
+        this.files_to_observe.splice(this.files_to_observe.indexOf(file_id), 1);
+      }
+
+      this.runService = function(){
+        if(this.is_running == true){
+          return;
+        }
+
+      }
+    }
+
+    var jobService = new JobService();
+
+    <?php
+    if(count($params['files_to_observe'])>0):
+      foreach($params['files_to_observe'] as $file_id):
+        ?>
+        jobService.addBatchFileToObserve({{ $file_id }});      
+        <?php
+      endforeach;
+      ?>
+      jobService.startService();      
+      <?php
+    endif;
+    ?>
+
+
+
+    var showPreloader = function(){
+      $.LoadingOverlay("show");
+    }
+
+    var hidePreloader = function(){
+      $.LoadingOverlay("hide");
+    }
+
+
+    $('body').on('click', '#btn-generate-csv', function(e){
+      e.preventDefault();
+      var template = $('#files-template').html();
+      showPreloader();
+      $.ajax({
+        url: '/api/jobs/generate-csv', // Replace with your API endpoint
+        method: 'POST',
+        data: { 
+          type:'fifo',
+          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
+          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+        },
+        success: function(response) {
+          hidePreloader();
+
+          $.growl.notice({ message: "CSV has started generating" });
+          var html = Mustache.render(template, response.data);
+          $('#data-table').find('tbody').prepend(html);
+          
+          jobService.addBatchFileToObserve(response.data.id);
+          jobService.startService();
+        },
+        error: function(xhr, status, error) {
+          console.error('An error occurred:', error);
+        }
+      });
+    });
+
+    
+  });
+
+
+
+
+</script>
+
