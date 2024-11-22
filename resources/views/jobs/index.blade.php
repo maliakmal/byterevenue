@@ -95,9 +95,11 @@
         <tbody>
             @foreach ($params['files'] as $file)
               <tr>
-                <td class="border-b border-gray-200 px-4 py-2" style="cursor: default">
+                <td class="border-b border-gray-200 px-4 py-2 text-center" style="cursor: default">
                   @if($file['is_ready'] && $file['number_of_entries'] > 0)
                     <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv
+                  @elseif($file['number_of_entries'] == 0)
+                    <span>File {{ $file['id'] }}.csv</span>
                   @else
                     <span>File {{ $file['id'] }}.csv (preparation)</span>
                   @endif
@@ -109,26 +111,31 @@
                     </a>
                   @endif
                 </td>
-                <td class="border-b border-gray-200 px-4 py-2">
+                <td class="border-b border-gray-200 px-4 py-2 text-center">
                 {{ $file['number_of_entries'] }}
                 </td>
-                <td class="border-b border-gray-200 px-4 py-2">
+                <td class="border-b border-gray-200 px-4 py-2 text-center">
                 {{ count($file['campaigns']) }}
                 </td>
-                <td class="border-b border-gray-200 px-4 py-2">
+                <td class="border-b border-gray-200 px-4 py-2 text-center">
                   {{ !$file['urlShortener'] ? 'no info' : $file['urlShortener']['name'] }}
                 </td>
-                <td class="border-b border-gray-200 px-4 py-2">
-                  @if($file['is_ready'] == 1)
-                    (pending)
+                <td class="border-b border-gray-200 px-4 py-2 text-center">
+                  {{ $file['created_at']->diffForHumans() }}
+                  @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                    <br><span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">completed</span>
+                  @elseif($file['is_ready'] && !$file['number_of_entries'])
+                    <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-black-600/10">regenerated</span>
                   @endif
-                    {{ $file['created_at']->diffForHumans() }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2">
                   <div class="inline-flex">
-                    <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"  class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                  @if($file['number_of_entries'] > 0 && $file['is_ready'])
+                    <a href="javascript:void(0)" data-batch_id="{{$file['id'] }}" data-modal-target="default-modal" data-modal-toggle="default-modal"
+                       class="btn-batch-regenerate border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
                         Regen
                     </a>
+                  @endif
                   </div>
                 </td>
               </tr>
