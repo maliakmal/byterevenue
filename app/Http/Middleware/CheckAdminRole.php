@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Auth;
 
 class CheckAdminRole
 {
@@ -16,9 +15,9 @@ class CheckAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
+        if (!\Auth::check() || !\Auth::user()->hasRole('admin')) {
             // Redirect to a forbidden page or home if the user doesn't have the 'admin' role
-            return redirect('/forbidden');
+            abort(403);
         }
 
         return $next($request);

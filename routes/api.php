@@ -1,205 +1,89 @@
 <?php
 
-use App\Http\Controllers\AccountsController;
-use App\Http\Controllers\BlackListNumberController;
-use App\Http\Controllers\BlackListWordController;
-use App\Http\Controllers\BroadcastBatchController;
-use App\Http\Controllers\CampaignController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DataFeedController;
-use App\Http\Controllers\RecipientsListController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\SimcardController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\UrlShortenerController;
-use App\Http\Controllers\UserController;
-use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\JobsController;
+use App\Http\Controllers\Api\AuthApiController;
+use App\Http\Controllers\Api\BroadcastLogApiController;
+use App\Http\Controllers\Api\JobsApiController;
+use App\Http\Controllers\Api\BlackListNumberApiController;
+use App\Http\Controllers\Api\CampaignApiController;
+use App\Http\Controllers\Api\BatchFileApiController;
+use App\Http\Controllers\Api\AccountsApiController;
+use App\Http\Controllers\Api\ContactApiController;
+use App\Http\Controllers\Api\SimcardApiController;
+use App\Http\Controllers\Api\ClientApiController;
+use App\Http\Controllers\Api\RecipientsListApiController;
+use App\Http\Controllers\Api\BroadcastBatchApiController;
+use App\Http\Controllers\Api\AreasApiController;
 
-// User data for livewire
-Route::get('/user', function (Request $request) {
+
+// group auth routes for api
+Route::post('login', [AuthApiController::class, 'login']);
+Route::post('register', [AuthApiController::class, 'register']);
+Route::post('logout', [AuthApiController::class, 'logout']);
+Route::post('forgot-password', [AuthApiController::class, 'forgotPassword']);
+Route::post('reset-password', [AuthApiController::class, 'resetPassword']);
+Route::post('refresh', [AuthApiController::class, 'refresh']);
+Route::get('me', [AuthApiController::class, 'me'])->middleware('auth:sanctum');
+Route::get('user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// group auth routes for api
-Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
-Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
-Route::post('/logout', [\App\Http\Controllers\Api\AuthController::class, 'logout']);
-Route::post('/forgot-password', [\App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [\App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
-Route::post('/refresh', [\App\Http\Controllers\Api\AuthController::class, 'refresh']);
-Route::get('/me', [\App\Http\Controllers\Api\AuthController::class, 'me'])->middleware('auth:sanctum');
 
-// group routes that require api token and internal requests
-Route::middleware([
-    /*\App\Http\Middleware\CheckExternalApiToken::class, */
-])->group(function () {
+// group routes that require api token for internal requests
+Route::middleware([/*\App\Http\Middleware\CheckExternalApiToken::class, */])->group(function () {
     Route::prefix('messages')->group(function () {
-        Route::post('/update-by-file/sent', [\App\Http\Controllers\Api\BroadcastLogController::class, 'updateSentMessage']);
-        Route::post('/update/sent', [JobsController::class, 'updateSentMessage']);
-        Route::post('/update/clicked', [JobsController::class, 'updateClickMessage']);
+        Route::post('update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
+        Route::post('update/sent', [JobsApiController::class, 'updateSentMessage']);
+        Route::post('update/clicked', [JobsApiController::class, 'updateClickMessage']);
     });
 
     Route::prefix('blacklist-numbers')->group(function () {
-        Route::post('/upload', [\App\Http\Controllers\Api\BlackListNumberController::class, 'updateBlackListNumber']);
+        Route::post('upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
     });
 
     Route::prefix('jobs')->group(function () {
-        Route::post('internal/generate-csv', [JobsController::class, 'postIndex']);
-        Route::post('internal/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
+        Route::post('internal/generate-csv', [JobsApiController::class, 'postIndex']);
+        Route::post('internal/regenerate-csv', [JobsApiController::class, 'regenerateUnsent']);
     });
 
     Route::prefix('campaigns')->group(function () {
-        Route::post('/ignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsIgnoreFromQueue']);
-        Route::post('/unignore', [\App\Http\Controllers\Api\CampaignController::class, 'markAsNotIgnoreFromQueue']);
+        Route::post('ignore', [CampaignApiController::class, 'markAsIgnoreFromQueue']);
+        Route::post('unignore', [CampaignApiController::class, 'markAsNotIgnoreFromQueue']);
     });
 
-    Route::prefix('batch_files')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\BatchFileController::class, 'index']);
-        Route::post('/check-status', [\App\Http\Controllers\Api\BatchFileController::class, 'checkStatus']);
-        Route::post('/get-form-content-from-campaign', [\App\Http\Controllers\Api\BatchFileController::class, 'getFormContentFromCampaign']);
-    });
+    // batch_files group
+    Route::post('batch_files', [BatchFileApiController::class, 'index']);
+    Route::post('batch_files/check-status', [BatchFileApiController::class, 'checkStatus']);
+    Route::post('batch_files/get-form-content-from-campaign', [BatchFileApiController::class, 'getFormContentFromCampaign']);
 });
+
 
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::any('/dashboard', [DashboardController::class, 'indexApi']);
-    Route::get('/introductory/disable', [DashboardController::class, 'disableIntroductoryApi']);
-    Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeedApi']);
+    Route::get('accounts/', [AccountsApiController::class, 'index']);
+    Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
+    Route::get('tokens', [AccountsApiController::class, 'showTokens']);
 
-    Route::controller(AccountsController::class)->group(function () {
-        Route::prefix('accounts')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::get('/{id}', 'showApi');
-        });
-        Route::get('/tokens', 'showTokensApi');
-    });
+    Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
+    Route::resource('data-source', ContactApiController::class);
 
-    Route::prefix('data-source')->group(function (){
-        Route::get('/', [ContactController::class, 'indexApi']);
-        Route::get('/info', [ContactController::class, 'contactsInfo']);
-        Route::get('/{id}', [ContactController::class, 'showApi']);
-        Route::get('/{id}/edit', [ContactController::class, 'editApi']);
-        Route::post('/', [ContactController::class, 'storeApi']);
-        Route::put('/{id}', [ContactController::class, 'updateApi']);
-        Route::delete('/{id}', [ContactController::class, 'destroyApi']);
-    });
+    // ControllerApi methods
+    Route::resource('simcards', SimcardApiController::class);
+    Route::resource('clients', ClientApiController::class);
+    Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
+    Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);
+    Route::resource('campaigns', CampaignApiController::class);
+    Route::resource('recipient_lists', RecipientsListApiController::class);
 
-    Route::controller(SimcardController::class)->prefix('simcards')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'showApi');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
-    });
-
-    Route::controller(ClientController::class)->prefix('clients')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'showApi');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
-    });
-
-    Route::controller(CampaignController::class)->prefix('campaigns')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'showApi');
-        Route::get('/{id}/stats', 'campaignStats');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
-        Route::post('/mark-processed/{id}', 'markAsProcessedApi');
-    });
-
-    Route::controller(RecipientsListController::class)->prefix('recipient_lists')->group(function () {
-        Route::get('/', 'indexApi');
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'showApi');
-        Route::put('/{id}', 'updateApi');
-        Route::delete('/{id}', 'destroyApi');
-    });
-
-    Route::controller(BroadcastBatchController::class)->prefix('broadcast_batches')->group(function () {
-        Route::post('/', 'storeApi');
-        Route::get('/{id}', 'showApi');
-        Route::post('mark_as_processed/{id}', 'markAsProcessedApi');
-    });
-
-    Route::get('black-list-numbers/user', [BlackListNumberController::class, 'getBlackListNumberForUserApi']);
-
-    Route::middleware([CheckAdminRole::class])->group(function () {
-        Route::controller(BlackListNumberController::class)->prefix('black-list-numbers')->group(function () {
-            Route::get('/user', 'getBlackListNumberForUserApi');
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::put('/{id}', 'updateApi');
-            Route::delete('/{id}', 'destroyApi');
-        });
-
-        Route::controller(BlackListWordController::class)->prefix('black-list-words')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::get('/{id}', 'show');
-            Route::put('/{id}', 'updateApi');
-            Route::delete('/{id}', 'destroyApi');
-        });
-
-        Route::controller(SettingController::class)->prefix('settings')->group(function () {
-            Route::post('/upload-messages', 'uploadSendDataApi');
-            Route::post('/upload-black-numbers', 'uploadBlackListNumberApi');
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::post('/{id}', 'updateApi');
-            Route::delete('/{id}', 'deleteApi');
-        });
-
-        Route::controller(JobsController::class)->prefix('jobs')->group(function () {
-            Route::post('/generate-csv', [JobsController::class, 'postIndex']);
-            Route::post('/regenerate-csv', [JobsController::class, 'regenerateUnsent']);
-
-            Route::get('/fifo', 'indexApi');
-            Route::post('/', 'createJobApi');
-            Route::get('/campaigns', 'campaignsApi');
-        });
-
-        Route::controller(ReportController::class)->prefix('reports')->group(function (){
-            Route::get('messages', 'messagesApi');
-            Route::get('messages/csv','messagesCSVApi');
-            Route::get('campaigns', 'campaignsApi');
-            Route::get('campaigns/csv','campaignsCSVApi');
-        });
-
-        Route::controller(UrlShortenerController::class)->prefix('url-shorteners')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::post('/{id}', 'updateApi');
-            Route::delete('/{id}', 'deleteApi');
-        });
-
-        Route::controller(SettingController::class)->prefix('settings')->group(function () {
-            Route::get('/', 'indexApi');
-            Route::post('/', 'storeApi');
-            Route::post('/{id}', 'updateApi');
-            Route::delete('/{id}', 'deleteApi');
-        });
-
-        Route::get('/user/campaigns', [CampaignController::class, 'getCampaignsForUserApi']);
-        Route::post('/accounts/store-tokens', [AccountsController::class, 'storeTokensApi']);
-
-        Route::controller(UserController::class)->prefix('user')->group(function () {
-            Route::put('/edit', 'edit');
-            Route::post('/change_password', 'changePassword');
-        });
-    });
+    Route::post('broadcast_batches', [BroadcastBatchApiController::class, 'store']);
+    Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
+    Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class,'markAsProcessed']);
 });
 
-// public routes
+
+// public routes, without auth
 Route::prefix('areas')->name('api.areas.')->group(function () {
-    Route::get('get-all-provinces', [\App\Http\Controllers\Api\AreasController::class, 'getAllProvinces']);
-    Route::get('get-all-cities', [\App\Http\Controllers\Api\AreasController::class, 'getAllCities']);
-    Route::get('cities-by-province/{province}', [\App\Http\Controllers\Api\AreasController::class, 'citiesByProvince']);
+    Route::get('get-all-provinces', [AreasApiController::class, 'getAllProvinces']);
+    Route::get('get-all-cities', [AreasApiController::class, 'getAllCities']);
+    Route::get('cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 });

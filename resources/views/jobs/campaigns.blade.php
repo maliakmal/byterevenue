@@ -333,7 +333,6 @@
 
       this.probeObservableFiles = function(){
         var _this = this;
-        console.log('ping');
         var template = $('#files-template').html();
         $.ajax({
             url: '/api/batch_files/check-status', // Replace with your API endpoint
@@ -491,7 +490,7 @@
             success: function(response) {
               campaignServiceManager.initializeModal();
 
-                var template = $('#files-template').html();
+              var template = $('#files-template').html();
 
               // Clear previous content
               $('#data-table').find('tbody').empty();
@@ -605,7 +604,6 @@
         return this.campaign_message;
       }
 
-
       this.toggleCampaignAssetsDisplayOnClick = function(){
         if(this.getNumCampaigns()>0){
           $('.'+this.selectable_on_camp_click).removeClass('hidden');
@@ -647,11 +645,7 @@
         },
         success: function(response) {
           hidePreloader();
-          if (response.error) {
-            $.growl.error({ message: response.error });
-          } else {
-            $.growl.notice({ message: "CSV has started generating" });
-          }
+          $.growl.notice({ message: response.message });
           var html = Mustache.render(template, response.data);
           $('#data-table').find('tbody').prepend(html);
 
@@ -659,7 +653,9 @@
           jobService.startService();
         },
         error: function(xhr, status, error) {
+          hidePreloader();
           console.error('An error occurred:', error);
+          $.growl.error({ message: xhr.responseJSON.message });
         }
       });
     });
@@ -742,21 +738,18 @@
                 url_shortener: $('#default-modal').find('select#url_shortener').first().val(),
             },
             success: function(response) {
-
               campaignServiceManager.hideModal();
-
               hidePreloader();
-
               $.growl.notice({ message: "CSV has started regenerating" });
               var html = Mustache.render(template, response.data);
               $('#data-table').find('tbody').prepend(html);
-
             },
             error: function(xhr, status, error) {
-                console.error('An error occurred:', error);
+              campaignServiceManager.hideModal();
+              hidePreloader();
+              $.growl.error({ message: xhr.responseJSON.message });
             }
         });
-
     });
 
     $('body').on('click', '.lnk-campaign', function(e){
@@ -813,7 +806,6 @@
                 // Append the generated HTML to the posts container
                 $('#data-table').find('tbody').append(html);
             });
-
           },
           error: function(xhr, status, error) {
               console.error('An error occurred:', error);
@@ -822,7 +814,6 @@
     });
   });
 
-
   document.getElementById('lnk-clear-spintax-preview').addEventListener('click', function() {
   document.getElementById('spintax-holder').classList.add('hidden');
   document.querySelector('#spintax-preview div').innerHTML = '';
@@ -830,7 +821,6 @@
 
 document.getElementById('lnk-spintax-preview').addEventListener('click', function() {
   var matches, options, random;
-
   var regEx = new RegExp(/{([^{}]+?)}/);
   var text = document.getElementById('message_body').value;
   while ((matches = regEx.exec(text)) !== null) {

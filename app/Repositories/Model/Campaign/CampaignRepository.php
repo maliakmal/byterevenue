@@ -84,7 +84,7 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
      */
     public function getFiltered(array $filter)
     {
-        $campaigns = $this->model->newQuery();
+        $campaigns = $this->model->newQuery()->with(['recipient_list','user','message']);
 
         if (!is_null($filter['status'])) {
             $campaigns->where('status', $filter['status']);
