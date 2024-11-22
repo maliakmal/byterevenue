@@ -3,6 +3,7 @@
 namespace App\Services\RecipientList;
 
 use App\Models\Contact;
+use App\Models\RecipientsGroup;
 use App\Models\RecipientsList;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -66,6 +67,11 @@ class RecipientListService
                 'name' => $data['name'],
             ]);
 
+            RecipientsGroup::create([
+                'user_id' => $user->id,
+                'recipients_list_id' => $recipientsList->id,
+            ]);
+
             $user_id = $user->id;
             $newFileName = $file->getFilename();
             $fullPath = $file->getPathname();
@@ -102,15 +108,16 @@ class RecipientListService
                                 (" . implode(', ', $dummyVariables) . ")
                                SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'name' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
-                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id,  updated_at, created_at)
-                           SELECT $user_id, id, $recipientsList->id, NOW(), NOW()
+                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
+                           SELECT $user_id, id, $recipientsList->id
                            FROM contacts
                            WHERE file_tag='$newFileName'"
                 );
 
-                $recipientsList->is_imported = true;
-                $recipientsList->source = $data['source'];
-                $recipientsList->save();
+                $recipientsList->update([
+                    'is_imported' => true,
+                    'source' => $data['source'],
+                ]);
 
                 DB::commit();
 
@@ -120,7 +127,10 @@ class RecipientListService
 
                 return [false, 'Error importing CSV file: ' . $e->getMessage()];
             }
-        } else {
+        }
+
+        // $data['entry_type'] != 'file'
+        else {
             $data = explode(',', $data['numbers']);
         }
 

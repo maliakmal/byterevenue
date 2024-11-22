@@ -20,6 +20,7 @@ class ImportRecipientListsJob implements ShouldQueue
     private RecipientListService $recipient_list_service;
 
     public $timeout = 600; // 10 minutes
+    public $tries = 1;
 
     /**
      * Create a new job instance.
@@ -40,9 +41,11 @@ class ImportRecipientListsJob implements ShouldQueue
         $file     = new File($tempPath);
 
         $this->recipient_list_service->store($data, $file, $this->list->user);
-
         $this->list->update(['processed_at' => now()->toDateTimeString()]);
         \Log::info('ImportRecipientListsJob: ' . $this->list->id . ' processed');
+
+        FillingRecipientGroupJob::dispatch();
+        \Log::info('FillingRecipientGroupJob dispatched');
     }
 
     /**

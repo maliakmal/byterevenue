@@ -2,12 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Middleware\AppMiddlewareManager;
-use App\Jobs\RefreshBroadcastLogCache;
-use App\Models\BroadcastLog;
-use Hidehalo\Nanoid\CoreInterface;
+use App\Helpers\MemoryUsageHelper;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 
 class tmpTest extends Command
 {
@@ -30,6 +26,10 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        dd(Cache::get(BroadcastLog::CACHE_STATUS_KEY));
+        $res = MemoryUsageHelper::measureMemoryUsage(function () {
+            //
+        });
+
+        dd($res);
     }
 }

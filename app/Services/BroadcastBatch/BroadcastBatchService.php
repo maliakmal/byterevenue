@@ -71,7 +71,7 @@ class BroadcastBatchService
                 // 'broadcast_batch_id' => $broadcast_batch->id TODO: ask about this
             ];
 
-            $contacts = $broadcast_batch->recipient_list->contacts->all();
+            $contacts = $broadcast_batch->recipient_list->contacts;
 
             foreach ($contacts as $contact) {
                 $data['recipient_phone'] = $contact->phone;
