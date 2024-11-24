@@ -19,6 +19,9 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
+use Hidehalo\Nanoid\GeneratorInterface;
+use App\Jobs\ProcessCampaign;
+
 
 class CampaignService
 {
@@ -37,7 +40,7 @@ class CampaignService
 
     public function generateUrlForCampaign($domain, $alias, $messageID = null)
     {
-        $param = config('app.keitaro.uid_param', 'u');
+        $param = config('app.keitaro.uid_param', 'sub_id_1');
         return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 
@@ -266,6 +269,43 @@ class CampaignService
         DB::beginTransaction();
 
         try {
+            $recipientListId = $campaign->recipient_list->id;
+            $recipientList = $campaign->recipient_list;
+            $batchSize = 200; // Number of records per batch
+            $totalContacts = $recipientList->contacts()->count(); // Total number of contacts
+            $batches = ceil($totalContacts / $batchSize); // Number of batches
+
+            for ($i = 0; $i < $batches; $i++) {
+                $offset = $i * $batchSize;
+                $params = ['limit'=>$batchSize, 'offset'=>$offset, 'campaign'=>$campaign, 'user'=>$user];
+                dispatch(new ProcessCampaign($params));
+            }
+            
+            // Update campaign status
+            $campaign->markAsProcessed();
+        
+            // Create a transaction record
+            Transaction::create([
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'type' => 'usage',
+            ]);
+        
+            // Deduct tokens from account
+            $account->deductTokens($amount);
+            $account->save();
+        
+            DB::commit();
+        
+            return [true, 'Job is being processed.'];
+        } catch (\Exception $e) {
+            DB::rollback();
+            return [false, $e->getMessage()]; // TODO: remove after testing
+        }
+        
+
+
+        /*        try {
             $recepientListId = $campaign->recipient_list->id;
             $recipientList = $campaign->recipient_list;
             $contacts = $recipientList?->contacts ?? [];
@@ -316,7 +356,7 @@ class CampaignService
         } catch (\Exception $e) {
             DB::rollback();
             return [false, $e->getMessage()]; // TODO:: remove after testing
-        }
+        }*/
     }
 
     /**

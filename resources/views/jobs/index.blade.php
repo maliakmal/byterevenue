@@ -136,6 +136,13 @@
                         Regen
                     </a>
                   @endif
+                    @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                    <a href="/download/{{$file['id'] }}" class="border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                        Download
+                    </a>
+
+                    @endif
+
                   </div>
                 </td>
               </tr>
@@ -263,7 +270,7 @@
       this.is_running = false;
       this.interval = 5000;
       this.files_to_observe = [];
-      
+
       this.startService = function(){
         if(this.is_running == true){
           return;
@@ -286,8 +293,8 @@
         $.ajax({
             url: '/api/batch_files/check-status', // Replace with your API endpoint
             method: 'POST',
-            data: { 
-                files: this.files_to_observe, 
+            data: {
+                files: this.files_to_observe,
             },
             success: function(response) {
               if(response.data.length == 0){
@@ -336,14 +343,14 @@
     var jobService = new JobService();
 
     <?php
-    if(count($params['files_to_observe'])>0):
+    if(isset($params['files_to_observe']) && count($params['files_to_observe'])>0):
       foreach($params['files_to_observe'] as $file_id):
         ?>
-        jobService.addBatchFileToObserve({{ $file_id }});      
+        jobService.addBatchFileToObserve({{ $file_id }});
         <?php
       endforeach;
       ?>
-      jobService.startService();      
+      jobService.startService();
       <?php
     endif;
     ?>
@@ -366,10 +373,10 @@
       $.ajax({
         url: '/api/jobs/generate-csv', // Replace with your API endpoint
         method: 'POST',
-        data: { 
+        data: {
           type:'fifo',
-          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(), 
-          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(), 
+          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(),
+          url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(),
         },
         success: function(response) {
           hidePreloader();
@@ -377,7 +384,7 @@
           $.growl.notice({ message: "CSV has started generating" });
           var html = Mustache.render(template, response.data);
           $('#data-table').find('tbody').prepend(html);
-          
+
           jobService.addBatchFileToObserve(response.data.id);
           jobService.startService();
         },
@@ -387,7 +394,7 @@
       });
     });
 
-    
+
   });
 
 
