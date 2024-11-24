@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
 use Hidehalo\Nanoid\GeneratorInterface;
+use App\Jobs\ProcessCampaign;
 
 
 class CampaignService
@@ -265,51 +266,21 @@ class CampaignService
             return [false, 'You do not have enough tokens to process this campaign.'];
         }
 
-
-
         DB::beginTransaction();
-
 
         try {
             $recipientListId = $campaign->recipient_list->id;
             $recipientList = $campaign->recipient_list;
-        
-            // Lazy load contacts in chunks to prevent memory exhaustion
-            $recipientList->contacts()->chunk(500, function ($contacts) use ($campaign, $recipientListId, $user) {
-                $data = [];
-                $now = now();
-        
-                foreach ($contacts as $contact) {
-                    $message = $campaign->message;
-        
-                    $data[] = [
-                        'id' => Str::ulid(),
-                        'slug' => $this->nanoid->generateId(size: 8, mode: Client::MODE_DYNAMIC),
-                        'user_id' => $user->id,
-                        'recipients_list_id' => $recipientListId,
-                        'message_id' => $message->id,
-                        'message_body' => $message->getParsedMessage($contact->phone),
-                        'recipient_phone' => $contact->phone,
-                        'contact_id' => $contact->id,
-                        'is_downloaded_as_csv' => 0,
-                        'campaign_id' => $campaign->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-        
-                    // Insert in batches of 500 to reduce query size
-                    if (count($data) >= 500) {
-                        DB::table('broadcast_logs')->insert($data);
-                        $data = []; // Clear batch
-                    }
-                }
-        
-                // Insert any remaining records in the batch
-                if (!empty($data)) {
-                    DB::table('broadcast_logs')->insert($data);
-                }
-            });
-        
+            $batchSize = 200; // Number of records per batch
+            $totalContacts = $recipientList->contacts()->count(); // Total number of contacts
+            $batches = ceil($totalContacts / $batchSize); // Number of batches
+
+            for ($i = 0; $i < $batches; $i++) {
+                $offset = $i * $batchSize;
+                $params = ['limit'=>$batchSize, 'offset'=>$offset, 'campaign'=>$campaign, 'user'=>$user];
+                dispatch(new ProcessCampaign($params));
+            }
+            
             // Update campaign status
             $campaign->markAsProcessed();
         
