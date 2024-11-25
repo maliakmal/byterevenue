@@ -32,12 +32,12 @@ class RecipientsList extends Model
         return $this->campaigns()->count() > 0 ? false : true;
     }
 
-    public function ContactGroup()
+    public function recipientsGroup()
     {
         return $this->hasOne(RecipientsGroup::class);
     }
 
-    public function getContactsIds(): array
+    public function getRecipientsIds(): array
     {
         $ids = [];
 

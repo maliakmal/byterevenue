@@ -30,13 +30,14 @@ class RecipientsGroup extends Model
      *
      * @return Collection
      */
-    public function getLimitedContacts($limit = 10000): Collection
+    public function getLimitedContacts($limit = 10000, $offset = 0): Collection
     {
         $iterator = new \ArrayIterator($this->ids);
         $cutArray = iterator_to_array(new \LimitIterator($iterator, 0, $limit));
 
         return Contact::query()
             ->whereIn('id', $cutArray)
+            ->offset($offset)
             ->limit($limit)
             ->get();
     }
