@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('recipients_list_id');
             $table->longText('ids')->nullable();
+            $table->unsignedBigInteger('count')->default(0);
             $table->boolean('is_active')->default(false);
             $table->timestamp('ready_at')->nullable();
             $table->timestamps();

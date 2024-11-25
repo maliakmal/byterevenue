@@ -70,6 +70,7 @@ class RecipientListService
             RecipientsGroup::create([
                 'user_id' => $user->id,
                 'recipients_list_id' => $recipientsList->id,
+                'created_at' => now(),
             ]);
 
             $user_id = $user->id;

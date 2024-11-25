@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Helpers\MemoryUsageHelper;
+use App\Jobs\FillingRecipientGroupJob;
+use App\Models\RecipientsGroup;
 use Illuminate\Console\Command;
 
 class tmpTest extends Command
@@ -26,10 +28,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $res = MemoryUsageHelper::measureMemoryUsage(function () {
-            //
-        });
-
-        dd($res);
+        //
     }
 }

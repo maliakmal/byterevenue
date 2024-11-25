@@ -37,6 +37,11 @@ class FillingRecipientGroupJob implements ShouldQueue
             ->whereNull('ready_at')
             ->first();
 
+        if (!$group) {
+            \Log::info('No recipients group found for job FillingRecipientGroupJob');
+            return;
+        }
+
         $group->update(['is_active' => 1]);
 
         $this->list = $group->recipientsList;
@@ -52,6 +57,7 @@ class FillingRecipientGroupJob implements ShouldQueue
         $group->update([
             'ids' => $this->ids,
             'ready_at' => now(),
+            'count' => count($this->ids),
         ]);
     }
 }

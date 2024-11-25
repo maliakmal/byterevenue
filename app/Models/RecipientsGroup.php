@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class RecipientsGroup extends Model
@@ -11,6 +12,7 @@ class RecipientsGroup extends Model
 
     protected $casts = [
         'ids' => 'array',
+        'ready_at' => 'timestamp',
     ];
 
     public function recipientsList()
@@ -28,7 +30,7 @@ class RecipientsGroup extends Model
      *
      * @return Collection
      */
-    public function getLimitContacts($limit = 10000): Collection
+    public function getLimitedContacts($limit = 10000): Collection
     {
         $iterator = new \ArrayIterator($this->ids);
         $cutArray = iterator_to_array(new \LimitIterator($iterator, 0, $limit));
@@ -37,6 +39,31 @@ class RecipientsGroup extends Model
             ->whereIn('id', $cutArray)
             ->limit($limit)
             ->get();
+    }
+
+    public function getPaginatedContacts($perPage = 15): LengthAwarePaginator
+    {
+        $page = request('page', 1);
+        $offset = ($page - 1) * $perPage;
+        $iterator = new \ArrayIterator($this->ids);
+        $cutArray = iterator_to_array(new \LimitIterator($iterator, $offset, $perPage));
+        $total = $this->count;
+
+        $contacts = Contact::query()
+            ->whereIn('id', $cutArray)
+            ->limit($perPage)
+            ->get();
+
+        return new LengthAwarePaginator(
+            $contacts,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ],
+        );
     }
 
     /**
