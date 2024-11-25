@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class BroadcastLog extends Model
 {
@@ -44,4 +45,13 @@ class BroadcastLog extends Model
         )->shouldCache();
     }
 
+    public function scopeWithIsBlocked($query)
+    {
+        return $query->addSelect([
+            '*',
+            'is_blocked' => BlackListNumber::select(DB::raw('COUNT(*) > 0'))
+                ->whereColumn('phone_number', 'broadcast_logs.recipient_phone')
+                ->limit(1)
+        ]);
+    }
 }

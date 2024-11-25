@@ -184,9 +184,9 @@ class CampaignService
 
             if (isset($filters['sort'])) {
                 switch ($filters['sort']) {
-//                    case 'blocked':
-//                        $contacts = $contacts->orderBy('blocked', $filters['sort_order']);
-//                        break;
+                    case 'blocked':
+                        $logs = $logs->withIsBlocked()->orderBy('is_blocked', $filters['sort_order']);
+                        break;
                     case 'status':
                         $logs = $logs->orderBy('status', $filters['sort_order']);
                         break;
