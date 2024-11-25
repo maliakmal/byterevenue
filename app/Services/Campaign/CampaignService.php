@@ -172,7 +172,7 @@ class CampaignService
             $contacts = $recipient_lists->contacts();
 
             if (isset($filters['search'])) {
-                $contacts = $contacts->where('phone', 'like', '%' . $filters['search'] . '%');
+                $contacts = $contacts->where('recipient_phone', 'like', '%' . $filters['search'] . '%');
             }
 
             $contacts = $contacts->paginate($filters['per_page'] ?? $per_page);
@@ -200,7 +200,7 @@ class CampaignService
             }
 
             if (isset($filters['search'])) {
-                $logs = $logs->where('phone', 'like', '%' . $filters['search'] . '%');
+                $logs = $logs->where('recipient_phone', 'like', '%' . $filters['search'] . '%');
             }
 
             $logs = $logs->paginate($filters['per_page'] ?? $per_page);
