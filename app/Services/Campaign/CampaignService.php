@@ -172,7 +172,7 @@ class CampaignService
             $contacts = $recipient_lists->contacts();
 
             if (isset($filters['search'])) {
-                $contacts = $contacts->where('phone', 'like', '%' . $filters['search'] . '%');
+                $contacts = $contacts->where('recipient_phone', 'like', '%' . $filters['search'] . '%');
             }
 
             $contacts = $contacts->paginate($filters['per_page'] ?? $per_page);
@@ -184,9 +184,9 @@ class CampaignService
 
             if (isset($filters['sort'])) {
                 switch ($filters['sort']) {
-//                    case 'blocked':
-//                        $contacts = $contacts->orderBy('blocked', $filters['sort_order']);
-//                        break;
+                    case 'blocked':
+                        $logs = $logs->withIsBlocked()->orderBy('is_blocked', $filters['sort_order']);
+                        break;
                     case 'status':
                         $logs = $logs->orderBy('status', $filters['sort_order']);
                         break;
@@ -200,7 +200,7 @@ class CampaignService
             }
 
             if (isset($filters['search'])) {
-                $logs = $logs->where('phone', 'like', '%' . $filters['search'] . '%');
+                $logs = $logs->where('recipient_phone', 'like', '%' . $filters['search'] . '%');
             }
 
             $logs = $logs->paginate($filters['per_page'] ?? $per_page);
