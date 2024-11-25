@@ -66,6 +66,7 @@ class CampaignApiController extends ApiController
             'page' => $request->get('page', 1),
             'sort' => $request->get('sort_by', 'id_desc'),
             'sort_order' => $request->get('sort_order', 'asc'),
+            'search' => $request->get('search'),
         ];
 
         $campaignData = $this->campaignService->show($id, $filters);
