@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Requests\CampaignStoreRequest;
+use App\Http\Requests\CampaignUpdateRequest;
+use App\Models\Campaign;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
@@ -72,5 +75,33 @@ class CampaignApiController extends ApiController
         $campaignData = $this->campaignService->show($id, $filters);
 
         return $this->responseSuccess($campaignData);
+    }
+
+    public function store(CampaignStoreRequest $request)
+    {
+        [$campaign, $errors] = $this->campaignService->store($request->validated());
+
+        if (isset($errors['message'])) {
+            return $this->responseError($errors['message']);
+        }
+
+        return $this->responseSuccess(['campaign' => $campaign], 'Campaign created successfully.');
+    }
+
+    public function update(CampaignUpdateRequest $request, Campaign $campaign)
+    {
+        $updatedCampaign = $this->campaignService->update($campaign->id, $request->validated());
+
+        if (!$updatedCampaign) {
+            return $this->responseError('Failed to update the campaign.', 400);
+        }
+
+        return $this->responseSuccess($updatedCampaign, 'Campaign updated successfully.');
+    }
+
+    public function destroy(Campaign $campaign)
+    {
+        $campaign->delete();
+        return $this->responseSuccess([], 'Campaign deleted successfully.');
     }
 }
