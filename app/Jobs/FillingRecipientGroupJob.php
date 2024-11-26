@@ -19,6 +19,7 @@ class FillingRecipientGroupJob implements ShouldQueue
     public $chunkSize = 10000;
     public $list;
     public $ids = [];
+    public $queue = 'import_recipients';
 
     /**
      * Create a new job instance.

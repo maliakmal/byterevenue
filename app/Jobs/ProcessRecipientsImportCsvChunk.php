@@ -15,6 +15,7 @@ class ProcessRecipientsImportCsvChunk implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $data;
+    public $queue = 'import_recipients';
 
     /**
      * Create a new job instance.

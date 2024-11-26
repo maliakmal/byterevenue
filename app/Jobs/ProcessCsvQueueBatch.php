@@ -21,6 +21,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $queue = 'gen_queue';
+
     protected $offset        = 0;
     protected $batchSize     = 100;
     protected $url_shortener = null;
