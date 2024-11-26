@@ -29,8 +29,8 @@ class JobService
     public function index()
     {
         $download_me = null;
-        $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
-        $files = BatchFile::with('urlShortener')->orderby('id', 'desc')->paginate(15);
+        $urlShorteners = UrlShortener::withCount('campaignShortUrls')->onlyRegistered()->orderby('id', 'desc')->get();
+        $files = BatchFile::with('urlShortener')->withCount('campaigns')->orderby('id', 'desc')->paginate(15);
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
@@ -172,7 +172,7 @@ class JobService
                 'message_id' => $message_id
             ];
 
-            dispatch(new ProcessCsvRegenQueueBatch($params));
+            dispatch(new ProcessCsvRegenQueueBatch($params))->onQueue('regen_queue');
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];

@@ -66,8 +66,8 @@
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
                 <select id="url_shortener" name="url_shortener" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
                 @foreach($params['urlShorteners'] as $vv)
-                <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
-                  @endforeach
+                  <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaign_short_urls_count == 0 ? '(unused)': '('.$vv->campaign_short_urls_count.' Camps.)' }}</option>
+                @endforeach
                 </select>
                 <input type="hidden" name="type" value="fifo" />
               </div>
@@ -115,7 +115,7 @@
                 {{ $file['number_of_entries'] }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2 text-center">
-                {{ count($file['campaigns']) }}
+                {{ ($file['campaigns_count']) }}
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2 text-center">
                   {{ !$file['urlShortener'] ? 'no info' : $file['urlShortener']['name'] }}
@@ -184,7 +184,7 @@
                     <label>Domain: </label>
                     <select name="url_shortener" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         @foreach($params['urlShorteners'] as $vv)
-                            <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaignShortUrls()->count() == 0 ? '(unused)': '('.$vv->campaignShortUrls()->count().' Camps.)' }}</option>
+                            <option value="{{ $vv->name }}">{{ $vv->name }} {{ $vv->campaign_short_urls_count == 0 ? '(unused)': '('.$vv->campaign_short_urls_count.' Camps.)' }}</option>
                         @endforeach
                     </select>
                     <input name="batch" id="modal_batch" type="hidden" />

@@ -14,7 +14,7 @@
         "filament/filament": "^3.2",
         "hidehalo/nanoid-php": "^2.0",
         "laravel/framework": "^11.0",
-        "laravel/horizon": "^5.27",
+        "laravel/horizon": "^5.29",
         "laravel/jetstream": "^5.1",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
