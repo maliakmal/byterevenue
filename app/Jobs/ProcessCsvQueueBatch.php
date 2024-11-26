@@ -67,6 +67,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
         //DB::transaction();
         // no need offset value btw whereNull('batch') every time
+        $uniq_camp_query = BroadcastLog::query()->select('campaign_id')->distinct()
+            ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereNull('batch')
+            ->offset($this->offset)
+            ->limit($this->batchSize);
+
+
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
@@ -75,10 +82,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
             ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
+            $uniq_camp_query->where('campaign_id', $this->campaign_ids);
             $query->where('campaign_id', $this->campaign_ids);
         }
 
         $this->logs = $query->get();
+        $uniq_campaign_ids = $uniq_camp_query->pluck('campaign_id')->toArray();
+        $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
 
         if ($this->logs->isEmpty()) {
             dump('no matching entries found - skipping...');
@@ -111,7 +121,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
             }
 
             // TODO:: refactor this N+1
-            $campaign_short_url = CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
+            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
+            //CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
 
             if ($campaign_short_url) {
                 if (strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)) {
