@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 
 class RecipientsList extends Model
 {
@@ -35,19 +34,5 @@ class RecipientsList extends Model
     public function recipientsGroup()
     {
         return $this->hasOne(RecipientsGroup::class);
-    }
-
-    public function getRecipientsIds(): array
-    {
-        $ids = [];
-
-        \DB::table('contact_recipient_list')
-            ->where('recipients_list_id', $this->id)
-            ->select('id','contact_id')
-            ->chunkById('10000', function (Collection $chunk) use (&$ids) {
-                $ids = array_merge($ids, $chunk->pluck('contact_id')->toArray());
-            });
-
-        return $ids;
     }
 }

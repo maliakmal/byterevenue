@@ -17,7 +17,6 @@ class FillingRecipientGroupJob implements ShouldQueue
     public $timeout = 600; // 10 minutes
     public $tries = 1;
     public $chunkSize = 10000;
-    public $list;
     public $ids = [];
 
     /**
@@ -44,7 +43,6 @@ class FillingRecipientGroupJob implements ShouldQueue
 
         $group->update(['is_active' => 1]);
 
-        $this->list = $group->recipientsList;
         $recipientsList = $group->recipientsList;
 
         \DB::table('contact_recipient_list')
