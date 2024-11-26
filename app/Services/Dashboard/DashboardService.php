@@ -128,7 +128,8 @@ class DashboardService
         }
 
         if (auth()->user()->hasRole('admin')) {
-            $campaigns = Campaign::orderBy('id', 'desc')->limit(100)->get();
+            $campaigns = Campaign::with(['recipient_list.recipientsGroup:recipients_list_id,count'])
+                ->orderBy('id', 'desc')->limit(100)->get();
             $accounts = User::withCount([
                 'campaigns',
                 'campaigns as processing_campaign_count' => function ($query) {
@@ -203,7 +204,9 @@ class DashboardService
 
             [$labels, $campaigns_graph, $send_graph, $clicks_graph, $ctr] = $this->getAdminGraphData($startDate, $endDate);
         } else {
-            $campaigns = auth()->user()->campaigns()->latest()->limit(30)->get();
+            $campaigns = auth()->user()->campaigns()
+                ->with(['recipient_list.recipientsGroup:recipients_list_id,count'])
+                ->latest()->limit(30)->get();
         }
 
         $has_campaign = Campaign::where('user_id', auth()->id())->exists();

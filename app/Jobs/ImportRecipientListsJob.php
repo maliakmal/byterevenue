@@ -22,6 +22,8 @@ class ImportRecipientListsJob implements ShouldQueue
     public $timeout = 600; // 10 minutes
     public $tries = 1;
 
+    const QUEUE_KEY = 'import_recipient_list_processing';
+
     /**
      * Create a new job instance.
      */
@@ -29,6 +31,7 @@ class ImportRecipientListsJob implements ShouldQueue
     {
         $this->list = $importRecipientsList;
         $this->recipient_list_service = new RecipientListService;
+        $this->onQueue(self::QUEUE_KEY);
     }
 
     /**

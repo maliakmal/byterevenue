@@ -23,7 +23,7 @@
                     <!-- Suspended -->
                     <div class="flex flex-col px-6 py-2 bg-white shadow rounded-lg overflow-hidden">
                         <div class="flex flex-col items-center space-y-2">
-                            <div style="font-size: 30px;margin-top: 15px" class="text-center text-6xl font-bold tracking-tight leading-none {{ $campaign->user->tokens >= $campaign->recipient_list->contacts()->count() ? 'text-green-700' : 'text-red-600'}} ">{{ $campaign?->user?->tokens}}</div>
+                            <div style="font-size: 30px;margin-top: 15px" class="text-center text-6xl font-bold tracking-tight leading-none">{{ $campaign?->user?->tokens}}</div>
                             <div style="margin-top: 15px" class="text-lg font-medium">Available Tokens</div>
                         </div>
                     </div>

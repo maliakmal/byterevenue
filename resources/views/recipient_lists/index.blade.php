@@ -131,7 +131,7 @@
                                     </div>
                                 </form>
                             </div>
-                            <p class="mt-1 text-xs leading-5 text-gray-500"> {{$item->contacts_count}}  Num Recipients | {{$item->campaigns_count}} Campaigns Used | {{$item->source ?? "..." }} source</p>
+                            <p class="mt-1 text-xs leading-5 text-gray-500"> {{$item->recipientsGroup?->count}}  Num Recipients | {{$item->campaigns_count}} Campaigns Used | {{$item->source ?? "..." }} source</p>
                         </div>
                     </li>
                 @endforeach
@@ -183,6 +183,7 @@
 
 
             function getElementString(ele){
+                console.log(ele);
                 var edit = "{!!  route('recipient_lists.edit', 'id') !!}" ;
                 var del = "{!!  route('recipient_lists.destroy', 'id') !!}" ;
                 var account_link = "{!! route('accounts.show', 'user_id') !!}" ;
@@ -227,7 +228,7 @@
                                     </div>
                                 </form>
                             </div>
-                            <p class="mt-1 text-xs leading-5 text-gray-500"> ${ele.contacts_count}  Num Recipients | ${ele.campaigns_count} Campaigns Used | ${ele.source || "..." } source</p>
+                            <p class="mt-1 text-xs leading-5 text-gray-500"> ${ele.recipients_group.count}  Num Recipients | ${ele.campaigns_count} Campaigns Used | ${ele.source || "..." } source</p>
                         </div>
                     </li>`;
             }

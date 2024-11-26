@@ -70,7 +70,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // ControllerApi methods
     Route::resource('simcards', SimcardApiController::class);
     Route::resource('clients', ClientApiController::class);
-    Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed'])->name('campaigns.markProcessed');
+    Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
     Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);
     Route::resource('campaigns', CampaignApiController::class);
     Route::resource('recipient_lists', RecipientsListApiController::class);

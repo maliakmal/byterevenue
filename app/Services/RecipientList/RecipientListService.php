@@ -10,7 +10,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class RecipientListService
 {
@@ -26,8 +25,8 @@ class RecipientListService
         $perPage = intval($perPage);
 
         $recipient_lists = auth()->user()->hasRole('admin')
-            ? RecipientsList::with('user')->withCount(['contacts', 'campaigns'])
-            : auth()->user()->recipientLists()->withCount(['contacts', 'campaigns']);
+            ? RecipientsList::with(['user','recipientsGroup:recipients_list_id,count'])
+            : auth()->user()->recipientLists()->with(['user','recipientsGroup:recipients_list_id,count']);
 
         if (isset($nameFilter)) {
             $recipient_lists = $recipient_lists->whereLike('name', "%$nameFilter%");
@@ -161,7 +160,7 @@ class RecipientListService
                         ];
                     } else {
                         $attachable_id = array_search($row['phone'], $existing_phones_for_user);
-                        $recipientsList->contacts()->attach($attachable_id, ['user_id' => $user->id]);
+                        // $recipientsList->contacts()->attach($attachable_id, ['user_id' => $user->id]);
                     }
                 } else {
                     $insertables[] = [
@@ -175,10 +174,21 @@ class RecipientListService
                 }
             }
 
+            $ids = [];
+
             foreach ($insertables as $insertable) {
                 $contact = Contact::create($insertable);
-                $recipientsList->contacts()->attach($contact->id, ['user_id' => auth()->id()]);
+                //$recipientsList->contacts()->attach($contact->id, ['user_id' => auth()->id()]);
+                $ids[] = $contact->id;
             }
+
+            RecipientsGroup::create([
+                'recipients_list_id' => $recipientsList->id,
+                'user_id' => $user->id,
+                'ids' => $ids,
+                'count' => count($ids),
+                'created_at' => now(),
+            ]);
 
             $recipientsList->is_imported = true;
             $recipientsList->save();

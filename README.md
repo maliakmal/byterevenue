@@ -28,6 +28,12 @@
 8. From CLI run `npm install`
 9. From CLI run `npm run build`
 10. From CLI run `php artisan optimize:clear`
+11. Use Redis for caching and queueing
+12. Start queue workers:
+    1. `php artisan queue:work [--queue=default --tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
+    2. `php artisan queue:work --queue=campaign_contact_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
+    3. `php artisan queue:work --queue=CSV_generate_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
+    4. `php artisan queue:work --queue=import_recipient_list_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
 
 ### Credentials
 

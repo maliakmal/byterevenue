@@ -149,7 +149,7 @@
             <div class="  ">
               <h2 class="truncate  font-medium text-gray-900">
               <a href="{{ route('campaigns.show', $campaign->id) }}" class="  text-gray-900">{{ $campaign->title }}</a></h2>
-              <p>{{ $campaign->recipient_list ? $campaign->recipient_list->contacts()->count().' recipients':'-' }}</p>
+              <p>{{ $campaign->recipient_list ? ($campaign->recipient_list?->recipientsGroup?->count ?? 0).' recipients':'-' }}</p>
               @if(auth()->user()->hasRole('admin'))
             <p class="">
               <a href="{{ route('accounts.show', $campaign->user_id) }}" class="flex items-center">

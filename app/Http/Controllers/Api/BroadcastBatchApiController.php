@@ -93,7 +93,7 @@ class BroadcastBatchApiController extends ApiController
         $recipient_lists = $broadcastBatch->recipient_list;
 
         if ($broadcastBatch->isDraft()) {
-            $contacts = $recipient_lists->contacts()->paginate(10);
+            $contacts = $recipient_lists->recipientsGroup->getAllContactsPaginated(10);
             $logs = [];
         } else {
             $contacts = [];

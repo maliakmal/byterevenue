@@ -5,7 +5,6 @@ namespace App\Jobs;
 use App\Models\BroadcastLog;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use Carbon\Carbon;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -22,6 +21,7 @@ class RefreshBroadcastLogCache implements ShouldQueue
     private $startEndString;
 
     public $timeout = 600; // 10 minutes
+    public $tries = 1;
 
     /**
      * Create a new job instance.
@@ -40,8 +40,6 @@ class RefreshBroadcastLogCache implements ShouldQueue
     public function handle(BroadcastLogRepository $broadcastLogRepository): void
     {
         \Log::debug('Refreshing broadcast log cache');
-
-        sleep(30);
 
         $start = microtime(true);
 
@@ -79,9 +77,7 @@ class RefreshBroadcastLogCache implements ShouldQueue
 
         Cache::put('last_refreshed_at', Carbon::now()->format('Y-m-d H:i:s'));
 
-        \Log::debug('time of caching: '. sprintf('%.6f sec.',microtime(true)-$start));
-
-        sleep(30);
+        \Log::debug('time of caching: '. sprintf('%.6f sec.',microtime(true) - $start));
 
         Cache::forget(BroadcastLog::CACHE_STATUS_KEY);
     }

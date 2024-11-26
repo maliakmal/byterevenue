@@ -13,11 +13,17 @@ use Hidehalo\Nanoid\Client;
 class ProcessCampaign implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $timeout = 600; // 10 minutes
+    public $tries = 1;
+
     protected $campaign = null;
     protected $limit = 1000;
     protected $offset = 0;
     protected $user = null;
     private $nanoid;
+
+    const QUEUE_KEY = 'campaign_contact_processing';
 
     /**
      * Create a new job instance.
@@ -29,6 +35,7 @@ class ProcessCampaign implements ShouldQueue
         $this->campaign = $params['campaign'] ?? $this->campaign;
         $this->limit = $params['limit'] ?? $this->limit;
         $this->offset = $params['offset'] ?? $this->offset;
+        $this->onQueue(self::QUEUE_KEY);
     }
 
     /**
@@ -62,6 +69,7 @@ class ProcessCampaign implements ShouldQueue
                 'updated_at' => $now,
             ];
         }
+
         unset($contacts);
 
         // Insert any remaining records in the batch
@@ -70,5 +78,9 @@ class ProcessCampaign implements ShouldQueue
         } else {
             \Log::error('No contacts found for campaign: ' . $campaign->id);
         }
+
+        unset($data);
+
+        gc_collect_cycles();
     }
 }

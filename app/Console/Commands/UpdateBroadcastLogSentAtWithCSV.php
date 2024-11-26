@@ -15,7 +15,7 @@ class UpdateBroadcastLogSentAtWithCSV extends Command
 {
     use CSVReader;
 
-    private  BroadcastLogRepositoryInterface $broadcastLogRepository;
+    private BroadcastLogRepositoryInterface $broadcastLogRepository;
     /**
      * The name and signature of the console command.
      *
@@ -40,10 +40,13 @@ class UpdateBroadcastLogSentAtWithCSV extends Command
         $folder_address = config('setting.csv_uploaded_file_address', 'csv');
         $file_address = $folder_address.'/'.$file_name;
         $file = Storage::disk(config('app.csv.disk'))->get($file_address);
-        if(empty($file)){
+
+        if (empty($file)){
             $this->error('file not found');
+
             exit();
         }
+
         $csv = $this->csvToCollection($file);
         $message_ids = $csv->pluck('UID')->toArray();
         $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [

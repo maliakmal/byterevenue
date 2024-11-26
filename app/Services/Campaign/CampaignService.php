@@ -172,13 +172,7 @@ class CampaignService
         $recipient_lists = $campaign->recipient_list;
 
         if ($campaign->isDraft()) {
-            $contacts = $recipient_lists->contacts();
-
-            if (isset($filters['search'])) {
-                $contacts = $contacts->where('recipient_phone', 'like', '%' . $filters['search'] . '%');
-            }
-
-            $contacts = $contacts->paginate($filters['per_page'] ?? $per_page);
+            $contacts = $recipient_lists->recipientsGroup->getAllContactsPaginated($filters['per_page'] ?? $per_page);
             $logs = [];
 
         } else {

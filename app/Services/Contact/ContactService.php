@@ -38,6 +38,7 @@ class ContactService
             ->when($name, function ($query, $name) {
                 return $query->where('name', $name);
             })->orderBy('id', 'desc')->paginate($perPage);
+
         foreach ($contacts as $contact) {
             $info = $this->getInfo([$contact->id]);
             $contact['sent_count'] = $info['sent'];

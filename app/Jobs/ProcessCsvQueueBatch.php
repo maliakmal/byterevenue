@@ -21,6 +21,9 @@ class ProcessCsvQueueBatch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $timeout = 600; // 10 minutes
+    public $tries = 1;
+
     protected $offset        = 0;
     protected $batchSize     = 100;
     protected $url_shortener = null;
@@ -34,6 +37,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository     = null;
     protected $broadcastLogRepository     = null;
+
+    const QUEUE_KEY = 'CSV_generate_processing';
 
     /**
      * Create a new job instance.
@@ -51,6 +56,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
+
+        $this->onQueue(self::QUEUE_KEY);
     }
 
     /**

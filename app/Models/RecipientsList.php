@@ -16,10 +16,10 @@ class RecipientsList extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function contacts()
-    {
-        return $this->belongsToMany(Contact::class, 'contact_recipient_list', 'recipients_list_id', 'contact_id');
-    }
+//    public function contacts()
+//    {
+//        return $this->belongsToMany(Contact::class, 'contact_recipient_list', 'recipients_list_id', 'contact_id');
+//    }
 
     public function campaigns()
     {

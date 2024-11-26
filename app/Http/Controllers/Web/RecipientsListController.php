@@ -90,9 +90,9 @@ class RecipientsListController extends Controller
      */
     public function show($id)
     {
-
         $recipientsList = RecipientsList::findOrFail($id);
-        $contacts = $recipientsList->contacts()->paginate(10);
+        $recipientsGroup = $recipientsList->recipientsGroup;
+        $contacts = $recipientsGroup->getAllContactsPaginated(10);
 
         return view('recipient_lists.show', compact('recipientsList', 'contacts'));
     }

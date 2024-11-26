@@ -141,7 +141,8 @@ class RecipientsListApiController extends ApiController
     public function show(int $id): JsonResponse
     {
         $recipientsList = RecipientsList::findOrFail($id);
-        $contacts = $recipientsList->contacts()->paginate(10);
+        $recipientsGroup = $recipientsList->recipientsGroup;
+        $contacts = $recipientsGroup->getAllContactsPaginated(10);
 
         return $this->responseSuccess(
             [

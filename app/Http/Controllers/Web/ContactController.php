@@ -10,6 +10,7 @@ use App\Services\AreaCode\AreaCodeService;
 use App\Services\Contact\ContactService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
@@ -111,5 +112,16 @@ class ContactController extends Controller
         $dataSource->delete();
 
         return redirect()->route('data-source.index')->with('success', 'Contact deleted successfully.');
+    }
+
+    public function contactsInfo(Request $request)
+    {
+        $request->validate([
+            'contacts' => 'required|array',
+        ]);
+
+        return response()->json([
+            'data' => $this->contactService->getInfo($request->get('contacts')),
+        ]);
     }
 }
