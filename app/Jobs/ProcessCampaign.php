@@ -36,6 +36,8 @@ class ProcessCampaign implements ShouldQueue
      */
     public function handle(): void
     {
+        \Log::debug('Processing campaign: ' . $this->campaign->id);
+
         $data = [];
         $now  = now()->toDateTimeString();
         $user = $this->user;
@@ -60,6 +62,7 @@ class ProcessCampaign implements ShouldQueue
                 'updated_at' => $now,
             ];
         }
+        unset($contacts);
 
         // Insert any remaining records in the batch
         if (!empty($data)) {

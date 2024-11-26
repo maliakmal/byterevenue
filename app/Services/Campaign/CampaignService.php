@@ -271,7 +271,7 @@ class CampaignService
         try {
             $recipientList  = $campaign->recipient_list;
             $recipientGroup = $recipientList->recipientsGroup;
-            $batchSize      = 5000; // Number of records per batch
+            $batchSize      = 1000; // Number of records per batch
             $totalContacts  = $recipientGroup->count; // Total number of contacts
             $batches        = ceil($totalContacts / $batchSize); // Number of batches
 
