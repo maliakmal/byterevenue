@@ -70,7 +70,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
-            ->whereNull('batch')
+            //->whereNull('batch')
+            ->offset($this->offset)
             ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
