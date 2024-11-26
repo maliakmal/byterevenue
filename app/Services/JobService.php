@@ -172,7 +172,7 @@ class JobService
                 'message_id' => $message_id
             ];
 
-            dispatch(new ProcessCsvRegenQueueBatch($params));
+            dispatch(new ProcessCsvRegenQueueBatch($params))->onQueue('regen_queue');
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];

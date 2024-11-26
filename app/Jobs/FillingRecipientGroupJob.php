@@ -20,12 +20,6 @@ class FillingRecipientGroupJob implements ShouldQueue
     public $list;
     public $ids = [];
 
-    public function onQueue($queue)
-    {
-        $this->queue = 'import_recipients';
-        return $this;
-    }
-
     /**
      * Create a new job instance.
      */

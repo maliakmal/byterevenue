@@ -16,13 +16,6 @@ class ProcessRecipientsImportCsvChunk implements ShouldQueue
 
     protected $data;
 
-    public function onQueue($queue)
-    {
-    // hard code this job to the posts queue
-        $this->queue = 'import_recipients';
-        return $this;
-    }
-
     /**
      * Create a new job instance.
      */

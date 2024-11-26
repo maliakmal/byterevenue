@@ -23,12 +23,6 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     protected $campaignRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignShortUrlRepository = null;
-    
-    public function onQueue($queue)
-    {
-        $this->queue = 'keitaro';
-        return $this;
-    }
 
     /**
      * Create a new job instance.

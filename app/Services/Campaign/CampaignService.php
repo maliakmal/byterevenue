@@ -278,9 +278,9 @@ class CampaignService
             for ($i = 0; $i < $batches; $i++) {
                 $offset = $i * $batchSize;
                 $params = ['limit'=>$batchSize, 'offset'=>$offset, 'campaign'=>$campaign, 'user'=>$user];
-                dispatch(new ProcessCampaign($params));
+                dispatch(new ProcessCampaign($params))->onQueue('campaign_queue');
             }
-            
+
             // Update campaign status
             $campaign->markAsProcessed();
         
