@@ -20,7 +20,12 @@ class ProcessCampaign implements ShouldQueue
     protected $offset = null;
     protected $user = null;
     private $nanoid;
-    public $queue = 'load_queue';
+
+    public function onQueue($queue)
+    {
+        $this->queue = 'load_queue';
+        return $this;
+    }
 
     /**
      * Create a new job instance.

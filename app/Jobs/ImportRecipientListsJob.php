@@ -15,7 +15,13 @@ use Illuminate\Support\Facades\Storage;
 class ImportRecipientListsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    public $queue = 'import_recipients';
+
+    
+    public function onQueue($queue)
+    {
+        $this->queue = 'import_recipients';
+        return $this;
+    }
 
     private ImportRecipientsList $list;
     private RecipientListService $recipient_list_service;

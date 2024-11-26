@@ -21,7 +21,12 @@ use Illuminate\Support\Facades\Log;
 class ProcessCsvRegenQueueBatch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    public $queue = 'regen';
+
+    public function onQueue($queue)
+    {
+        $this->queue = 'regen';
+        return $this;
+    }
 
     protected $offset            = 0;
     protected $batchSize         = 100;
