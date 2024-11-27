@@ -42,7 +42,7 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     public function handle(CampaignService $campaign_service): void
     {
         $domain_id = $this->params['domain_id'];
-
+return;
         foreach($this->params['campaigns'] as $_item){
             Log::info('_item');
             Log::info($_item);

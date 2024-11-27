@@ -8,5 +8,6 @@ interface CampaignShortUrlRepositoryInterface extends BaseRepositoryInterface
 {
     public function findWithCampaignIDUrlID($campaignID, $url);
     public function search(array $params);
+    public function getIncomplete();
 
 }

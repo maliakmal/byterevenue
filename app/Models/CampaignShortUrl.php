@@ -16,4 +16,9 @@ class CampaignShortUrl extends Model
         return $url[0];
     }
 
+    public function urlShortener()
+    {
+        return $this->belongsTo(UrlShortener::class);
+    }
+
 }
