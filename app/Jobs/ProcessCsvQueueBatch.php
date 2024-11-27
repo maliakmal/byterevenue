@@ -71,15 +71,14 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id')->toArray();
-        $ignored_campaigns[] = 0;
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
         //DB::transaction();
-        // TODO:: create a separate thread for every campaign_id
+
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
+            ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
-            ->take($this->batchSize);
-        // no need offset value in query btw whereNull('batch') every time
+            ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
             $query->where('campaign_id', $this->campaign_ids);
@@ -90,24 +89,17 @@ class ProcessCsvQueueBatch implements ShouldQueue
         if ($this->logs->isEmpty()) {
             dump('no matching entries found - skipping...');
             \Log::info('No matching entries found - skipping...');
-            // set status to ready (unblock the queue)
+            // set status to ready
             $this->batch_file->update(['is_ready' => 1]);
             return;
         }
 
         Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
 
-        $uniq_campaign_ids = $this->logs->pluck('campaign_id')->unique()->toArray();
-        $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')
-            ->whereIn('campaign_id', $uniq_campaign_ids)
-            ->where('url_shortener', 'like', '%' . $url_shortener . '%')
-            ->orderby('id', 'desc')
-            ->pluck('url_shortener', 'campaign_id')
-            ->toArray();
-
         $ids = [];
         $cases = '';
         $casesCount = 0;
+        $campaign_short_url_map = [];
 
         foreach ($this->logs as $log) {
             $ids[] = "'". $log->id ."'";
@@ -124,7 +116,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 continue;
             }
 
-            $campaign_short_url = ($uniq_campaign_ids[$campaign->id] ?? null) ?: ($campaign_short_url_map[$campaign->id] ?? null);
+            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
+            //CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
 
             if ($campaign_short_url) {
                 if (strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)) {
