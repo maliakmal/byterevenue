@@ -64,7 +64,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id')->toArray();
         $ignored_campaigns[] = 0;
         //DB::transaction();
         // no need offset value btw whereNull('batch') every time
