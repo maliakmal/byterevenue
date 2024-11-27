@@ -74,22 +74,18 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id')->toArray();
         $ignored_campaigns[] = 0;
         //DB::transaction();
-        // no need offset value btw whereNull('batch') every time
         // TODO:: create a separate thread for every campaign_id
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNull('batch')
             ->take($this->batchSize);
-//            ->offset($this->offset)
-//            ->limit($this->batchSize);
+        // no need offset value in query btw whereNull('batch') every time
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
             $query->where('campaign_id', $this->campaign_ids);
         }
 
         $this->logs = $query->get();
-        // ???
-        // $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
 
         if ($this->logs->isEmpty()) {
             dump('no matching entries found - skipping...');
@@ -101,17 +97,22 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
 
+        $uniq_campaign_ids = $this->logs->pluck('campaign_id')->unique()->toArray();
+        $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')
+            ->whereIn('campaign_id', $uniq_campaign_ids)
+            ->where('url_shortener', 'like', '%' . $url_shortener . '%')
+            ->orderby('id', 'desc')
+            ->pluck('url_shortener', 'campaign_id')
+            ->toArray();
+
         $ids = [];
         $cases = '';
         $casesCount = 0;
-        // ???
-        $campaign_short_url_map = [];
 
         foreach ($this->logs as $log) {
             $ids[] = "'". $log->id ."'";
             $campaign = $log->campaign;
             $message = $log->message;
-
 
             if ($this->message_id) {
                 dump('Message id is set - ' . $this->message_id . ' - fetching message...');
@@ -123,9 +124,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 continue;
             }
 
-            // TODO:: refactor this N+1
-            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
-            //CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
+            $campaign_short_url = ($uniq_campaign_ids[$campaign->id] ?? null) ?: ($campaign_short_url_map[$campaign->id] ?? null);
 
             if ($campaign_short_url) {
                 if (strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)) {
@@ -149,7 +148,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
             } else {
                 // there is no campaign entry
-                // TODO:: move this to a separate service method
                 $alias_for_campaign = uniqid();
                 Log::info('campaign_short_url generated from uniqid ');
 
