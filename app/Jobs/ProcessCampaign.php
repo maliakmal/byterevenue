@@ -77,6 +77,8 @@ class ProcessCampaign implements ShouldQueue
             DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
             DB::table('broadcast_logs')->insert($data);
             DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
+        } else {
+            \Log::error('No contacts found for campaign: ' . $campaign->id);
         }
 
         unset($data);
