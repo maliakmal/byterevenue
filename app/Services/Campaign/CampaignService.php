@@ -322,8 +322,12 @@ class CampaignService
 
         $campaign->generateUniqueFolder();
         $campaign->save();
+        $message_data = [
+            'body' => $data['message_body'],
+            'target_url' => $data['message_target_url'],
+        ];
 
-        $campaign->message->update($data);
+        $campaign->message->update($message_data);
 
         return $campaign;
     }

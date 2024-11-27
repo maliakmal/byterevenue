@@ -63,7 +63,7 @@ class JobsController extends Controller
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
         $domain_id = $urlShortener->asset_id;
         $campaign_short_urls = [];
-        $batchSize = 100; // ids scope for each job
+        $batchSize = 1000; // ids scope for each job
         $type = 'campaign' === $request->type ? 'campaign' : 'fifo';
 
         // total count of batches for the job
