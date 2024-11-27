@@ -132,7 +132,7 @@ return [
         'token' => env('EXTERNAL_API_TOKEN', '8adhG9jWjRKLOvz6lgeD8hBppAD7Com86QYRk8VAy0PkfAJFvb')
     ],
     'domain' => [
-        'schedule_check_propagation' => 'hourly',
+        'schedule_check_propagation' => 'everyFiveMinutes',
     ],
     'csv' => [
         'disk' => env('CSV_DISK', 'space'),
