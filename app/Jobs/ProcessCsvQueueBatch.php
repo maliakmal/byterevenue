@@ -120,9 +120,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $campaign = $log->campaign;
             $message = $log->message;
 
-            if(in_array($campaign->id, $ignored_campaigns)){
-                continue;
-            }
 
             if ($this->message_id) {
                 dump('Message id is set - ' . $this->message_id . ' - fetching message...');
