@@ -47,7 +47,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 });
 
 
-// web routes for admin
+// web routes for admin.
 Route::middleware([CheckAdminRole::class])->group(function () {
     Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
     Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
