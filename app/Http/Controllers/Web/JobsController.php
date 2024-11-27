@@ -135,7 +135,7 @@ class JobsController extends Controller
                 'campaigns_ids' => $campaign_ids,
             ];
 
-            dispatch(new ProcessCsvQueueBatch($params))->onQueue('queue_to_csv');
+            dispatch(new ProcessCsvQueueBatch($params));
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
