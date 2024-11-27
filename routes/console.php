@@ -19,4 +19,6 @@ Schedule::command('storage:collect-logs')->$collect_logs_schedule()->withoutOver
 
 Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 
+Schedule::command('app:create-missing-keitaro-campaigns')->everyTenMinutes()->withoutOverlapping();
+
 // Schedule::command('sync:recipients-group')->everyHour()->withoutOverlapping();
