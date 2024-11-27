@@ -74,9 +74,9 @@ class ProcessCampaign implements ShouldQueue
 
         // Insert any remaining records in the batch
         if (!empty($data)) {
-            DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
-            DB::table('broadcast_logs')->insert($data);
-            DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
+            \DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
+            \DB::table('broadcast_logs')->insert($data);
+            \DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
         } else {
             \Log::error('No contacts found for campaign: ' . $campaign->id);
         }
