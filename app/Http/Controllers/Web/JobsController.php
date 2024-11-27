@@ -73,27 +73,29 @@ class JobsController extends Controller
             ->whereNull('batch')
             ->when('campaign' === $request->type, function ($query) use ($request) {
                 $query->whereIn('campaign_id', $request->campaign_ids);
-            })
-            ->count();
+            })->count();
 
         if (0 == $totalRecords) {
             redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
         }
 
-        $sourceCampaignsIds = 'campaign' === $type ?
-            $request->campaign_ids :
-            $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
+        $sourceCampaignsIds = 'campaign' === $type ? $request->campaign_ids : $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
+        Log::info('campaign ids in csv');
+        Log::info($campaign_ids);
 
         foreach ($campaign_ids as $uniq_campaign_id) {
             if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
+                Log::info('keitaro campaign for campaign id ('.$uniq_campaign_id.') and url ('.$urlShortenerName.') not found - generating');
+
                 $alias_for_campaign = uniqid();
                 $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
+                Log::info('keitaro campaign redirect url generated ('.$url_for_keitaro.')');
 
                 $campaign_short_urls[] = $this->campaignShortUrlRepository->create([
                     'campaign_id' => $uniq_campaign_id,
-                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                    'url_shortener' => $url_for_keitaro,
                     'campaign_alias' => $alias_for_campaign,
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
@@ -104,6 +106,8 @@ class JobsController extends Controller
         $baseCount = $totalRecords > $total ? $total : $totalRecords;
         $numBatches = ceil($baseCount / $batchSize);
         $batch_no = str_replace('.', '', microtime(true));
+
+        Log::info('Number of records requested '. $total.' - Number of records available '.$baseCount);
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";
 
@@ -138,9 +142,15 @@ class JobsController extends Controller
             dispatch(new ProcessCsvQueueBatch($params));
         }
 
+        Log::info('ProcessCSV Jobs dispatched');
+
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
 
+        Log::info('New Keitaro Campaigns Generation starts here');
+
         dispatch(new CreateCampaignsOnKeitaro($params));
+
+        Log::info('New Keitaro Campaigns Generation dispatched');
 
         // from Process by Campaigns page
         if ($request->ajax()) {
