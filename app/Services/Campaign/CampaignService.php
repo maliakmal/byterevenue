@@ -271,7 +271,7 @@ class CampaignService
         try {
             $recipientListId = $campaign->recipient_list->id;
             $recipientList = $campaign->recipient_list;
-            $batchSize = 200; // Number of records per batch
+            $batchSize = 1000; // Number of records per batch
             $totalContacts = $recipientList->contacts()->count(); // Total number of contacts
             $batches = ceil($totalContacts / $batchSize); // Number of batches
 
@@ -383,8 +383,12 @@ class CampaignService
 
         $campaign->generateUniqueFolder();
         $campaign->save();
+        $message_data = [
+            'body' => $data['message_body'],
+            'target_url' => $data['message_target_url'],
+        ];
 
-        $campaign->message->update($data);
+        $campaign->message->update($message_data);
 
         return $campaign;
     }
