@@ -75,21 +75,11 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $ignored_campaigns[] = 0;
         //DB::transaction();
         // no need offset value btw whereNull('batch') every time
-        $uniq_camp_query = BroadcastLog::query()->select('campaign_id')
-            ->whereNull('batch')
-            ->whereNotIn('campaign_id', $ignored_campaigns);
-//            ->offset($this->offset)
-//            ->limit($this->batchSize);
-        if ('campaign' === $this->type && !empty($this->campaign_ids)) {
-            $uniq_camp_query->where('campaign_id', $this->campaign_ids);
-        }
-        $uniq_campaign_ids = $uniq_camp_query->groupby('campaign_id')->pluck('campaign_id')->toArray();
-
-
+        // TODO:: create a separate thread for every campaign_id
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
-            ->whereIn('campaign_id', $uniq_campaign_ids)
-            ->whereNull('batch');
+            ->whereNull('batch')
+            ->take($this->batchSize);
 //            ->offset($this->offset)
 //            ->limit($this->batchSize);
 
@@ -98,7 +88,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         }
 
         $this->logs = $query->get();
-        $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
+        // $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
 
         if ($this->logs->isEmpty()) {
             dump('no matching entries found - skipping...');
@@ -113,6 +103,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $ids = [];
         $cases = '';
         $casesCount = 0;
+        // ???
         $campaign_short_url_map = [];
 
         foreach ($this->logs as $log) {
