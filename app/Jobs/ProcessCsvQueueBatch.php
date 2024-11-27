@@ -69,25 +69,27 @@ class ProcessCsvQueueBatch implements ShouldQueue
         //DB::transaction();
         // no need offset value btw whereNull('batch') every time
         $uniq_camp_query = BroadcastLog::query()->select('campaign_id')
-            ->whereNull('batch')
+            ->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)
             ->offset($this->offset)
             ->limit($this->batchSize);
+        if ('campaign' === $this->type && !empty($this->campaign_ids)) {
+            $uniq_camp_query->where('campaign_id', $this->campaign_ids);
+        }
+        $uniq_campaign_ids = $uniq_camp_query->groupby('campaign_id')->pluck('campaign_id')->toArray();
 
 
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
-            //->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereIn('campaign_id', $uniq_campaign_ids)
             ->whereNull('batch')
             ->offset($this->offset)
             ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
-            $uniq_camp_query->where('campaign_id', $this->campaign_ids);
             $query->where('campaign_id', $this->campaign_ids);
         }
 
         $this->logs = $query->get();
-        $uniq_campaign_ids = $uniq_camp_query->groupby('campaign_id')->pluck('campaign_id')->toArray();
         $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
 
         if ($this->logs->isEmpty()) {
