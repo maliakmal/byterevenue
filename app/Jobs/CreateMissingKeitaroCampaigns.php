@@ -16,10 +16,9 @@ use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 
-class CreateCampaignsOnKeitaro implements ShouldQueue
+class CreateMissingKeitaroCampaigns implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    protected $params = null;
     protected $campaignRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignShortUrlRepository = null;
@@ -27,10 +26,8 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct($params)
+    public function __construct()
     {
-        //
-        $this->params = $params;
         $this->campaignRepository = new CampaignRepository(new Campaign());
         $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
@@ -39,29 +36,29 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(CampaignService $campaign_service): void
+    public function handle(): void
     {
-        $domain_id = $this->params['domain_id'];
-return;
-        foreach($this->params['campaigns'] as $_item){
-            Log::info('_item');
-            Log::info($_item);
-            $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['campaign_alias']);
-            $campaign = $this->campaignRepository->find($_item['campaign_id']);
+        $incomplete = $this->campaignShortUrlRepository->getIncomplete();
+        foreach($incomplete as $one){
+            $campaign = $this->campaignRepository->find($incomplete->campaign_id);
+
             $url_for_campaign = $campaign->message?->target_url;
-            Log::info($_item['campaign_alias']);
-            $response_campaign = $campaign_service->createCampaignOnKeitaro($_item['campaign_alias'], $campaign->title, $campaign->keitaro_group_id, $domain_id);
+
+            $campaign_alias = array_pop(explode(DIRECTORY_SEPARATOR, $one->url_shortener));
+
+            $_url_shortener = $one->urlShortener();
+
+            $response_campaign = $campaign_service->createCampaignOnKeitaro($campaign_alias, $campaign->title, $campaign->keitaro_group_id, $_url_shortener->asset_id);
             $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'],  $campaign->title, $url_for_campaign);
-            $_url_shortener = $this->urlShortenerRepository->search(['name'=>$_item['url_shortener']]);
 
             $this->campaignShortUrlRepository->updateByID([
                 'flow_id' => $response_flow['id'],
                 'response' => @json_encode($response_flow),
                 'keitaro_campaign_id' => $response_campaign['id'],
                 'keitaro_campaign_response' => @json_encode($response_campaign),
-            ], $_item->id);
+            ], $one->id);
 
+        }
 
-        };
     }
 }

@@ -18,6 +18,11 @@ class CampaignShortUrlRepository extends BaseRepository implements CampaignShort
         return $this->model->where('campaign_id', $campaignID)->where('url_shortener', 'like', '%'.$url.'%')->first();
     }
 
+    public function getIncomplete()
+    {
+        return $this->model->whereNull('flow_id')->get();
+    }
+
     /**
      * @param array $search
      * @return mixed
