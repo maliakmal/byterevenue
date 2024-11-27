@@ -76,9 +76,10 @@ class ProcessCsvQueueBatch implements ShouldQueue
         //DB::transaction();
         // no need offset value btw whereNull('batch') every time
         $uniq_camp_query = BroadcastLog::query()->select('campaign_id')
-            ->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)
-            ->offset($this->offset)
-            ->limit($this->batchSize);
+            ->whereNull('batch')
+            ->whereNotIn('campaign_id', $ignored_campaigns);
+//            ->offset($this->offset)
+//            ->limit($this->batchSize);
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
             $uniq_camp_query->where('campaign_id', $this->campaign_ids);
         }
@@ -88,9 +89,9 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereIn('campaign_id', $uniq_campaign_ids)
-            ->whereNull('batch')
-            ->offset($this->offset)
-            ->limit($this->batchSize);
+            ->whereNull('batch');
+//            ->offset($this->offset)
+//            ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
             $query->where('campaign_id', $this->campaign_ids);
