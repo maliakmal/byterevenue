@@ -26,7 +26,7 @@ class CampaignStoreRequest extends FormRequest
             'description' => 'string|max:255',
             'recipients_list_id' => 'required|integer',
             'message_subject' => 'required|string|max:255',
-            'message_body' => 'required|string',
+            'message_body' => 'string',
             'message_target_url' => 'required|string|max:255',
         ];
     }
