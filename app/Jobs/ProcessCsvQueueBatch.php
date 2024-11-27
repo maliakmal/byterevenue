@@ -87,8 +87,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
 
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
-            ->whereIn('campaign_id', $uniq_campaign_ids)
-            ->whereNull('batch')
+            ->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns)
             ->offset($this->offset)
             ->limit($this->batchSize);
 
@@ -119,9 +118,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $campaign = $log->campaign;
             $message = $log->message;
 
-            if(in_array($campaign->id, $ignored_campaigns)){
-                continue;
-            }
 
             if ($this->message_id) {
                 dump('Message id is set - ' . $this->message_id . ' - fetching message...');
