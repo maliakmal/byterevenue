@@ -88,12 +88,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
         }
 
         $this->logs = $query->get();
+        // ???
         // $campaign_short_url_map = CampaignShortUrl::select('campaign_id', 'url_shortener')->whereIn('campaign_id', $uniq_campaign_ids)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->pluck('url_shortener', 'campaign_id')->toArray();
 
         if ($this->logs->isEmpty()) {
             dump('no matching entries found - skipping...');
             \Log::info('No matching entries found - skipping...');
-            // set status to ready
+            // set status to ready (unblock the queue)
             $this->batch_file->update(['is_ready' => 1]);
             return;
         }
