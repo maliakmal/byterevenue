@@ -70,6 +70,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $new_campaigns = collect();
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
+
         $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
         //DB::transaction();
