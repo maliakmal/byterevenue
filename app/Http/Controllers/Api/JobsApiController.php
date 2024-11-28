@@ -30,6 +30,13 @@ class JobsApiController extends ApiController
         protected CampaignShortUrlRepository $campaignShortUrlRepository
     ) {}
 
+    public function fifo(Request $request)
+    {
+        $params = $this->jobService->index();
+
+        return $this->responseSuccess($params);
+    }
+
     public function postIndex(Request $request)
     {
         $total = $request->number_messages ?? 100; // count of records in CSV
@@ -136,13 +143,14 @@ class JobsApiController extends ApiController
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
-        $batch_file = $this->jobService->regenerateUnsent($request->validated());
-
-        if (!$batch_file) {
-            return $this->responseError(message: 'CSV generation failed.');
-        }
-
-        return $this->responseSuccess($batch_file);
+//        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+//
+//        if (!$batch_file) {
+//            return $this->responseError(message: 'CSV generation failed.');
+//        }
+//
+//        return $this->responseSuccess($batch_file);
+        return $this->responseSuccess('dfds');
     }
 
     /**
