@@ -42,16 +42,24 @@ class CreateCampaignsOnKeitaro implements ShouldQueue
     public function handle(CampaignService $campaign_service): void
     {
         $domain_id = $this->params['domain_id'];
-return;
+        Log::info('CreateCampaignsOnKeitaro >> Start Loop');
         foreach($this->params['campaigns'] as $_item){
-            Log::info('_item');
+            Log::info('CreateCampaignsOnKeitaro >> Loop >> CampaignShortUrl');
             Log::info($_item);
             $url_for_keitaro = $campaign_service->generateUrlForCampaign($_item['url_shortener'], $_item['campaign_alias']);
             $campaign = $this->campaignRepository->find($_item['campaign_id']);
             $url_for_campaign = $campaign->message?->target_url;
-            Log::info($_item['campaign_alias']);
+            Log::info('CreateCampaignsOnKeitaro >> Loop >> url for keitaro');
+            Log::info($url_for_keitaro);
+            Log::info('CreateCampaignsOnKeitaro >> Loop >> url for campaign');
+            Log::info($url_for_campaign);
+
             $response_campaign = $campaign_service->createCampaignOnKeitaro($_item['campaign_alias'], $campaign->title, $campaign->keitaro_group_id, $domain_id);
+            Log::info('CreateCampaignsOnKeitaro >> Loop >> response create keitaro campaign');
+            Log::info($response_campaign);
             $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'],  $campaign->title, $url_for_campaign);
+            Log::info('CreateCampaignsOnKeitaro >> Loop >> response create keitaro flow');
+            Log::info($response_flow);
             $_url_shortener = $this->urlShortenerRepository->search(['name'=>$_item['url_shortener']]);
 
             $this->campaignShortUrlRepository->updateByID([
@@ -61,7 +69,9 @@ return;
                 'keitaro_campaign_response' => @json_encode($response_campaign),
             ], $_item->id);
 
-
         };
+
+        Log::info('CreateCampaignsOnKeitaro >> End Loop');
+
     }
 }

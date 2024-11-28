@@ -103,6 +103,11 @@ class JobsController extends Controller
             }
         }
 
+        Log::info('JobController > Campaign Short Urls');
+        Log::info($campaign_short_urls);
+        Log::info('JobController > Domain ID');
+        Log::info($domain_id);
+
         $baseCount = $totalRecords > $total ? $total : $totalRecords;
         $numBatches = ceil($baseCount / $batchSize);
         $batch_no = str_replace('.', '', microtime(true));

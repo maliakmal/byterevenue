@@ -31,7 +31,7 @@ class RefreshBroadcastLogCache implements ShouldQueue
         $this->startDate      = now()->subDay();
         $this->endDate        = now()->addDay();
         $this->startEndString = $this->startDate->format('Y-m-d') .'_'.
-            $this->endDate->format('Y-m-d');
+        $this->endDate->format('Y-m-d');
     }
 
     /**
