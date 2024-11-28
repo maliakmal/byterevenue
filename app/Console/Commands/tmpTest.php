@@ -8,6 +8,8 @@ use App\Models\BroadcastLog;
 use App\Models\CampaignShortUrl;
 use App\Models\RecipientsGroup;
 use App\Models\RecipientsList;
+use App\Services\Keitaro\KeitaroCaller;
+use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Console\Command;
 
 class tmpTest extends Command
@@ -31,6 +33,9 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        //
+        $request = new RegisterShortDomainRequest('test_tame',null, null, null,
+            null, true, true, true, false);
+
+        KeitaroCaller::call($request)[0];
     }
 }
