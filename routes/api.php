@@ -87,3 +87,8 @@ Route::prefix('areas')->name('api.areas.')->group(function () {
     Route::get('get-all-cities', [AreasApiController::class, 'getAllCities']);
     Route::get('cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 });
+
+Route::get('jobs/fifo', [JobsApiController::class, 'fifo'])->name('jobs.fifo');
+Route::post('jobs/regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
+Route::get('jobs/campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');
+Route::post('jobs', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
