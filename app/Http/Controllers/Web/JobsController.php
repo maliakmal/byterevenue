@@ -86,7 +86,12 @@ class JobsController extends Controller
         Log::info($campaign_ids);
 
         foreach ($campaign_ids as $uniq_campaign_id) {
-            if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
+
+            $existingCampaignShortUrl = $this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName);
+            Log::info('keitaro campaign for campaign id ('.$uniq_campaign_id.') and url ('.$urlShortenerName.') =>');
+            Log::info($existingCampaignShortUrl);
+
+            if (!$existingCampaignShortUrl) {
                 Log::info('keitaro campaign for campaign id ('.$uniq_campaign_id.') and url ('.$urlShortenerName.') not found - generating');
 
                 $alias_for_campaign = uniqid();
@@ -100,6 +105,7 @@ class JobsController extends Controller
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
+
             }
         }
 
@@ -107,6 +113,18 @@ class JobsController extends Controller
         Log::info($campaign_short_urls);
         Log::info('JobController > Domain ID');
         Log::info($domain_id);
+
+
+        $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
+        Log::info('New Keitaro Campaigns Generation starts here');
+        Log::info($params);
+        dispatch(new CreateCampaignsOnKeitaro($params));
+        Log::info('New Keitaro Campaigns Generation dispatched');
+
+        $campaign_short_urls_map = [];
+        foreach($campaign_short_urls as $one){
+            $campaign_short_urls_map[$one->campaign_id] = $one;
+        }
 
         $baseCount = $totalRecords > $total ? $total : $totalRecords;
         $numBatches = ceil($baseCount / $batchSize);
@@ -139,6 +157,7 @@ class JobsController extends Controller
                 'url_shortener' => $urlShortenerName,
                 'batch_no' => $batch_no,
                 'batch_file' => $batch_file,
+                'campaign_short_urls'=>$campaign_short_urls_map,
                 'is_last' => $is_last,
                 'type' => $type,
                 'campaigns_ids' => $campaign_ids,
@@ -148,14 +167,6 @@ class JobsController extends Controller
         }
 
         Log::info('ProcessCSV Jobs dispatched');
-
-        $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
-
-        Log::info('New Keitaro Campaigns Generation starts here');
-
-        dispatch(new CreateCampaignsOnKeitaro($params));
-
-        Log::info('New Keitaro Campaigns Generation dispatched');
 
         // from Process by Campaigns page
         if ($request->ajax()) {

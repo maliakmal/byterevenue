@@ -38,10 +38,14 @@ class CampaignService
         $this->nanoid = new Client();
     }
 
-    public function generateUrlForCampaign($domain, $alias, $messageID = null)
-    {
+    public function generateUrlForCampaign($domain, $alias, $messageID = null){
         $param = config('app.keitaro.uid_param', 'sub_id_1');
         return $domain.DIRECTORY_SEPARATOR.$alias.( $messageID ? '?'.$param.'='.$messageID : '' );
+    }
+
+    public function generateUrlForCampaignFromAlias($domain, $messageID = null){
+        $param = config('app.keitaro.uid_param', 'sub_id_1');
+        return $domain.( $messageID ? '?'.$param.'='.$messageID : '' );
     }
 
     public function createCampaignOnKeitaro($alias, $title, $groupID, $domainID, $type = 'position', $uniqueness_method = 'ip_ua',

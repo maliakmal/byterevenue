@@ -34,6 +34,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $type          = 'fifo';
     protected $campaign_ids  = null;
     protected $message_id    = null;
+    protected $campaign_short_urls = [];
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository     = null;
     protected $broadcastLogRepository     = null;
@@ -56,7 +57,8 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
-
+        $this->campaign_short_urls       = $params['campaign_short_urls']       ?? $this->campaign_short_urls;
+        
         $this->onQueue(self::QUEUE_KEY);
     }
 
@@ -65,9 +67,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
      */
     public function handle(CampaignService $campaign_service): void
     {
-        $unique_campaigns = collect();
-        $unique_campaign_map = [];
-        $new_campaigns = collect();
         $batch_no = $this->batch_no;
         $url_shortener = $this->url_shortener;
 
@@ -95,96 +94,46 @@ class ProcessCsvQueueBatch implements ShouldQueue
             return;
         }
 
-        Log::info('Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
+        Log::info('ProcessQueuBatch -> Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
 
         $ids = [];
         $cases = '';
         $casesCount = 0;
-        $campaign_short_url_map = [];
+        $campaign_short_url_map = $this->campaign_short_urls;
 
         foreach ($this->logs as $log) {
             $ids[] = "'". $log->id ."'";
             $campaign = $log->campaign;
             $message = $log->message;
+            //Log::info('ProcessQueuBatch -> ProcessQueuBatch -> loop start '.$log->id);
 
             if ($this->message_id) {
-                dump('Message id is set - ' . $this->message_id . ' - fetching message...');
+                // Log::info('ProcessQueuBatch -> Message id is set - ' . $this->message_id . ' - fetching message...');
                 $message = Message::find($this->message_id);
             }
 
             if (!$message) {
-                dump('Message not found for log id - ' . $log->id . ' - skipping...');
+                Log::info('ProcessQueuBatch -> Message not found for log id - ' . $log->id . ' - skipping...');
                 continue;
             }
 
             $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
             //CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
 
-            if ($campaign_short_url) {
-                if (strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)) {
-                    $alias_for_campaign = explode('?', explode(DIRECTORY_SEPARATOR, $campaign_short_url->url_shortener)[1])[0];
-                } else {
-                    $alias_for_campaign = $campaign_short_url->url_shortener;
-                }
-
-                // hack in case we have an entry but no keitaro reference
-                if (!$campaign_short_url->keitaro_campaign_id) {
-                    $_new_campaign = [
-                        'campaign_short_url_id' => $campaign_short_url->id,
-                        'url_shortener' => $url_shortener,
-                        'campaign' => $campaign,
-                        'domain_id' => $domain_id,
-                        'alias' => $alias_for_campaign
-                    ];
-
-                    $new_campaigns->add($_new_campaign);
-                }
-
-            } else {
-                // there is no campaign entry
-                $alias_for_campaign = uniqid();
-                Log::info('campaign_short_url generated from uniqid ');
-
-                // make a spoof entry for campaign url
-                $_url_shortener = $this->urlShortenerRepository->search(['name' => $url_shortener]);
-                $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
-
-                $_campaign_short_url = $this->campaignShortUrlRepository->create([
-                    'campaign_id' => $campaign->id,
-                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
-                    'campaign_alias' => $alias_for_campaign,
-                    'url_shortener_id' => $_url_shortener->id,
-                    'deleted_on_keitaro' => false
-                ]);
-
-                $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
-
-                $_new_campaign = [
-                    'campaign_short_url_id' => $_campaign_short_url->id,
-                    'url_shortener' => $url_shortener,
-                    'campaign' => $campaign,
-                    'domain_id' => $domain_id,
-                    'alias' => $alias_for_campaign
-                ];
-
-                $new_campaigns->add($_new_campaign);
+            if (!$campaign_short_url) {
+                Log::info('ProcessQueuBatch -> campaign_short_url doesnt exist for log id '.$log->id);
+                continue;
             }
 
-            $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->slug);
-
+            $generated_url = $campaign_service->generateUrlForCampaignFromAlias($campaign_short_url->url_shortener, $log->slug);
+            // Log::info('ProcessQueuBatch -> generaled URL to attach in CSV '.$generated_url);
             $message_body = $message->getParsedMessage($generated_url);
             $cases .= "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
             $casesCount++;
 
-            $campaign_key = (string)$campaign->id;
-
-            if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
-                $unique_campaigns->add(['campaign' => $campaign, 'alias' => $alias_for_campaign]);
-                $unique_campaign_map[$campaign_key] = true;
-            }
         }
 
-        Log::info('Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . $casesCount);
+        Log::info('ProcessQueuBatch -> Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . $casesCount);
 
         $idList = implode(",", $ids);
 

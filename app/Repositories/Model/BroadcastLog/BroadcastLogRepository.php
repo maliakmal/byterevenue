@@ -101,7 +101,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         $query = \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->select('campaign_id');
+            ->select('campaign_id')
+            ->whereNull('batch');
 
         //$query = $query->whereNull('batch');
 
