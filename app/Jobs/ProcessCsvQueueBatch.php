@@ -78,6 +78,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
+            ->orderby('created_at', 'asc')
             ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
