@@ -197,7 +197,7 @@ class JobService
 
         $campaigns = isset($user_id)
             ? $this->campaignService->getUnsentByIdsOfUser($uniq_campaign_ids->toArray(), $user_id)
-            : $this->campaignService->getUnsentByIds($uniq_campaign_ids->toArray());
+            : $this->campaignService->getUnsentByIds($uniq_campaign_ids);
 
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
 
