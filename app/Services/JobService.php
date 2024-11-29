@@ -44,6 +44,68 @@ class JobService
     }
 
     /**
+     * @return array
+     */
+    public function getJobs(array $filters = [])
+    {
+        $download_me = null;
+
+        $urlShorteners = UrlShortener::withCount('campaignShortUrls')
+            ->onlyRegistered()
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $filesQuery = BatchFile::with('urlShortener')
+            ->withCount('campaigns')
+            ->orderBy('id', 'desc');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $filesQuery->where(function($query) use ($search) {
+                $query->where('id', 'like', "%{$search}%")
+                    ->orWhere('prev_batch_id', 'like', "%{$search}%")
+                    ->orWhere('filename', 'like', "%{$search}%")
+                    ->orWhere('path', 'like', "%{$search}%")
+                    ->orWhere('number_of_entries', 'like', "%{$search}%")
+                    ->orWhere('is_ready', 'like', "%{$search}%")
+                    ->orWhere('url_shortener_id', 'like', "%{$search}%")
+                    ->orWhere('created_at', 'like', "%{$search}%")
+                    ->orWhere('updated_at', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['shortDomain'])) {
+            $filesQuery->where('url_shortener_id', $filters['shortDomain']);
+        }
+
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $status = $filters['status'];
+
+            if ($status === 'completed') {
+                $filesQuery->where('is_ready', true)
+                    ->where('number_of_entries', '>', 0);
+            } elseif ($status === 'regenerated') {
+                $filesQuery->where('is_ready', true)
+                    ->where('number_of_entries', 0);
+            }
+        }
+
+        $perPage = isset($filters['per_page']) ? (int)$filters['per_page'] : 5;
+        $files = $filesQuery->paginate($perPage);
+
+        $queue_stats = $this->broadcastLogRepository->getQueueStats();
+        $params = [
+            'total_in_queue' => $queue_stats['total_in_queue'],
+            'files' => $files,
+            'download_me' => $download_me,
+            'urlShorteners' => $urlShorteners,
+            'total_not_downloaded_in_queue' => $queue_stats['total_not_downloaded_in_queue'],
+        ];
+
+        return $params;
+    }
+
+    /**
      * @param $uniq_campaign_ids
      * @param $urlShortenerName
      * @param $urlShortener
