@@ -151,14 +151,13 @@ class JobsApiController extends ApiController
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
-//        $batch_file = $this->jobService->regenerateUnsent($request->validated());
-//
-//        if (!$batch_file) {
-//            return $this->responseError(message: 'CSV generation failed.');
-//        }
-//
-//        return $this->responseSuccess($batch_file);
-        return $this->responseSuccess('dfds');
+        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+
+        if (!$batch_file) {
+            return $this->responseError(message: 'CSV generation failed.');
+        }
+
+        return $this->responseSuccess($batch_file);
     }
 
     /**
