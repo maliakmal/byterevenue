@@ -71,7 +71,7 @@ class JobsApiController extends ApiController
 
         $sourceCampaignsIds = 'campaign' === $type ?
         $request->campaign_ids :
-        $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
+        $this->broadcastLogRepository->getUniqueCampaignsIDs($total);
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
 
