@@ -168,6 +168,7 @@ class JobsApiController extends ApiController
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
+        return $this->responseError(message: 'This feature will be available soon');
         $batch_file = $this->jobService->regenerateUnsent($request->validated());
 
         if (!$batch_file) {
