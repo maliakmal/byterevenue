@@ -11,8 +11,8 @@ use App\Models\BatchFile;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\UrlShortener;
-use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
-use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
+use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
+use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
 use App\Services\JobService;
 use Carbon\Carbon;
@@ -24,13 +24,13 @@ use Illuminate\Support\Facades\Log;
 class JobsApiController extends ApiController
 {
     public function __construct(
+        protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
         protected CampaignService $campaignService,
-        protected JobService $jobService,
-        protected BroadcastLogRepository $broadcastLogRepository,
-        protected CampaignShortUrlRepository $campaignShortUrlRepository
+        protected BroadcastLogRepositoryInterface $broadcastLogRepository,
+        protected JobService $jobService
     ) {}
 
-    public function fifo(Request $request)
+    public function fifo()
     {
         $params = $this->jobService->index();
 
@@ -44,11 +44,11 @@ class JobsApiController extends ApiController
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
         $domain_id = $urlShortener->asset_id;
         $campaign_short_urls = [];
-        $batchSize = 100; // ids scope for each job
+        $batchSize = 1000; // ids scope for each job
         $type = 'campaign' === $request->type ? 'campaign' : 'fifo';
 
         // total count of batches for the job
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         $totalRecords = BroadcastLog::query()
             ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
@@ -58,33 +58,60 @@ class JobsApiController extends ApiController
             ->count();
 
         if (0 == $totalRecords) {
-            return $this->responseError(message: 'No messages ready for CSV generation.');
+            redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
         }
 
         $sourceCampaignsIds = 'campaign' === $type ?
-        $request->campaign_ids :
-        $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
+            $request->campaign_ids :
+            $this->broadcastLogRepository->getUniqueCampaignsIDs($total, $ignored_campaigns);
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
+        Log::info('campaign ids in csv', $campaign_ids);
 
         foreach ($campaign_ids as $uniq_campaign_id) {
-            if (!$this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName)) {
+
+            $existingCampaignShortUrl = $this->campaignShortUrlRepository->findWithCampaignIDUrlID($uniq_campaign_id, $urlShortenerName);
+            Log::info('keitaro campaign for campaign id ('.$uniq_campaign_id.') and url ('.$urlShortenerName.') =>');
+            Log::info($existingCampaignShortUrl);
+
+            if (!$existingCampaignShortUrl) {
+                Log::info('keitaro campaign for campaign id ('.$uniq_campaign_id.') and url ('.$urlShortenerName.') not found - generating');
+
                 $alias_for_campaign = uniqid();
                 $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
+                Log::info('keitaro campaign redirect url generated ('.$url_for_keitaro.')');
 
                 $campaign_short_urls[] = $this->campaignShortUrlRepository->create([
                     'campaign_id' => $uniq_campaign_id,
-                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                    'url_shortener' => $url_for_keitaro,
                     'campaign_alias' => $alias_for_campaign,
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
+            } else {
+                $campaign_short_urls[] = $existingCampaignShortUrl;
             }
+        }
+
+        Log::info('JobController > Campaign Short Urls', $campaign_short_urls);
+        Log::info('JobController > Domain ID: ' . $domain_id);
+
+
+        $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
+        Log::info('New Keitaro Campaigns Generation starts here', $params);
+        dispatch(new CreateCampaignsOnKeitaro($params));
+        Log::info('New Keitaro Campaigns Generation dispatched');
+
+        $campaign_short_urls_map = [];
+        foreach($campaign_short_urls as $one){
+            $campaign_short_urls_map[$one->campaign_id] = $one;
         }
 
         $baseCount = $totalRecords > $total ? $total : $totalRecords;
         $numBatches = ceil($baseCount / $batchSize);
         $batch_no = str_replace('.', '', microtime(true));
+
+        Log::info('Number of records requested '. $total.' - Number of records available '.$baseCount);
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";
 
@@ -99,7 +126,6 @@ class JobsApiController extends ApiController
         $batch_file->campaigns()->attach($campaign_ids);
 
         for ($batch = 0; $batch < $numBatches; $batch++) {
-            \Log::debug('BATCH number - '. $batch .' total - '. $numBatches);
             $offset = $batch * $batchSize;
             $is_last = $batch >= $numBatches - 1;
 
@@ -111,6 +137,7 @@ class JobsApiController extends ApiController
                 'url_shortener' => $urlShortenerName,
                 'batch_no' => $batch_no,
                 'batch_file' => $batch_file,
+                'campaign_short_urls'=>$campaign_short_urls_map,
                 'is_last' => $is_last,
                 'type' => $type,
                 'campaigns_ids' => $campaign_ids,
@@ -119,9 +146,7 @@ class JobsApiController extends ApiController
             dispatch(new ProcessCsvQueueBatch($params));
         }
 
-        $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
-
-        dispatch(new CreateCampaignsOnKeitaro($params));
+        Log::info('ProcessCSV Jobs dispatched');
 
         $one = $batch_file->toArray();
         $_batch_no = $batch_file->getBatchFromFilename();
@@ -143,14 +168,13 @@ class JobsApiController extends ApiController
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
-//        $batch_file = $this->jobService->regenerateUnsent($request->validated());
-//
-//        if (!$batch_file) {
-//            return $this->responseError(message: 'CSV generation failed.');
-//        }
-//
-//        return $this->responseSuccess($batch_file);
-        return $this->responseSuccess('dfds');
+        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+
+        if (!$batch_file) {
+            return $this->responseError(message: 'CSV generation failed.');
+        }
+
+        return $this->responseSuccess($batch_file);
     }
 
     /**
