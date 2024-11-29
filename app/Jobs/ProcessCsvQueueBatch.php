@@ -58,7 +58,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
         $this->campaign_short_urls       = $params['campaign_short_urls']       ?? $this->campaign_short_urls;
-        
+
         $this->onQueue(self::QUEUE_KEY);
     }
 
@@ -135,6 +135,11 @@ class ProcessCsvQueueBatch implements ShouldQueue
         }
 
         Log::info('ProcessQueuBatch -> Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . $casesCount);
+
+        if ($casesCount == 0) {
+            Log::error('ProcessQueuBatch -> No cases found - skipping...');
+            return;
+        }
 
         $idList = implode(",", $ids);
 
