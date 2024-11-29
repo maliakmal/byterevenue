@@ -90,7 +90,7 @@ class JobService
             }
         }
 
-        $perPage = isset($filters['per_page']) ? (int)$filters['per_page'] : 15;
+        $perPage = isset($filters['per_page']) ? (int)$filters['per_page'] : 5;
         $files = $filesQuery->paginate($perPage);
 
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
