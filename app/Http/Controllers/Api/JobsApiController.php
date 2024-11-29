@@ -32,7 +32,15 @@ class JobsApiController extends ApiController
 
     public function fifo(Request $request)
     {
-        $params = $this->jobService->index();
+        $filters = $request->only([
+            'search',
+            'shortDomain',
+            'status',
+            'per_page',
+            'page',
+        ]);
+
+        $params = $this->jobService->getJobs($filters);
 
         return $this->responseSuccess($params);
     }
