@@ -73,13 +73,14 @@ class JobsController extends Controller
             ->whereNull('batch')
             ->when('campaign' === $request->type, function ($query) use ($request) {
                 $query->whereIn('campaign_id', $request->campaign_ids);
-            })->count();
+            })
+            ->count();
 
         if (0 == $totalRecords) {
             redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
         }
 
-        $sourceCampaignsIds = 'campaign' === $type ? $request->campaign_ids : $this->broadcastLogRepository->getUniqueCampaignsIDs($total)->toArray();
+        $sourceCampaignsIds = 'campaign' === $type ? $request->campaign_ids : $this->broadcastLogRepository->getUniqueCampaignsIDs($total, $ignored_campaigns)->toArray();
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
         Log::info('campaign ids in csv');

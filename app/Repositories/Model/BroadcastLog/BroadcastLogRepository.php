@@ -97,20 +97,19 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $query->pluck('campaign_id');
     }
 
-    public function getUniqueCampaignsIDs($limit = null)
+    public function getUniqueCampaignsIDs($limit = null, $ignored_campaigns = null)
     {
-        $subquery = \DB::table('broadcast_logs')
-            ->select('campaign_id')
-            ->whereNull('batch')
-            ->when(!is_null($limit), function ($query) use ($limit) {
-                return $query->take($limit);
-            });
+        $ignored_campaigns = $ignored_campaigns == null ? [0]:$ignored_campaigns;
+        $query = \App\Models\BroadcastLog::query()->select('campaign_id')->whereNull('batch')->whereNotIn('campaign_id', $ignored_campaigns);
 
-        $query = \DB::table(\DB::raw("({$subquery->toSql()}) as limited"))
-            ->select('campaign_id')
-            ->distinct();
 
-        return $query->pluck('campaign_id');
+        //$query = $query->whereNull('batch');
+
+        if (!is_null($limit)) {
+            $query = $query->take($limit);
+        }
+
+        return $query->groupby('campaign_id')->pluck('campaign_id')->values();
     }
 
 
