@@ -67,7 +67,7 @@ class JobsController extends Controller
         $type = 'campaign' === $request->type ? 'campaign' : 'fifo';
 
         // total count of batches for the job
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         $totalRecords = BroadcastLog::query()
             ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
@@ -80,11 +80,12 @@ class JobsController extends Controller
             redirect()->route('jobs.index')->with('error', 'No messages ready for CSV generation.');
         }
 
-        $sourceCampaignsIds = 'campaign' === $type ? $request->campaign_ids : $this->broadcastLogRepository->getUniqueCampaignsIDs($total, $ignored_campaigns)->toArray();
+        $sourceCampaignsIds = 'campaign' === $type ?
+            $request->campaign_ids :
+            $this->broadcastLogRepository->getUniqueCampaignsIDs($total, $ignored_campaigns);
 
         $campaign_ids = array_filter($sourceCampaignsIds, fn($value) => !empty($value));
-        Log::info('campaign ids in csv');
-        Log::info($campaign_ids);
+        Log::info('campaign ids in csv', $campaign_ids);
 
         foreach ($campaign_ids as $uniq_campaign_id) {
 
@@ -106,19 +107,15 @@ class JobsController extends Controller
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
-
             }
         }
 
-        Log::info('JobController > Campaign Short Urls');
-        Log::info($campaign_short_urls);
-        Log::info('JobController > Domain ID');
-        Log::info($domain_id);
+        Log::info('JobController > Campaign Short Urls', $campaign_short_urls);
+        Log::info('JobController > Domain ID: ' . $domain_id);
 
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
-        Log::info('New Keitaro Campaigns Generation starts here');
-        Log::info($params);
+        Log::info('New Keitaro Campaigns Generation starts here', $params);
         dispatch(new CreateCampaignsOnKeitaro($params));
         Log::info('New Keitaro Campaigns Generation dispatched');
 

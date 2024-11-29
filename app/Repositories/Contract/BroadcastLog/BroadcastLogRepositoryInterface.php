@@ -14,7 +14,7 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
 
     public function getQueueStats();
 
-    public function getUniqueCampaignsIDs($limit = null);
+    public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null);
 
     public function getUniqueCampaignsIDsFromExistingBatch($batch);
 
@@ -23,7 +23,7 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
     public function getTotalSentAndClicksByBatch($batch);
 
     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no);
-    
+
     public function updateBySlug($slug, $fieldsToUpdate);
 
 }
