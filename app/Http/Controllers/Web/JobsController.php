@@ -215,10 +215,10 @@ class JobsController extends Controller
             $rows = BroadcastLog::select()->where('batch', '=', $batch_no)->orderby('id', 'ASC')->cursor();
             foreach ($rows as $row) {
                 fputcsv($handle, [
-                    $row->slug,
-                    $row->recipient_phone,
+                    trim($row->slug),
+                    trim($row->recipient_phone),
                     '',
-                    $row->message_body,
+                    trim($row->message_body),
                 ]);
             }
 
