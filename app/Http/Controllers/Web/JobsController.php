@@ -107,6 +107,8 @@ class JobsController extends Controller
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
+            } else {
+                $campaign_short_urls[] = $existingCampaignShortUrl;
             }
         }
 
@@ -143,7 +145,6 @@ class JobsController extends Controller
         $batch_file->campaigns()->attach($campaign_ids);
 
         for ($batch = 0; $batch < $numBatches; $batch++) {
-            \Log::debug('BATCH number - '. $batch .' total - '. $numBatches);
             $offset = $batch * $batchSize;
             $is_last = $batch >= $numBatches - 1;
 
