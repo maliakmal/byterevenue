@@ -39,6 +39,6 @@ class KeitaroCaller
 
         $log->save();
 
-        return isset($response) ? $response->json() : json_encode([]);
+        return $response->json();
     }
 }
