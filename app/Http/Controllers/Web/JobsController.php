@@ -8,6 +8,7 @@ use App\Http\Requests\CampaignsGetRequest;
 use App\Http\Requests\JobRegenerateRequest;
 use App\Jobs\CreateCampaignsOnKeitaro;
 use App\Jobs\ProcessCsvQueueBatch;
+use App\Jobs\ProcessCsvRegenQueueBatch;
 use App\Models\BatchFile;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;

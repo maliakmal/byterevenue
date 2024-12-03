@@ -59,7 +59,8 @@ class Campaign extends Model
         return $this->belongsTo(RecipientsList::class, 'recipients_list_id');
     }
 
-    public function message(){
+    public function message()
+    {
         return $this->hasOne(Message::class);
     }
 

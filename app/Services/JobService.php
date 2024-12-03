@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
+use Illuminate\Support\Facades\Log;
 
 class JobService
 {
@@ -126,6 +127,7 @@ class JobService
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
+
                 $campaign_short_urls[] = $_campaign_short_url;
             }
         }
@@ -143,20 +145,31 @@ class JobService
         // get all unsent
         $original_batch = BatchFile::where('is_ready', 1)->find($data['batch']);
 
-        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $original_batch->filename, $matches);
+        if (is_null($original_batch) || $original_batch->number_of_entries <= 0) {
+            Log::error('Original batch not found or empty');
 
-        if (!$original_batch || $original_batch->number_of_entries <= 0) {
             return null;
         }
+
+        preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $original_batch->filename, $matches);
 
         if ($matches[1] ?? null) {
             $original_batch_no = $matches[1];
         } else {
+            Log::error('Original batch number not found on parsing filename');
+
             return null;
         }
 
         $url_shortener = $data['url_shortener'];
         $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
+
+        if (is_null($_url_shortener)) {
+            Log::error('Url shortener not found');
+
+            return null;
+        }
+
         $domain_id = $_url_shortener->asset_id;
         $batchSize = 1000; // ids scope for each job
         $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch' => $original_batch_no]);
@@ -166,7 +179,7 @@ class JobService
         $type_id = null;
         $message_id = null;
 
-        if (($data['type'] ?? '') == 'campaign') {
+        if ('campaign' === ($data['type'] ?? '')) {
             $campaign_ids = $data['campaign_ids'];
             if (count($campaign_ids)) {
                 $campaign = Campaign::find($campaign_ids[0]);
@@ -179,25 +192,17 @@ class JobService
             }
 
             $uniq_campaign_ids = $campaign_ids;
-
-            $campaign_short_urls = $this->createCampaignShortUrls(
-                $uniq_campaign_ids,
-                $url_shortener,
-                $_url_shortener
-            );
-
+            $type_id = $campaign_ids;
             $type = 'campaign';
-            $type_id = $uniq_campaign_ids;
-
-        } else {
-            $campaign_short_urls = $this->createCampaignShortUrls(
-                $uniq_campaign_ids,
-                $url_shortener,
-                $_url_shortener
-            );
         }
 
-        $numBatches = ceil($total / $batchSize);
+        $campaign_short_urls = $this->createCampaignShortUrls(
+            $uniq_campaign_ids,
+            $url_shortener,
+            $_url_shortener
+        );
+
+        $numBatches = intval(ceil($total / $batchSize));
         $batch_no = $original_batch_no ."_1";
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
