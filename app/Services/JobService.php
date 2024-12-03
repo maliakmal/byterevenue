@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 
 class JobService
@@ -144,23 +145,24 @@ class JobService
     public function regenerateUnsent(array $data)
     {
         // get all unsent
-        $original_batch = BatchFile::find($data['batch']);
+        $original_batch = BatchFile::where('is_ready', 1)->find($data['batch']);
+
         preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $original_batch->filename, $matches);
 
         if (!$original_batch || $original_batch->number_of_entries <= 0) {
-            return false;
+            return null;
         }
 
         if ($matches[1] ?? null) {
             $original_batch_no = $matches[1];
         } else {
-            return false;
+            return null;
         }
 
         $url_shortener = $data['url_shortener'];
         $_url_shortener = UrlShortener::where('name', $url_shortener)->first();
         $domain_id = $_url_shortener->asset_id;
-        $batchSize = 100; // ids scope for each job
+        $batchSize = 1000; // ids scope for each job
         $unsent_logs = $this->broadcastLogRepository->getUnsent(['batch' => $original_batch_no]);
         $total = count($unsent_logs);
         $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDsFromExistingBatch($original_batch_no);
@@ -207,12 +209,15 @@ class JobService
             return null;
         }
 
+        // todo:: maybe set status regen in original batch
+
         $batch_file = BatchFile::create([
             'filename'          => $filename,
-            'path'              => /*env('DO_SPACES_ENDPOINT') . */$filename,
+            'path'              => $filename, // duplicated filename mb remove
             'number_of_entries' => $total,
             'is_ready'          => 0,
             'prev_batch_id'     => $original_batch->id,
+            'campaign_ids'      => $uniq_campaign_ids,
         ]);
 
         $batch_file->campaigns()->attach($uniq_campaign_ids);

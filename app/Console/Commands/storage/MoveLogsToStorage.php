@@ -2,10 +2,8 @@
 
 namespace App\Console\Commands\storage;
 
-use App\Jobs\RefreshBroadcastLogCache;
-use App\Models\BroadcastLog;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class MoveLogsToStorage extends Command
 {
@@ -29,7 +27,7 @@ class MoveLogsToStorage extends Command
     public function handle()
     {
         if (!env('STORAGE_WORKER_ENABLED', false)) {
-            \Log::debug('Storage worker is disabled.');
+            Log::debug('Storage worker is disabled.');
             return self::SUCCESS;
         }
 
@@ -73,7 +71,7 @@ class MoveLogsToStorage extends Command
 
         \DB::connection('mysql')->table('broadcast_logs')->whereIn('id', $ids)->delete();
 
-        \Log::debug(sprintf('Logs %s moved to storage database.', count($block)));
+        Log::debug(sprintf('Logs %s moved to storage database.', count($block)));
 
         return self::SUCCESS;
     }
