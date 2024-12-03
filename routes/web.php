@@ -18,7 +18,6 @@ use App\Http\Controllers\Web\BlackListWordController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
 
-
 Route::view('/', 'welcome');
 
 // routes for livewire
@@ -50,9 +49,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 // web routes for admin.
 Route::middleware([CheckAdminRole::class])->group(function () {
     Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
+    Route::post('jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
     Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
-    Route::post('jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
     Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
 
     Route::post('accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');

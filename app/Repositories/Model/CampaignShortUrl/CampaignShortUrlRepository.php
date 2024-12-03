@@ -20,7 +20,10 @@ class CampaignShortUrlRepository extends BaseRepository implements CampaignShort
 
     public function getIncomplete()
     {
-        return $this->model->whereNull('flow_id')->get();
+        return $this->model
+            ->whereNull('flow_id')
+            ->whereNull('error')
+            ->get();
     }
 
     /**

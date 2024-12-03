@@ -9,6 +9,10 @@ class BatchFile extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'campaign_ids' => 'array',
+    ];
+
     public function getBatchFromFilename(){
         preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $this->filename, $matches);
 

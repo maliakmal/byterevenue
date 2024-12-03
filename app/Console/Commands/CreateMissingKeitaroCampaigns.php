@@ -4,11 +4,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\Campaign\CampaignService;
-use Illuminate\Support\Facades\Log;
 use App\Models\CampaignShortUrl;
 use App\Models\Campaign;
 use App\Repositories\Model\Campaign\CampaignRepository;
-use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 
@@ -43,8 +41,7 @@ class CreateMissingKeitaroCampaigns extends Command
         $campaign_service =  new CampaignService($this->campaignRepository);
         $incomplete = $this->campaignShortUrlRepository->getIncomplete();
 
-        $this->info(count($incomplete).' keitaro records need updating');
-        \Log::info(count($incomplete).' keitaro records need updating');
+        $this->info(count($incomplete).' keitaro records need updating (Scheduler)');
 
         foreach($incomplete as $one){
 
@@ -56,9 +53,18 @@ class CreateMissingKeitaroCampaigns extends Command
             $_url_shortener = $one->urlShortener;
 
             $response_campaign = $campaign_service->createCampaignOnKeitaro($campaign_alias, $campaign->title, $campaign->keitaro_group_id, $_url_shortener->asset_id);
+
+            if ($response_campaign['error'] ?? null) {
+                \Log::error('(CreateMissingKeitaroCampaignsCommand) keitaro response error', ['error message: ' => $response_campaign['error']]);
+                $this->campaignShortUrlRepository->updateByID([
+                    'error' => @json_encode($response_campaign),
+                ], $one->id);
+
+                continue;
+            }
+
             $response_flow = $campaign_service->createFlowOnKeitaro($response_campaign['id'],  $campaign->title, $url_for_campaign);
 
-            $this->info('Keitaro campaign created with ID'.$response_campaign['id'].' for alias '.$campaign_alias);
             \Log::info('Keitaro campaign created with ID'.$response_campaign['id'].' for alias '.$campaign_alias);
 
             $this->campaignShortUrlRepository->updateByID([
@@ -69,7 +75,6 @@ class CreateMissingKeitaroCampaigns extends Command
             ], $one->id);
         }
 
-        $this->info('All done :)');
         \Log::info('Keitaro Campaign flow task completed');
     }
 }
