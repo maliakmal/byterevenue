@@ -75,7 +75,7 @@ class JobsController extends Controller
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
         $domain_id = $urlShortener->asset_id;
         $campaign_short_urls = [];
-        $campaign_short_urls_map = [];
+        $campaign_short_urls_new = [];
         $batchSize = 1000; // ids scope for each job
         $type = 'campaign' === $request->type ? 'campaign' : 'fifo';
 
@@ -123,20 +123,23 @@ class JobsController extends Controller
                 );
 
                 // generate new campaign short url in db
-                $existingCampaignShortUrl = $this->campaignShortUrlRepository->create([
+                $newCampaignShortUrl = $this->campaignShortUrlRepository->create([
                     'campaign_id' => $uniq_campaign_id,
                     'url_shortener' => $url_for_keitaro,
                     'campaign_alias' => $alias_for_campaign,
                     'url_shortener_id' => $urlShortener->id,
                     'deleted_on_keitaro' => false
                 ]);
-            }
 
-            $campaign_short_urls[$existingCampaignShortUrl->campaign_id] = $existingCampaignShortUrl;
+                $campaign_short_urls_new[$newCampaignShortUrl->campaign_id] = $newCampaignShortUrl;
+                $campaign_short_urls[$newCampaignShortUrl->campaign_id] = $newCampaignShortUrl;
+            } else {
+                $campaign_short_urls[$existingCampaignShortUrl->campaign_id] = $existingCampaignShortUrl;
+            }
         }
 
         // create new campaigns on Keitaro
-        $newCampaignsData = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
+        $newCampaignsData = ['campaigns' => $campaign_short_urls_new, 'domain_id' => $domain_id];
         Log::info('New Keitaro Campaigns Generation starts with data: ', $newCampaignsData);
         dispatch(new CreateCampaignsOnKeitaro($newCampaignsData));
 
@@ -179,7 +182,7 @@ class JobsController extends Controller
                 'url_shortener' => $urlShortenerName,
                 'batch_no' => $batch_no,
                 'batch_file' => $batch_file,
-                'campaign_short_urls' => $campaign_short_urls_map,
+                'campaign_short_urls' => $campaign_short_urls,
                 'is_last' => $is_last,
                 'type' => $type,
                 'campaigns_ids' => $campaign_ids,
