@@ -96,7 +96,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $ids = [];
         $cases = '';
         $casesCount = 0;
-        $campaign_short_url_map = $this->campaign_short_urls;
+        $campaign_short_urls = $this->campaign_short_urls;
 
         foreach ($this->logs as $log) {
             $ids[] = "'". $log->id ."'";
@@ -114,7 +114,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 continue;
             }
 
-            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
+            $campaign_short_url = isset($campaign_short_urls[$campaign->id]) ? $campaign_short_urls[$campaign->id] : null;
 
             if (!$campaign_short_url) {
                 Log::debug('ProcessCsvQueueBatchJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [

@@ -3,18 +3,14 @@
 namespace App\Services;
 
 use App\Jobs\CreateCampaignsOnKeitaro;
-use App\Jobs\ProcessCsvQueueBatch;
 use App\Jobs\ProcessCsvRegenQueueBatch;
 use App\Models\BatchFile;
-use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\UrlShortener;
 use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Log;
 
 class JobService
 {
@@ -209,7 +205,7 @@ class JobService
             return null;
         }
 
-        // todo:: maybe set status regen in original batch
+        // todo:: maybe set status regen in original batch (temp busy)
 
         $batch_file = BatchFile::create([
             'filename'          => $filename,
@@ -218,6 +214,7 @@ class JobService
             'is_ready'          => 0,
             'prev_batch_id'     => $original_batch->id,
             'campaign_ids'      => $uniq_campaign_ids,
+            'url_shortener_id'  => $_url_shortener->id,
         ]);
 
         $batch_file->campaigns()->attach($uniq_campaign_ids);
@@ -239,7 +236,7 @@ class JobService
                 'message_id' => $message_id
             ];
 
-            dispatch(new ProcessCsvRegenQueueBatch($params))->onQueue('regen_queue');
+            dispatch(new ProcessCsvRegenQueueBatch($params));
         }
 
         $params = ['campaigns' => $campaign_short_urls, 'domain_id' => $domain_id];
