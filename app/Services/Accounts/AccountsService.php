@@ -73,14 +73,21 @@ class AccountsService
      */
     public function getAccountTransactions($id = null)
     {
-        $transactions = Transaction::when($id, function ($query) use ($id) {
+        $transactions = Transaction::with(['user'])->when($id, function ($query) use ($id) {
             return $query->where('user_id', $id);
         });
         $filter = [
+            'username' => request('search'),
             'type' => request('type'),
             'sortby' => request('sortby', 'id_desc'),
-            'count' => request('count', 15),
+            'per_page' => request('per_page', 15),
         ];
+
+        if (!empty($filter['username'])) {
+            $transactions->whereHas('user', function ($query) use ($filter) {
+                $query->where('name', $filter['username']);
+            });
+        }
         if (!empty($filter['type'])) {
             $transactions->where('type', $filter['type']);
         }
@@ -94,7 +101,7 @@ class AccountsService
                 break;
         }
 
-        $transactions = $transactions->paginate($filter['count']);
+        $transactions = $transactions->paginate($filter['per_page']);
 
         return $transactions;
     }
