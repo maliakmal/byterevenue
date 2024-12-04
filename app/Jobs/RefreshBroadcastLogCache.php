@@ -77,7 +77,7 @@ class RefreshBroadcastLogCache implements ShouldQueue
 
         Cache::put('last_refreshed_at', Carbon::now()->format('Y-m-d H:i:s'));
 
-        \Log::info('time of caching: '. sprintf('%.6f sec.',microtime(true) - $start));
+        \Log::debug('time of caching: '. sprintf('%.6f sec.',microtime(true) - $start));
 
         Cache::forget(BroadcastLog::CACHE_STATUS_KEY);
     }

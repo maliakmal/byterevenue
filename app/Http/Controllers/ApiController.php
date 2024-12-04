@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 
-class ApiController extends Controller
+abstract class ApiController extends Controller
 {
     /**
      * @param $data

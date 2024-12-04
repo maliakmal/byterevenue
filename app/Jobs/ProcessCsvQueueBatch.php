@@ -32,7 +32,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $is_last       = false;
     protected $type          = 'fifo';
     protected $campaign_ids  = null;
-    protected $message_id    = null;
     protected $campaign_short_urls = [];
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository     = null;
@@ -51,7 +50,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batch_no      = $params['batch_no']      ?? $this->batch_no;
         $this->type          = $params['type']          ?? $this->type;
         $this->campaign_ids  = $params['campaign_ids']  ?? $this->campaign_ids;
-        $this->message_id    = $params['message_id']    ?? $this->message_id;
         $this->offset        = $params['offset']        ?? $this->offset;
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
@@ -103,11 +101,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             $campaign = $log->campaign;
             $message = $log->message;
 
-            if ($this->message_id) {
-                Log::debug('ProcessCsvQueueBatchJob -> request of message: ' . $this->message_id);
-                $message = Message::find($this->message_id);
-            }
-
             if (!$message) {
                 Log::error('ProcessCsvQueueBatchJob -> Message not found for log id - ' . $log->id . ' - skipping...');
 
@@ -148,7 +141,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
             SET `message_body` = CASE `id`
                 {$cases}
             END,
-            " . ($this->message_id ? " `message_id` = '$this->message_id', " : "") . "
             `is_downloaded_as_csv` = 1,
             `batch` = '$batch_no',
             `updated_at` = NOW()
