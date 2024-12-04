@@ -8,7 +8,6 @@ use App\Models\BatchFile;
 
 class UrlShortener extends Model
 {
-    use HasFactory;
     protected $fillable = [
         'name',
         'endpoint',
@@ -22,6 +21,7 @@ class UrlShortener extends Model
     {
         return $this->hasMany(CampaignShortUrl::class, 'url_shortener_id');
     }
+
     public function scopeOnlyRegistered($q)
     {
         return $q->where('is_registered', 1);

@@ -56,11 +56,6 @@
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
                 <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-{{--                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >--}}
-{{--                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)--}}
-{{--                  <option value="{{$num}}">{{$num}} messages</option>--}}
-{{--                @endforeach--}}
-{{--                </select>--}}
                 <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
               </div>
               <div class="mb-4 mt-4">

@@ -248,7 +248,7 @@
 
                 <div class="form-group hideable-message-edit">
               <label for="message_body" class="block text-gray-700 text-sm font-bold mb-2">Message Body</label>
-              <textarea style="min-height:150px" class="shadow appearance-none border h-50 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" ></textarea>
+              <textarea style="min-height:150px" class="shadow appearance-none border h-50 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message_body" name="message_body" readonly></textarea>
               <small>Enter content as spintax. <a href="javascript:void(0)" class="inline-flex items-center rounded-md border border-gray-300 bg-white py-1 px-1  font-medium text-gray-700 shadow-sm hover:bg-gray-50 " id="lnk-spintax-preview">Preview</a></small>
             </div>
             <div class="form-group mb-4 hidden" id="spintax-holder">
@@ -728,11 +728,9 @@
         showPreloader();
         var template = $('#files-template').html();
         $.ajax({
-            url: '/api/jobs/internal/regenerate-csv', // Replace with your API endpoint
+            url: '/api/jobs/regenerate', // Replace with your API endpoint
             method: 'POST',
             data: {
-                campaign_ids: campaignServiceManager.getCampaignIds(),
-                type:'campaign',
                 message_body: $('#default-modal').find('textarea#message_body').first().val(),
                 batch: $('#default-modal').find('input#modal_batch').first().val(),
                 url_shortener: $('#default-modal').find('select#url_shortener').first().val(),
