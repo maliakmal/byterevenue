@@ -24,9 +24,10 @@ class JobRegenerateRequest extends FormRequest
         return [
             'batch' => ['required', 'integer'],
             'url_shortener' => ['required', 'string'],
-            'type' => ['string'],
-            'campaign_ids' => ['array'],
-            'message_body' => ['string'],
+            'type' => ['string', 'in:campaign,fifo'],
+            'campaign_ids' => ['required_if:type,campaign', 'array'],
+            'campaign_ids.*' => ['required_if:type,campaign', 'integer'],
+            'message_body' => ['required', 'string'],
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Helpers\MemoryUsageHelper;
 use App\Jobs\FillingRecipientGroupJob;
+use App\Models\BatchFile;
 use App\Models\BroadcastLog;
 use App\Models\CampaignShortUrl;
 use App\Models\RecipientsGroup;
@@ -33,9 +34,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $request = new RegisterShortDomainRequest('test_tame',null, null, null,
-            null, true, true, true, false);
-
-        KeitaroCaller::call($request)[0];
+        //
     }
 }

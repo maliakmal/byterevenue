@@ -71,13 +71,8 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
      */
     public function handle(): void
     {
-        $unique_campaigns = collect();
-        $unique_campaign_map = [];
-        $new_campaigns = collect();
         $campaign_service = $this->campaign_service;
         $batch_no = $this->batch_no;
-        $url_shortener = $this->url_shortener;
-        $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
 
         // no need offset value btw where('batch', $this->original_batch_no) every time
@@ -94,14 +89,17 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         $this->logs = $query->get();
 
         if ($this->logs->isEmpty()) {
-            dump('no matching entries found - skipping...');
-            \Log::info('No matching entries found - skipping...');
+            Log::info('No matching entries found - skipping...');
             // set status to ready
-            $this->batch_file->update(['is_ready' => 1]);
+            $this->batch_file->update([
+                'is_ready' => 1,
+                'has_errors' => 1
+            ]);
+
             return;
         }
 
-        Log::info('Grabbed '.count($this->logs).' logs to process - batch no - '.$this->batch_no.' - Offset - '.$this->offset);
+        Log::info('ProcessCsvRegenQueueBatchJob -> logs count: ' . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Offset: ' . $this->offset);
 
         $ids = [];
         $cases = '';
@@ -114,108 +112,66 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             $message = $log->message;
 
             if ($this->message_id) {
-                dump('Message id is set - ' . $this->message_id . ' - fetching message...');
+                Log::debug('ProcessCsvRegenQueueBatchJob -> request of message: ' . $this->message_id);
                 $message = Message::find($this->message_id);
             }
 
             if (!$message) {
-                dump('Message not found for log id - ' . $log->id . ' - skipping...');
+                Log::error('ProcessCsvRegenQueueBatchJob -> Message not found for log id - ' . $log->id . ' - skipping...');
+
                 continue;
             }
 
-            // check if there an existing URL for this campaign with the same domain
-            if (isset($campaign_short_url_map[$campaign->id])) {
-                $campaign_short_url = $campaign_short_url_map[$campaign->id];
-            } else {
-                // is there an existing campaign url alias for this campaign with the same domain?
-                $campaign_short_url = CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%'.$url_shortener.'%')->orderby('id', 'desc')->first();
-                $campaign_short_url_map[$campaign->id] = $campaign_short_url;
-            }
+            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
 
-            // if yes - use that
-
-            if ($campaign_short_url) {
-                if (strstr($campaign_short_url->url_shortener, DIRECTORY_SEPARATOR)) {
-                    $alias_for_campaign = explode('?', explode(DIRECTORY_SEPARATOR,  $campaign_short_url->url_shortener)[1])[0];
-                } else {
-                    $alias_for_campaign = $campaign_short_url->url_shortener;
-                }
-
-                // hack in case we have an entry but no keitaro reference
-                if (!$campaign_short_url->keitaro_campaign_id) {
-                    $_new_campaign = [
-                        'campaign_short_url_id'=>$campaign_short_url->id,
-                        'url_shortener'=>$url_shortener,
-                        'campaign'=>$campaign,
-                        'domain_id'=>$domain_id,
-                        'alias'=>$alias_for_campaign
-                    ];
-
-                    $new_campaigns->add($_new_campaign);
-                }
-            } else {
-                // there is no campaign entry
-                $alias_for_campaign = uniqid();
-
-                // make a spoof entry for campaign url
-                $_url_shortener = $this->urlShortenerRepository->search(['name'=>$url_shortener]);
-                $url_for_keitaro = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign);
-
-                $_campaign_short_url = $this->campaignShortUrlRepository->create([
-                    'campaign_id' => $campaign->id,
-                    'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
-                    'campaign_alias' => $alias_for_campaign,
-                    'url_shortener_id' => $_url_shortener->id,
-                    'deleted_on_keitaro' => false
+            if (!$campaign_short_url) {
+                Log::debug('ProcessCsvRegenQueueBatchJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
+                    'log' => $log,
+                    'campaign' => $campaign,
                 ]);
 
-                $campaign_short_url_map[$campaign->id] = $_campaign_short_url;
-
-                $_new_campaign = [
-                    'campaign_short_url_id'=>$_campaign_short_url->id,
-                    'url_shortener'=>$url_shortener,
-                    'campaign'=>$campaign,
-                    'domain_id'=>$domain_id,
-                    'alias'=>$alias_for_campaign
-                ];
-
-                $new_campaigns->add($_new_campaign);
+                continue;
             }
 
-            $generated_url = $campaign_service->generateUrlForCampaign($url_shortener, $alias_for_campaign, $log->slug);
-
+            $generated_url = $campaign_service->generateUrlForCampaignFromAlias($campaign_short_url->url_shortener, $log->slug);
             $message_body = $message->getParsedMessage($generated_url);
             $cases .= "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
             $casesCount++;
-
-            $campaign_key = (string)$campaign->id;
-
-            if ($campaign && isset($unique_campaign_map[$campaign_key]) == false) {
-                $unique_campaigns->add(['campaign'=>$campaign, 'alias'=>$alias_for_campaign]);
-                $unique_campaign_map[$campaign_key] = true;
-            }
-
         }
 
-        Log::info('Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . $casesCount);
+        if ($casesCount == 0) {
+            Log::error('ProcessCsvRegenQueueBatchJob -> No cases created - skipping...');
+            $this->batch_file->update([
+                'is_ready' => 1,
+                'has_errors' => 1.
+            ]);
+
+            return;
+        }
 
         $idList = implode(",", $ids);
 
-        $sql = "UPDATE `broadcast_logs`
-        SET `message_body` = CASE `id`
-            {$cases}
-        END,
-        " . ($this->message_id ? " `message_id` = '$this->message_id', " : "") . "
-        `is_downloaded_as_csv` = 1,
-        `batch` = '$batch_no',
-        `updated_at` = NOW()
-        WHERE `id` IN ({$idList})";
+        try {
+            $sql = "UPDATE `broadcast_logs`
+            SET `message_body` = CASE `id`
+                {$cases}
+            END,
+            " . ($this->message_id ? " `message_id` = '$this->message_id', " : "") . "
+            `is_downloaded_as_csv` = 1,
+            `batch` = '$batch_no',
+            `updated_at` = NOW()
+            WHERE `id` IN ({$idList})";
 
-        \DB::statement($sql);
+            \DB::statement($sql);
 
-        if ($this->is_last == true) {
-            dump('IS THE LAST ONE');
-            $this->batch_file->update(['is_ready' => 1]);
+            if ($this->is_last == true) {
+                dump('IS THE LAST ONE');
+                $this->batch_file->update(['is_ready' => 1]);
+            }
+        } catch (\Exception $e) {
+            Log::error('ProcessCsvRegenQueueBatchJob -> Error updating broadcast_logs: ' . $e->getMessage());
+        } finally {
+            $this->batch_file->increment('generated_count', $casesCount);
         }
     }
 }

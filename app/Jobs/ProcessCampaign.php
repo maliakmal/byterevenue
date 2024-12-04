@@ -43,8 +43,6 @@ class ProcessCampaign implements ShouldQueue
      */
     public function handle(): void
     {
-        \Log::debug('Processing campaign: ' . $this->campaign->id);
-
         $data = [];
         $now  = now()->toDateTimeString();
         $user = $this->user;
@@ -74,9 +72,17 @@ class ProcessCampaign implements ShouldQueue
 
         // Insert any remaining records in the batch
         if (!empty($data)) {
-            \DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
-            \DB::table('broadcast_logs')->insert($data);
-            \DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
+            \Log::debug('Processing campaign: ' . $this->campaign->id . ' create ' . count($data) . ' records in broadcast_logs');
+            try {
+                \DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
+                \DB::table('broadcast_logs')->insert($data);
+            }
+            catch (\Exception $e) {
+                \Log::error('Error inserting broadcast_logs: ' . $e->getMessage());
+            }
+            finally {
+                \DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
+            }
         } else {
             \Log::error('No contacts found for campaign: ' . $campaign->id);
         }

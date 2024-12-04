@@ -55,12 +55,13 @@
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
-                  <option value="{{$num}}">{{$num}} messages</option>
-                @endforeach
-                </select>
+                <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
+{{--                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >--}}
+{{--                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)--}}
+{{--                  <option value="{{$num}}">{{$num}} messages</option>--}}
+{{--                @endforeach--}}
+{{--                </select>--}}
+                <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
@@ -96,10 +97,12 @@
             @foreach ($params['files'] as $file)
               <tr>
                 <td class="border-b border-gray-200 px-4 py-2 text-center" style="cursor: default">
-                  @if($file['is_ready'] && $file['number_of_entries'] > 0)
+                  @if($file['is_ready'] && $file['number_of_entries'] > 0 && !$file['has_errors'])
                     <a href="/download/{{$file['id'] }}">File {{ $file['id'] }}.csv
                   @elseif($file['number_of_entries'] == 0)
                     <span>File {{ $file['id'] }}.csv</span>
+                  @elseif($file['has_errors'] ?? false)
+                    <span>File {{ $file['id'] }}.csv (error)</span>
                   @else
                     <span>File {{ $file['id'] }}.csv (preparation)</span>
                   @endif

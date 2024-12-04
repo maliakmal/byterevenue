@@ -11,7 +11,6 @@ use App\Models\BroadcastLog;
 use App\Models\Message;
 use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
-use App\Models\UrlShortener;
 use App\Services\Campaign\CampaignService;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
@@ -33,7 +32,6 @@ class ProcessCsvQueueBatch implements ShouldQueue
     protected $is_last       = false;
     protected $type          = 'fifo';
     protected $campaign_ids  = null;
-    protected $message_id    = null;
     protected $campaign_short_urls = [];
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository     = null;
@@ -52,12 +50,11 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->batch_no      = $params['batch_no']      ?? $this->batch_no;
         $this->type          = $params['type']          ?? $this->type;
         $this->campaign_ids  = $params['campaign_ids']  ?? $this->campaign_ids;
-        $this->message_id    = $params['message_id']    ?? $this->message_id;
         $this->offset        = $params['offset']        ?? $this->offset;
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
-        $this->campaign_short_urls       = $params['campaign_short_urls']       ?? $this->campaign_short_urls;
+        $this->campaign_short_urls = $params['campaign_short_urls'] ?? $this->campaign_short_urls;
 
         $this->onQueue(self::QUEUE_KEY);
     }
@@ -68,11 +65,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
     public function handle(CampaignService $campaign_service): void
     {
         $batch_no = $this->batch_no;
-        $url_shortener = $this->url_shortener;
-
-        $domain_id = UrlShortener::where('name', $url_shortener)->first()->asset_id;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
-        //DB::transaction();
 
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
@@ -87,76 +80,81 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $this->logs = $query->get();
 
         if ($this->logs->isEmpty()) {
-            dump('no matching entries found - skipping...');
-            \Log::info('No matching entries found - skipping...');
-            // set status to ready
-            $this->batch_file->update(['is_ready' => 1]);
+            Log::debug('No matching entries found - skipping...');
+            $this->batch_file->update([
+                'is_ready' => 1,
+                'has_errors' => 1
+            ]);
+
             return;
         }
 
-        Log::info('ProcessQueuBatch -> Grabbed ' . count($this->logs) . ' logs to process - batch no - ' . $this->batch_no . ' - Offset - ' . $this->offset);
+        Log::info('ProcessCsvQueueBatchJob -> logs count: ' . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Offset: ' . $this->offset);
 
         $ids = [];
         $cases = '';
         $casesCount = 0;
-        $campaign_short_url_map = $this->campaign_short_urls;
+        $campaign_short_urls = $this->campaign_short_urls;
 
         foreach ($this->logs as $log) {
             $ids[] = "'". $log->id ."'";
             $campaign = $log->campaign;
             $message = $log->message;
-            //Log::info('ProcessQueuBatch -> ProcessQueuBatch -> loop start '.$log->id);
-
-            if ($this->message_id) {
-                // Log::info('ProcessQueuBatch -> Message id is set - ' . $this->message_id . ' - fetching message...');
-                $message = Message::find($this->message_id);
-            }
 
             if (!$message) {
-                Log::info('ProcessQueuBatch -> Message not found for log id - ' . $log->id . ' - skipping...');
+                Log::error('ProcessCsvQueueBatchJob -> Message not found for log id - ' . $log->id . ' - skipping...');
+
                 continue;
             }
 
-            $campaign_short_url = isset($campaign_short_url_map[$campaign->id]) ? $campaign_short_url_map[$campaign->id] : null;
-            //CampaignShortUrl::select()->where('campaign_id', $campaign->id)->where('url_shortener', 'like', '%' . $url_shortener . '%')->orderby('id', 'desc')->first();
+            $campaign_short_url = isset($campaign_short_urls[$campaign->id]) ? $campaign_short_urls[$campaign->id] : null;
 
             if (!$campaign_short_url) {
-                Log::info('ProcessQueuBatch -> campaign_short_url doesnt exist for log id '.$log->id);
+                Log::debug('ProcessCsvQueueBatchJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
+                    'log' => $log,
+                    'campaign' => $campaign,
+                ]);
+
                 continue;
             }
 
             $generated_url = $campaign_service->generateUrlForCampaignFromAlias($campaign_short_url->url_shortener, $log->slug);
-            // Log::info('ProcessQueuBatch -> generaled URL to attach in CSV '.$generated_url);
             $message_body = $message->getParsedMessage($generated_url);
             $cases .= "WHEN '{$log->id}' THEN '" . addslashes($message_body) . "'";
             $casesCount++;
-
         }
 
-        Log::info('ProcessQueuBatch -> Number of log entries updated - ' . count($ids) . ' - with number of cases - ' . $casesCount);
-
         if ($casesCount == 0) {
-            Log::error('ProcessQueuBatch -> No cases found - skipping...');
+            Log::error('ProcessCsvQueueBatchJob -> Cases count to create is 0 - skipping...');
+            $this->batch_file->update([
+                'is_ready' => 1,
+                'has_errors' => 1.
+            ]);
+
             return;
         }
 
         $idList = implode(",", $ids);
 
-        $sql = "UPDATE `broadcast_logs`
-        SET `message_body` = CASE `id`
-            {$cases}
-        END,
-        " . ($this->message_id ? " `message_id` = '$this->message_id', " : "") . "
-        `is_downloaded_as_csv` = 1,
-        `batch` = '$batch_no',
-        `updated_at` = NOW()
-        WHERE `id` IN ({$idList})";
+        try {
+            $sql = "UPDATE `broadcast_logs`
+            SET `message_body` = CASE `id`
+                {$cases}
+            END,
+            `is_downloaded_as_csv` = 1,
+            `batch` = '$batch_no',
+            `updated_at` = NOW()
+            WHERE `id` IN ({$idList})";
 
-        \DB::statement($sql);
+            \DB::statement($sql);
 
-        if ($this->is_last == true) {
-            dump('IS THE LAST ONE');
-            $this->batch_file->update(['is_ready' => 1]);
+            $this->batch_file->increment('generated_count', $casesCount);
+
+            if ($this->is_last == true) {
+                $this->batch_file->update(['is_ready' => 1]);
+            }
+        } catch (\Exception $e) {
+            Log::error('ProcessCsvQueueBatchJob -> Error updating broadcast_logs: ' . $e->getMessage());
         }
     }
 }

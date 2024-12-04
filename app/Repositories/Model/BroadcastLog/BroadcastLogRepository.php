@@ -86,7 +86,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     }
 
-    public function getUniqueCampaignsIDsFromExistingBatch($batch){
+    public function getUniqueCampaignsIDsFromExistingBatch($batch) {
         $query = \DB::connection('mysql')
             ->table('broadcast_logs')
             ->select('campaign_id')
@@ -94,7 +94,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         $query = $query->where('batch', $batch);
 
-        return $query->pluck('campaign_id');
+        return $query->pluck('campaign_id')->toArray();
     }
 
     public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null): array

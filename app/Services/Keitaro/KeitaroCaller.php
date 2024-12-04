@@ -39,6 +39,6 @@ class KeitaroCaller
 
         $log->save();
 
-        return $response->json();
+        return isset($response) ? $response->json() : ['error' => $e->getMessage()];
     }
 }
