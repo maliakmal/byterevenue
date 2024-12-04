@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\RecipientsListApiController;
 use App\Http\Controllers\Api\BroadcastBatchApiController;
 use App\Http\Controllers\Api\AreasApiController;
+use App\Http\Controllers\Api\ShortDomainsController;
 
 
 // group auth routes for api
@@ -78,7 +79,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('broadcast_batches', [BroadcastBatchApiController::class, 'store']);
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
-    Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class,'markAsProcessed']);
+    Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
+
+    Route::prefix('short-domains')->controller(ShortDomainsController::class)->group(function () {
+        Route::get('/','index');
+        Route::post('/','store');
+        Route::delete('/{id}','destroy');
+    });
 });
 
 
