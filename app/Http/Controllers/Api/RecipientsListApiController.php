@@ -232,7 +232,7 @@ class RecipientsListApiController extends ApiController
      * @param $userID
      * @return JsonResponse
      */
-    private function getSourceForUser($userID): array
+    private function getSourceForUser($userID): JsonResponse
     {
         $recipientList = RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
             ->where('user_id', $userID)

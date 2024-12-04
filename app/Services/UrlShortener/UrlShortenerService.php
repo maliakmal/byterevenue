@@ -13,37 +13,29 @@ class UrlShortenerService
 {
     public function getAll(Request $request)
     {
-        $query = UrlShortener::query();
+        $query = UrlShortener::withCount(['campaignShortUrls']);
 
-        if ($request->filled('propagated')) {
-            $query = $query->propagatedFilter($request->propagated);
-        }
-
-        if ($request->filled('id')) {
-            $query = $query->idSort($request->id);
+        if ($request->filled('is_propagated')) {
+            $query = $query->propagatedFilter($request->is_propagated);
         }
 
         if ($request->filled('url')) {
-            $query = $query->urlSort($request->url);
+            $query = $query->whereUrl($request->url);
         }
 
-        $urlShorteners = $query->paginate(15);
+        $urlShorteners = $query->paginate($request->input('per_page',15));
 
         return $urlShorteners;
     }
 
     public function create(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255', 'unique:url_shorteners,name'],
-            'endpoint' => ['required', 'string', 'max:255'],
+        $request->validate([
+            'name' => 'required|string|max:255|unique:url_shorteners,name',
+            'endpoint' => 'required|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return ['errors' => $validator->errors()];
-        }
-
-        $data = $validator->validated();
+        $data = $request->all();
         $request = new RegisterShortDomainRequest(
             name: $data['name'],
             ssl_redirect: true,

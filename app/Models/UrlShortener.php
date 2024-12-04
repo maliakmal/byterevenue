@@ -39,21 +39,11 @@ class UrlShortener extends Model
 
     /**
      * @param $query
-     * @param $sortValue
+     * @param $urlValue
      * @return mixed
      */
-    public function scopeIdSort($query, $sortValue)
+    public function scopeWhereUrl($query, $urlValue)
     {
-        return $query->orderBy('id', $sortValue);
-    }
-
-    /**
-     * @param $query
-     * @param $sortValue
-     * @return mixed
-     */
-    public function scopeUrlSort($query, $sortValue)
-    {
-        return $query->orderBy('url', $sortValue);
+        return $query->where('url', $urlValue);
     }
 }
