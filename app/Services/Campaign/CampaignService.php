@@ -189,8 +189,8 @@ class CampaignService
             if (isset($filters['status'])) {
                 $logs = $logs->where('status',$filters['status']);
             }
-            if (isset($filters['is_click'])) {
-                $logs = $logs->where('is_click',$filters['is_click']);
+            if (isset($filters['is_clicked'])) {
+                $logs = $logs->where('is_click',$filters['is_clicked']);
             }
 
             if (isset($filters['search'])) {
