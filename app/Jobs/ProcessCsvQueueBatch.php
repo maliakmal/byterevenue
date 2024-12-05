@@ -74,7 +74,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
             ->limit($this->batchSize);
 
         if ('campaign' === $this->type && !empty($this->campaign_ids)) {
-            $query->where('campaign_id', $this->campaign_ids);
+            $query->whereIn('campaign_id', $this->campaign_ids);
         }
 
         $this->logs = $query->get();
@@ -82,7 +82,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         if ($this->logs->isEmpty()) {
             Log::debug('No matching entries found - skipping...');
             $this->batch_file->update([
-                'is_ready' => 1,
+                'is_ready'   => 1,
                 'has_errors' => 1
             ]);
 
@@ -97,9 +97,9 @@ class ProcessCsvQueueBatch implements ShouldQueue
         $campaign_short_urls = $this->campaign_short_urls;
 
         foreach ($this->logs as $log) {
-            $ids[] = "'". $log->id ."'";
+            $ids[]    = "'". $log->id ."'";
             $campaign = $log->campaign;
-            $message = $log->message;
+            $message  = $log->message;
 
             if (!$message) {
                 Log::error('GenerateJob -> Message not found for log id - ' . $log->id . ' - skipping...');
@@ -107,7 +107,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
                 continue;
             }
 
-            $campaign_short_url = isset($campaign_short_urls[$campaign->id]) ? $campaign_short_urls[$campaign->id] : null;
+            $campaign_short_url = $campaign_short_urls->where('campaign_id', $campaign->id)->first();
 
             if (!$campaign_short_url) {
                 Log::debug('GenerateJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
@@ -128,7 +128,7 @@ class ProcessCsvQueueBatch implements ShouldQueue
         if ($casesCount == 0) {
             Log::error('GenerateJob -> Cases count to create is 0 - break...');
             $this->batch_file->update([
-                'has_errors' => 1.
+                'has_errors' => 1,
             ]);
 
             return;
@@ -149,12 +149,13 @@ class ProcessCsvQueueBatch implements ShouldQueue
             \DB::statement($sql);
 
             $this->batch_file->increment('generated_count', $casesCount);
-
+        } catch (\Exception $e) {
+            Log::error('GenerateJob -> Error updating broadcast_logs: ' . $e->getMessage());
+            $this->batch_file->update(['has_errors' => 1]);
+        } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update(['is_ready' => 1]);
             }
-        } catch (\Exception $e) {
-            Log::error('GenerateJob -> Error updating broadcast_logs: ' . $e->getMessage());
         }
     }
 }

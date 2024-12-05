@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', 'store');
         Route::delete('/{id}', 'destroy');
     });
+
     Route::prefix('jobs')->controller(JobsApiController::class)->group(function () {
         Route::get('fifo', [JobsApiController::class, 'fifo'])->name('jobs.fifo');
         Route::get('campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');

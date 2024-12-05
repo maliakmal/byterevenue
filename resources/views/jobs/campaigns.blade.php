@@ -57,12 +57,8 @@
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
-                  <option value="{{$num}}">{{$num}} messages</option>
-                @endforeach
-                </select>
+                  <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
+                  <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
@@ -176,12 +172,8 @@
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-                <select id="number_messages" name="number_messages" class="shadow appearance-none border rounded w-half py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" >
-                @foreach([100, 300, 500, 1000, 1500, 2000, 5000, 10000, 20000, 30000] as $num)
-                  <option value="{{$num}}">{{$num}} messages</option>
-                @endforeach
-                </select>
+                  <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
+                  <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
@@ -380,7 +372,7 @@
         }
 
         $.ajax({
-            url: '/api/jobs/internal/generate-csv', // Replace with your API endpoint
+            url: '/api/jobs', // Replace with your API endpoint
             method: 'POST',
             data: {
                 campaign_ids: campaignServiceManager.selected_campaign,
@@ -635,13 +627,14 @@
       var template = $('#files-template').html();
       showPreloader();
       $.ajax({
-        url: '/api/jobs/internal/generate-csv', // Replace with your API endpoint
+        url: '/jobs/', // Replace with your API endpoint
         method: 'POST',
         data: {
           campaign_ids: campaignServiceManager.getCampaignIds(),
           type:'campaign',
-          number_messages: $('#frm-generate-csv').find('select#number_messages').first().val(),
+          number_messages: $('input#number_messages').val(),
           url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(),
+          _token: '{{ csrf_token() }}'
         },
         success: function(response) {
           hidePreloader();
@@ -728,12 +721,13 @@
         showPreloader();
         var template = $('#files-template').html();
         $.ajax({
-            url: '/api/jobs/regenerate', // Replace with your API endpoint
+            url: '/jobs/regenerate', // Replace with your API endpoint
             method: 'POST',
             data: {
                 message_body: $('#default-modal').find('textarea#message_body').first().val(),
                 batch: $('#default-modal').find('input#modal_batch').first().val(),
                 url_shortener: $('#default-modal').find('select#url_shortener').first().val(),
+                _token: '{{ csrf_token() }}'
             },
             success: function(response) {
               campaignServiceManager.hideModal();

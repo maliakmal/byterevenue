@@ -57,31 +57,14 @@
                                         <option {{ $filter['status']==1?'selected' :'' }}  value="1">Processing</option>
                                         <option {{ $filter['status']==2?'selected' :'' }}  value="2">Done</option>
                                     </select>
-                                    @if(auth()->user()->hasRole('admin'))
-                                        <select id="user_id" name="user_id">
-                                            <option  value="">All Accounts?</option>
-                                            @foreach(\App\Models\User::select()->orderby('name', 'asc')->get() as $user)
-                                                <option {{ $filter['user_id']==$user->id?'selected' :'' }}  value="{{ $user->id }}">{{ $user->name }}({{ $user->campaigns()->count() }})</option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                    <select id="sortby" name="sortby">
-                                        <option value="">Sort By</option>
-                                        <option  {{ $filter['sortby']=='id_desc'?'selected' :'' }}  value="id_desc">Latest to Oldest</option>
-                                        <option  {{ $filter['sortby']=='id_asc'?'selected' :'' }}  value="id_asc">Oldest to Latest</option>
-                                        <option  {{ $filter['sortby']=='title'?'selected' :'' }}  value="title">Title - Alphabetically</option>
-                                        <option  {{ $filter['sortby']=='ctr_desc'?'selected' :'' }}  value="ctr_desc">CTR - Descending</option>
-                                        <option  {{ $filter['sortby']=='ctr_asc'?'selected' :'' }}  value="ctr_asc">CTR - Ascending</option>
-                                        <option  {{ $filter['sortby']=='clicks_desc'?'selected' :'' }}  value="clicks_desc">Total Clicks - Descending</option>
-                                        <option  {{ $filter['sortby']=='clicks_asc'?'selected' :'' }}  value="clicks_asc">Total Clicks - Ascending</option>
-                                    </select>
-                                    <select id="count" name="count">
-                                        <option value="">Count</option>
-                                        <option  {{ $filter['count']=='5'?'selected' :'' }}  value="5">5</option>
-                                        <option  {{ $filter['count']=='10'?'selected' :'' }}  value="10">10</option>
-                                        <option  {{ $filter['count']=='50'?'selected' :'' }}  value="50">50</option>
-                                        <option  {{ $filter['count']=='100'?'selected' :'' }}  value="100">100</option>
-                                    </select>
+{{--                                    @if(auth()->user()->hasRole('admin'))--}}
+{{--                                        <select id="user_id" name="user_id">--}}
+{{--                                            <option  value="">All Accounts?</option>--}}
+{{--                                            @foreach(\App\Models\User::select()->orderby('name', 'asc')->get() as $user)--}}
+{{--                                                <option {{ $filter['user_id']==$user->id?'selected' :'' }}  value="{{ $user->id }}">{{ $user->name }}({{ $user->campaigns()->count() }})</option>--}}
+{{--                                            @endforeach--}}
+{{--                                        </select>--}}
+{{--                                    @endif--}}
                                 </form>
                             </div>
                             <table  class="mt-5 table-auto w-full">
