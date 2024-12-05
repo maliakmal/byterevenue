@@ -15,6 +15,7 @@ use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class JobService
 {
@@ -22,16 +23,19 @@ class JobService
         private CampaignService $campaignService,
         private CampaignShortUrlRepository $campaignShortUrlRepository,
         private BroadcastLogRepositoryInterface $broadcastLogRepository
-    ) {}
+    ) {
+    }
 
     /**
      * @return array
      */
-    public function index()
+    public function index(Request $request)
     {
         $download_me = null;
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
         $urlShorteners = UrlShortener::withCount('campaignShortUrls')->onlyRegistered()->orderby('id', 'desc')->get();
-        $files = BatchFile::with('urlShortener')->withCount('campaigns')->orderby('id', 'desc')->paginate(15);
+        $files = BatchFile::with('urlShortener')->withCount('campaigns')->orderby($sortBy, $sortOrder)->paginate(15);
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
@@ -76,12 +80,12 @@ class JobService
         return $campaign_short_urls;
     }
 
-    public function processGenerate(array $params, $needFullResponse = null)
+    public function processGenerate(array $params, $needFullResponse = null, $filters)
     {
-        $requestCount      = intval($params['number_messages']); // count of records in CSV
-        $urlShortenerName  = trim($params['url_shortener']);
+        $requestCount = intval($params['number_messages']); // count of records in CSV
+        $urlShortenerName = trim($params['url_shortener']);
         $type = 'campaign' === $params['type'] ? 'campaign' : 'fifo';
-        $campaign_ids      = $params['campaign_ids'] ?? [];
+        $campaign_ids = $params['campaign_ids'] ?? [];
 
         Log::alert('Request for CSV generation (WEB) Starting process...', $params);
 
@@ -122,7 +126,7 @@ class JobService
 
         foreach ($campaign_ids as $uniq_campaign_id) {
             $existingCampaignShortUrl = CampaignShortUrl::where('campaign_id', $uniq_campaign_id)
-                ->where('url_shortener', 'like', '%'.$urlShortenerName.'%')
+                ->where('url_shortener', 'like', '%' . $urlShortenerName . '%')
                 ->first();
 
             // if campaign short url not found in db
@@ -131,9 +135,10 @@ class JobService
                 $alias_for_campaign = uniqid();
                 $url_for_keitaro = $this->campaignService->generateUrlForCampaign($urlShortenerName, $alias_for_campaign);
 
-                Log::debug('keitaro campaign id: ('. $uniq_campaign_id .
-                    ') and url: ('. $urlShortenerName .
-                    ') not found. Generated: ('.$url_for_keitaro.')'
+                Log::debug(
+                    'keitaro campaign id: (' . $uniq_campaign_id .
+                    ') and url: (' . $urlShortenerName .
+                    ') not found. Generated: (' . $url_for_keitaro . ')'
                 );
 
                 // generate new campaign short url in db
@@ -162,7 +167,7 @@ class JobService
         $numBatches = intval(ceil($availableCount / $batchSize));
         $batch_no = str_replace('.', '', microtime(true));
 
-        Log::info('Request count: '. $requestCount .' ; Records available '. $availableCount);
+        Log::info('Request count: ' . $requestCount . ' ; Records available ' . $availableCount);
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";
 
@@ -285,7 +290,7 @@ class JobService
         }
 
         $numBatches = intval(ceil($total / $batchSize));
-        $batch_no = $original_batch_no ."_1";
+        $batch_no = $original_batch_no . "_1";
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
         if ($numBatches == 0) {
@@ -295,13 +300,13 @@ class JobService
         // todo:: maybe set status regen in original batch (temp busy)
 
         $batch_file = BatchFile::create([
-            'filename'          => $filename,
-            'path'              => $filename, // duplicated filename mb remove
+            'filename' => $filename,
+            'path' => $filename, // duplicated filename mb remove
             'number_of_entries' => $total,
-            'is_ready'          => 0,
-            'prev_batch_id'     => $original_batch->id,
-            'campaign_ids'      => $uniq_campaign_ids,
-            'url_shortener_id'  => $url_shortener->id,
+            'is_ready' => 0,
+            'prev_batch_id' => $original_batch->id,
+            'campaign_ids' => $uniq_campaign_ids,
+            'url_shortener_id' => $url_shortener->id,
         ]);
 
         $batch_file->campaigns()->attach($uniq_campaign_ids);

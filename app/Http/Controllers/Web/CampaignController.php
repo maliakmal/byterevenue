@@ -26,13 +26,14 @@ class CampaignController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $filter = [
-            'status' => request('status'),
-            'user_id' => request('user_id'),
-            'sortby' => request('sortby', 'id_desc'),
-            'count' => request('count', 5),
+            'status' => $request->input('status'),
+            'user_id' => $request->input('user_id'),
+            'sort_by' => $request->input('sort_by', 'id'),
+            'sort_order' => $request->input('sort_order', 'desc'),
+            'count' => $request->input('count', 5),
         ];
 
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);

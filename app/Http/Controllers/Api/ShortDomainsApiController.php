@@ -10,7 +10,7 @@ use App\Services\UrlShortener\UrlShortenerService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 
-class ShortDomainsController extends ApiController
+class ShortDomainsApiController extends ApiController
 {
     /**
      * @param UrlShortenerService $urlShortenerService

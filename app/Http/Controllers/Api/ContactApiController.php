@@ -70,13 +70,7 @@ class ContactApiController extends ApiController
      */
     public function index(Request $request)
     {
-        $user       = auth()->user();
-        $perPage    = $request->input('per_page', 12);
-        $name       = $request->input('name');
-        $area_code  = $request->input('area_code', '');
-        $phone      = $request->input('phone', '');
-
-        $contacts = $this->contactService->getContacts($user, $perPage, $name, $area_code, $phone);
+        $contacts = $this->contactService->getContacts($request);
         $areaData = [
             'provinces' => $this->areaCodeService->getAllProvinces(true),
         ];

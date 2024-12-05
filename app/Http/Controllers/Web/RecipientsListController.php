@@ -10,6 +10,7 @@ use App\Models\ImportRecipientsList;
 use App\Models\RecipientsList;
 use App\Services\RecipientList\RecipientListService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class RecipientsListController extends Controller
 {
@@ -23,14 +24,11 @@ class RecipientsListController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $nameFilter = request()->input('name');
-        $isImportedFilter = request()->input('is_imported', '');
+        $recipient_lists = $this->recipientListService->getRecipientLists($request);
 
-        $recipient_lists = $this->recipientListService->getRecipientLists($nameFilter, $isImportedFilter);
-
-        if (request()->input('output') == 'json') {
+        if ($request->input('output') == 'json') {
             return response()->success(null, $recipient_lists);
         }
 

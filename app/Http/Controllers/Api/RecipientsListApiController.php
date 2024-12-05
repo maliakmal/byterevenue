@@ -26,7 +26,8 @@ class RecipientsListApiController extends ApiController
      */
     public function __construct(
         private RecipientListService $recipientListService,
-    ) {}
+    ) {
+    }
 
     /**
      * @OA\Get(
@@ -47,14 +48,7 @@ class RecipientsListApiController extends ApiController
      */
     public function index(Request $request)
     {
-        $nameFilter = $request->get('name');
-        $isImportedFilter = $request->get('is_imported', '');
-        $perPage = $request->get('per_page', 5);
-        $recipientList = $this->recipientListService->getRecipientLists(
-            $nameFilter,
-            $isImportedFilter,
-            $perPage,
-        );
+        $recipientList = $this->recipientListService->getRecipientLists($request);
 
         return $this->responseSuccess($recipientList);
     }
@@ -103,8 +97,8 @@ class RecipientsListApiController extends ApiController
         }
 
         $importRecipientsListId = ImportRecipientsList::create([
-            'user_id'   => auth()->id(),
-            'data'      => $data,
+            'user_id' => auth()->id(),
+            'data' => $data,
             'file_path' => $filePath,
         ]);
 

@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\RecipientsListApiController;
 use App\Http\Controllers\Api\BroadcastBatchApiController;
 use App\Http\Controllers\Api\AreasApiController;
-use App\Http\Controllers\Api\ShortDomainsController;
+use App\Http\Controllers\Api\ShortDomainsApiController;
 
 // group auth routes for auth api
 Route::post('login', [AuthApiController::class, 'login']);
@@ -39,30 +39,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
-    Route::resource('simcards', SimcardApiController::class);
-    Route::resource('clients', ClientApiController::class);
+    Route::apiResource('simcards', SimcardApiController::class);
+    Route::apiResource('clients', ClientApiController::class);
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
     Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);
-    Route::resource('campaigns', CampaignApiController::class);
-    Route::resource('recipient_lists', RecipientsListApiController::class);
+    Route::apiResource('campaigns', CampaignApiController::class);
+    Route::apiResource('recipient_lists', RecipientsListApiController::class);
 
     Route::post('broadcast_batches', [BroadcastBatchApiController::class, 'store']);
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
     Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
 
-    Route::prefix('short-domains')->controller(ShortDomainsController::class)->group(function () {
-        Route::get('/','index');
-        Route::post('/','store');
-        Route::delete('/{id}','destroy');
+    Route::prefix('short-domains')->controller(ShortDomainsApiController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::delete('/{id}', 'destroy');
+    });
+    Route::prefix('jobs')->controller(JobsApiController::class)->group(function () {
+        Route::get('fifo', [JobsApiController::class, 'fifo'])->name('jobs.fifo');
+        Route::get('campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');
+        Route::post('/', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
+        Route::post('regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     });
 });
-
-
-// temporary public (after completion will be transferred to auth:sanctum)
-Route::get('jobs/fifo', [JobsApiController::class, 'fifo'])->name('jobs.fifo');
-Route::get('jobs/campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');
-Route::post('jobs', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
-Route::post('jobs/regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
 
 Route::prefix('areas')->name('api.areas.')->group(function () {
     Route::get('get-all-provinces', [AreasApiController::class, 'getAllProvinces']);

@@ -5,13 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\JobRegenerateRequest;
-use App\Jobs\CreateCampaignsOnKeitaro;
-use App\Jobs\ProcessCsvQueueBatch;
-use App\Models\BatchFile;
-use App\Models\BroadcastLog;
-use App\Models\Campaign;
-use App\Models\CampaignShortUrl;
-use App\Models\UrlShortener;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\Campaign\CampaignService;
@@ -20,7 +13,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class JobsApiController extends ApiController
 {
@@ -29,11 +21,12 @@ class JobsApiController extends ApiController
         protected CampaignService $campaignService,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected JobService $jobService
-    ) {}
+    ) {
+    }
 
-    public function fifo()
+    public function fifo(Request $request)
     {
-        $params = $this->jobService->index();
+        $params = $this->jobService->index($request);
 
         return $this->responseSuccess($params);
     }
@@ -48,7 +41,7 @@ class JobsApiController extends ApiController
             'campaign_ids.*'  => ['required_if:type,campaign', 'integer'],
         ]);
 
-        $result = $this->jobService->processGenerate($params, needFullResponse: true);
+        $result = $this->jobService->processGenerate(params: $params, needFullResponse: true);
 
         if ($result['error'] ?? null) {
             return $this->responseError($result['error']);
