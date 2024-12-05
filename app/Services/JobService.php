@@ -306,6 +306,7 @@ class JobService
                 'batchSize' => $batchSize,
                 'url_shortener' => $url_shortener,
                 'original_batch_no' => $original_batch_no,
+                'original_batch' => $original_batch,
                 'batch_no' => $batch_no,
                 'batch_file' => $batch_file,
                 'is_last' => $is_last,
@@ -314,8 +315,6 @@ class JobService
 
             dispatch(new ProcessCsvRegenQueueBatch($params));
         }
-
-        $original_batch->update(['number_of_entries' => $original_batch->number_of_entries - $total]);
 
         return $batch_file;
     }
