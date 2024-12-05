@@ -80,7 +80,7 @@ class JobService
         return $campaign_short_url;
     }
 
-    public function processGenerate(array $params, $needFullResponse = null, $filters)
+    public function processGenerate(array $params, $needFullResponse = null)
     {
         $requestCount = intval($params['number_messages']); // count of records in CSV
         $urlShortenerName = trim($params['url_shortener']);

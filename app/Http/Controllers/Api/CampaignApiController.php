@@ -52,12 +52,13 @@ class CampaignApiController extends ApiController
     public function index(Request $request)
     {
         $filter = [
+            'search' => $request->get('search'),
             'status' => $request->get('status'),
             'user_id' => $request->get('user_id'),
             'sort_by' => $request->get('sort_by', 'id'),
             'sort_order' => $request->get('sort_order', 'desc'),
-            'count' => $request->get('count', 5),
-            'search' => $request->get('search'),
+            'per_page' => $request->get('per_page', 5),
+            'page' => $request->get('page', 1),
         ];
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
         return $this->responseSuccess($campaigns);
@@ -66,10 +67,11 @@ class CampaignApiController extends ApiController
     public function show(int $id, Request $request)
     {
         $filters = [
+            'is_blocked' => $request->input('is_blocked'),
+            'status' => $request->input('status'),
+            'is_clicked' => $request->input('is_clicked'),
             'per_page' => $request->get('per_page', 5),
             'page' => $request->get('page', 1),
-            'sort' => $request->get('sort_by', 'id_desc'),
-            'sort_order' => $request->get('sort_order', 'asc'),
             'search' => $request->get('search'),
         ];
 
