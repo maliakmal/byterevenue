@@ -54,7 +54,8 @@ class CampaignApiController extends ApiController
         $filter = [
             'status' => $request->get('status'),
             'user_id' => $request->get('user_id'),
-            'sortby' => $request->get('sortby', 'id_desc'),
+            'sort_by' => $request->get('sort_by', 'id'),
+            'sort_order' => $request->get('sort_order', 'desc'),
             'count' => $request->get('count', 5),
             'search' => $request->get('search'),
         ];

@@ -68,6 +68,4 @@ class Contact extends Model
         }
     }
 
-
-
 }

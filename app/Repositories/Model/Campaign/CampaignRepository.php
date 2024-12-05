@@ -26,16 +26,18 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         return $this->model->where('user_id', $userID)->get();
     }
 
-    public function getUnsentByIdsOfUser(array $ids, $user_id = null){
-        $ids = is_array($ids)?$ids:[];
+    public function getUnsentByIdsOfUser(array $ids, $user_id = null)
+    {
+        $ids = is_array($ids) ? $ids : [];
         $ids[] = 0; // hack in case someone passes an empty array
 
         return $this->model->whereIn('id', $ids)->where('user_id', $user_id)->whereIn('status', [Campaign::STATUS_PROCESSING])->get();
     }
 
 
-    public function getUnsentByIds(array $ids){
-        $ids = is_array($ids)?$ids:[];
+    public function getUnsentByIds(array $ids)
+    {
+        $ids = is_array($ids) ? $ids : [];
         $ids[] = 0; // hack in case someone passes an empty array
 
         return $this->model->whereIn('id', $ids)->whereIn('status', [Campaign::STATUS_PROCESSING])->get();
@@ -43,7 +45,8 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     }
 
 
-    public function getPendingCampaigns(array $params){
+    public function getPendingCampaigns(array $params)
+    {
         $fiveDaysAgo = Carbon::now()->subDays(35);
         return $this->model->whereIn('status', [Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE])->where('submitted_at', '>=', $fiveDaysAgo)->get();
     }
@@ -57,21 +60,22 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     public function reportCampaigns(array $inputs, array $selectColumns = [])
     {
         $query = $this->model->newQuery();
-        if(!empty($selectColumns)){
+        if (!empty($selectColumns)) {
             $query = $query->select($selectColumns);
         }
         $query = $query->with(['user'])->withCount(['broadCaseLogMessages', 'broadCaseLogMessagesSent', 'broadCaseLogMessagesUnSent', 'broadCaseLogMessagesClick', 'broadCaseLogMessagesNotClick']);
-        if(!empty($inputs['user_id'])){
+        if (!empty($inputs['user_id'])) {
             $query = $query->where('user_id', $inputs['user_id']);
         }
         $query = $query->orderBy('id', 'DESC');
-        if(isset($inputs['per_page'])){
+        if (isset($inputs['per_page'])) {
             return $query->paginate($inputs['per_page']);
         }
         return $query->get();
     }
 
-    public function markCampaignAsDone($campaign_id){
+    public function markCampaignAsDone($campaign_id)
+    {
         $campaign = $this->model->find($campaign_id);
         $campaign->status = Campaign::STATUS_DONE;
         $campaign->save();
@@ -84,7 +88,7 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
      */
     public function getFiltered(array $filter)
     {
-        $campaigns = $this->model->newQuery()->with(['recipient_list','user','message']);
+        $campaigns = $this->model->newQuery()->with(['recipient_list', 'user', 'message']);
 
         if (!is_null($filter['status'])) {
             $campaigns->where('status', $filter['status']);
@@ -104,37 +108,7 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
             $campaigns->where('title', 'like', '%' . $filter['search'] . '%');
         }
 
-        if (!empty($filter['sortby'])) {
-            switch ($filter['sortby']) {
-                case 'id_desc':
-                    $campaigns->orderby('id', 'desc');
-                    break;
-                case 'id_asc':
-                    $campaigns->orderby('id', 'asc');
-                    break;
-                case 'ctr_desc':
-                    $campaigns->orderby('total_ctr', 'desc');
-                    break;
-                case 'ctr_asc':
-                    $campaigns->orderby('total_ctr', 'asc');
-                    break;
-                case 'clicks_desc':
-                    $campaigns->orderby('total_recipients_click_thru', 'desc');
-                    break;
-                case 'clicks_asc':
-                    $campaigns->orderby('total_recipients_click_thru', 'asc');
-                    break;
-                case 'title':
-                    $campaigns->orderby('title', 'asc');
-                    break;
-                case 'date_asc':
-                    $campaigns->orderby('created_at', 'asc');
-                    break;
-                case 'date_desc':
-                    $campaigns->orderby('created_at', 'desc');
-                    break;
-            }
-        }
+        $campaigns->orderBy($filter['sort_by'], $filter['sort_order']);
 
         return $campaigns->paginate($filter['count']);
     }

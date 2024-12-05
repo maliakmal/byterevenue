@@ -10,6 +10,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class RecipientListService
 {
@@ -20,13 +21,17 @@ class RecipientListService
      *
      * @return LengthAwarePaginator
      */
-    public function getRecipientLists(?string $nameFilter, ?string $isImportedFilter, $perPage = 5): LengthAwarePaginator
+    public function getRecipientLists(Request $request): LengthAwarePaginator
     {
-        $perPage = intval($perPage);
+        $nameFilter = $request->get('name');
+        $isImportedFilter = $request->get('is_imported', '');
+        $perPage = intval($request->get('per_page', 5));
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
 
         $recipient_lists = auth()->user()->hasRole('admin')
-            ? RecipientsList::with(['user','recipientsGroup:recipients_list_id,count'])
-            : auth()->user()->recipientLists()->with(['user','recipientsGroup:recipients_list_id,count']);
+            ? RecipientsList::with(['user', 'recipientsGroup:recipients_list_id,count'])
+            : auth()->user()->recipientLists()->with(['user', 'recipientsGroup:recipients_list_id,count']);
 
         if (isset($nameFilter)) {
             $recipient_lists = $recipient_lists->whereLike('name', "%$nameFilter%");
@@ -37,7 +42,7 @@ class RecipientListService
         }
 
         return $recipient_lists
-            ->orderby('id', 'desc')
+            ->orderBy($sortBy, $sortOrder)
             ->paginate($perPage);
     }
 

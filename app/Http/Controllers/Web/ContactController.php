@@ -22,17 +22,11 @@ class ContactController extends Controller
     /**
      * @return View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user       = auth()->user();
-        $perPage    = request('per_page', 12);
-        $name       = request('name');
-        $area_code  = request('area_code', '');
-        $phone      = request('phone', '');
+        $contacts = $this->contactService->getContacts($request);
 
-        $contacts = $this->contactService->getContacts($user, $perPage, $name, $area_code, $phone);
-
-        if ('json' === request()->input('output')) {
+        if ('json' === $request->input('output')) {
             return response()->success(null, $contacts);
         }
 

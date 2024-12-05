@@ -15,6 +15,9 @@ class UrlShortenerService
     {
         $query = UrlShortener::withCount(['campaignShortUrls']);
 
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+
         if ($request->filled('is_propagated')) {
             $query = $query->propagatedFilter($request->is_propagated);
         }
@@ -23,7 +26,7 @@ class UrlShortenerService
             $query = $query->whereUrl($request->url);
         }
 
-        $urlShorteners = $query->paginate($request->input('per_page',15));
+        $urlShorteners = $query->orderBy($sortBy, $sortOrder)->paginate($request->input('per_page', 15));
 
         return $urlShorteners;
     }

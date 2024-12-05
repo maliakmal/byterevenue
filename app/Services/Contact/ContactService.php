@@ -3,12 +3,11 @@
 namespace App\Services\Contact;
 
 use App\Models\BroadcastLog;
-use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
-
+use Illuminate\Http\Request;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class ContactService
 {
     /**
@@ -17,16 +16,22 @@ class ContactService
      * @param $name
      * @param $area_code
      * @param $phone
+     * @param $status
      *
-     * @return Collection
+     * @return LengthAwarePaginator
      */
     public function getContacts(
-        User $user,
-        $perPage,
-        $name,
-        $area_code,
-        $phone
+        Request $request,
     ) {
+        $user       = auth()->user();
+        $perPage    = $request->input('per_page', 15);
+        $name       = $request->input('name');
+        $area_code  = $request->input('area_code', '');
+        $status     = $request->input('status');
+        $phone      = $request->input('phone', '');
+        $sortBy       = $request->input('sort_by', 'id');
+        $sortOrder       = $request->input('sort_order', 'desc');
+
         $filter_phone = $area_code ?: '%';
         $filter_phone .= ($phone ?: '') .'%';
 
@@ -37,7 +42,11 @@ class ContactService
             })
             ->when($name, function ($query, $name) {
                 return $query->where('name', $name);
-            })->orderBy('id', 'desc')->paginate($perPage);
+            })
+            ->when($status, function ($query, $status) {
+                return $query->having('black_list_number_count', $status ? '<' : '>=', 1);
+            })
+            ->orderBy($sortBy, $sortOrder)->paginate($perPage);
 
         foreach ($contacts as $contact) {
             $info = $this->getInfo([$contact->id]);

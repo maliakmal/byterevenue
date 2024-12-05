@@ -78,8 +78,9 @@ class AccountsService
         });
         $filter = [
             'username' => request('search'),
+            'sort_by' => request('sort_by', 'id'),
+            'sort_order' => request('sort_order', 'desc'),
             'type' => request('type'),
-            'sortby' => request('sortby', 'id_desc'),
             'per_page' => request('per_page', 15),
         ];
 
@@ -92,16 +93,7 @@ class AccountsService
             $transactions->where('type', $filter['type']);
         }
 
-        switch ($filter['sortby']) {
-            case 'id_desc':
-                $transactions->orderby('id', 'desc');
-                break;
-            case 'id_asc':
-                $transactions->orderby('id', 'asc');
-                break;
-        }
-
-        $transactions = $transactions->paginate($filter['per_page']);
+        $transactions = $transactions->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
 
         return $transactions;
     }
@@ -114,8 +106,8 @@ class AccountsService
     public function addTokensToAccount(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => ['required','exists:users,id'],
-            'amount' => ['required','numeric'],
+            'user_id' => ['required', 'exists:users,id'],
+            'amount' => ['required', 'numeric'],
         ]);
 
         if ($validator->fails()) {
@@ -140,7 +132,8 @@ class AccountsService
         $transactions = Transaction::query();
 
         if (!isNull($userId)) {
-            $transactions->where('user_id', $userId);;
+            $transactions->where('user_id', $userId);
+            ;
         }
 
         if (!empty($filter['type'])) {
