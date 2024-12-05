@@ -103,14 +103,14 @@
                   @endif
                   @if(strstr($file['filename'], 'regen'))
                     <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">REGEN {{ $file['prev_batch_id'] ?? '' }}</span>
-                  @else
                   @endif
                   @if($file['is_ready'] && $file['number_of_entries'] > 0)
                     </a>
                   @endif
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2 text-center">
-                {{ $file['number_of_entries'] }}
+                    <span title="unsent">{{ $file['number_of_entries'] }}</span>/
+                    <span title="generated">{{ $file['generated_count'] }}</span>
                 </td>
                 <td class="border-b border-gray-200 px-4 py-2 text-center">
                 {{ ($file['campaigns_count']) }}
@@ -122,6 +122,8 @@
                   {{ $file['created_at']->diffForHumans() }}
                   @if($file['is_ready'] && $file['number_of_entries'] > 0)
                     <br><span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">completed</span>
+                  @elseif($file['has_errors'])
+                    <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-black-600/10">error</span>
                   @elseif($file['is_ready'] && !$file['number_of_entries'])
                     <br><span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-black-600/10">regenerated</span>
                   @endif

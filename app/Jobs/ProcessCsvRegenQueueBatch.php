@@ -32,6 +32,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
     protected $campaign_service  = null;
     protected $batch_no          = null;
     protected $original_batch_no = null;
+    protected $original_batch    = null;
     protected $batch_file        = null;
     protected $is_last           = false;
     protected $campaign_short_urls = [];
@@ -47,7 +48,8 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
 
         $this->url_shortener     = $params['url_shortener']     ?? $this->url_shortener;
         $this->batch_no          = $params['batch_no']          ?? $this->batch_no;
-        $this->original_batch_no = $params['original_batch_no'] ?? $this->batch_no;
+        $this->original_batch_no = $params['original_batch_no'] ?? $this->original_batch_no;
+        $this->original_batch    = $params['original_batch']    ?? $this->original_batch;
         $this->offset            = $params['offset']            ?? $this->offset;
         $this->batchSize         = $params['batchSize']         ?? $this->batchSize;
         $this->batch_file        = $params['batch_file']        ?? $this->batch_file;
@@ -72,7 +74,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             ->get();
 
         if ($this->logs->isEmpty()) {
-            Log::info("REgenerateJob (batch file id: ". $this->batch_file->id .") -> No matching entries found - break...");
+            Log::info("REgenerateJob (batch file no: ". $this->original_batch_no .") -> No matching entries found - break...");
 
             $this->batch_file->update([
                 'is_ready' => 1,
@@ -82,7 +84,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             return;
         }
 
-        Log::info("REgenerateJob (batch file id: ". $this->batch_file->id .") -> logs count: " . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Offset: ' . $this->offset);
+        Log::info("REgenerateJob (batch file id: ". $this->original_batch->id .") -> to id:". $this->batch_file->id ." logs count: " . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Offset: ' . $this->offset);
 
         $ids = [];
         $cases = '';
@@ -113,7 +115,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             $message = $log->message;
             $campaign = $log->campaign;
 
-            $campaign_short_url = isset($campaign_short_urls[$campaign->id]) ? $campaign_short_urls[$campaign->id] : null;
+            $campaign_short_url = isset($this->campaign_short_urls[$campaign->id]) ? $this->campaign_short_urls[$campaign->id] : null;
 
             if (!$campaign_short_url) {
                 Log::debug('REgenerateJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
@@ -166,6 +168,8 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             } else {
                 $this->batch_file->increment('generated_count', $casesCount);
             }
+
+            $this->original_batch->decrement('number_of_entries', $casesCount);
         }
     }
 }
