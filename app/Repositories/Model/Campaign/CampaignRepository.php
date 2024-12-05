@@ -110,6 +110,6 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
 
         $campaigns->orderBy($filter['sort_by'], $filter['sort_order']);
 
-        return $campaigns->paginate($filter['count']);
+        return $campaigns->paginate($filter['per_page']);
     }
 }

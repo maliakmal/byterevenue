@@ -183,21 +183,14 @@ class CampaignService
             $contacts = [];
             $logs = BroadcastLog::where('campaign_id', $campaign->id);
 
-            if (isset($filters['sort'])) {
-                switch ($filters['sort']) {
-                    case 'blocked':
-                        $logs = $logs->withIsBlocked()->orderBy('is_blocked', $filters['sort_order']);
-                        break;
-                    case 'status':
-                        $logs = $logs->orderBy('status', $filters['sort_order']);
-                        break;
-                    case 'clicked':
-                        $logs = $logs->orderBy('is_click', $filters['sort_order']);
-                        break;
-                    default:
-                        $logs = $logs->orderBy('created_at', $filters['sort_order']);
-                        break;
-                }
+            if (isset($filters['is_blocked'])) {
+                $logs = $logs->withIsBlocked()->having('is_blocked',$filters['is_blocked']);
+            }
+            if (isset($filters['status'])) {
+                $logs = $logs->where('status',$filters['status']);
+            }
+            if (isset($filters['is_click'])) {
+                $logs = $logs->where('is_click',$filters['is_click']);
             }
 
             if (isset($filters['search'])) {
