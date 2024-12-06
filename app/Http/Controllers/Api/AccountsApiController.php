@@ -34,9 +34,9 @@ class AccountsApiController extends ApiController
      * )
      * @return JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        $response = $this->accountsService->getAccounts();
+        $response = $this->accountsService->getAccounts($request);
         return $this->responseSuccess($response);
     }
 
@@ -87,11 +87,9 @@ class AccountsApiController extends ApiController
      * )
      * @return JsonResponse
      */
-    public function showTokens()
+    public function showTokens(int $id): JsonResponse
     {
-        $isCurrentUserAdmin = auth()->user()->hasRole('admin');
-        $userId = $isCurrentUserAdmin ? null : auth()->id();
-        $response = $this->accountsService->getAccountTransactions($userId);
+        $response = $this->accountsService->getAccountTransactions($id);
 
         return $this->responseSuccess($response);
     }

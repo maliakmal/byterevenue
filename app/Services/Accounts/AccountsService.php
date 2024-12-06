@@ -18,11 +18,13 @@ class AccountsService
     /**
      * @return LengthAwarePaginator
      */
-    public function getAccounts()
+    public function getAccounts(Request $request)
     {
         $filter = [
-            'sortby' => request('sortby', 'id_desc'),
-            'count' => request('count', 15),
+            'username' => request('search'),
+            'sort_by' => request('sort_by', 'id'),
+            'sort_order' => request('sort_order', 'desc'),
+            'per_page' => request('per_page', 15),
         ];
         $accounts = User::withCount([
             'campaigns',
@@ -37,31 +39,10 @@ class AccountsService
                     ->limit(1)
             ]);
 
-        switch ($filter['sortby']) {
-            case 'id_desc':
-                $accounts->orderby('id', 'desc');
-                break;
-            case 'id_asc':
-                $accounts->orderby('id', 'asc');
-                break;
-            case 'name':
-                $accounts->orderby('name', 'asc');
-                break;
-            case 'tokens_desc':
-                $accounts->orderby('tokens', 'desc');
-                break;
-            case 'tokens_asc':
-                $accounts->orderby('tokens', 'asc');
-                break;
-            case 'campaigns_desc':
-                $accounts->orderby('campaign_count', 'desc');
-                break;
-            case 'campaigns_asc':
-                $accounts->orderby('campaign_count', 'asc');
-                break;
+        if (!empty($filter['username'])) {
+            $accounts->where('name', $filter['username']);
         }
-
-        $accounts = $accounts->paginate($filter['count']);
+        $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
 
         return $accounts;
     }
@@ -69,33 +50,29 @@ class AccountsService
     /**
      * @param string|null $id
      *
-     * @return LengthAwarePaginator
+     * @return mixed
      */
-    public function getAccountTransactions($id = null)
+    public function getAccountTransactions($id)
     {
-        $transactions = Transaction::with(['user'])->when($id, function ($query) use ($id) {
-            return $query->where('user_id', $id);
-        });
+        $transactions = Transaction::where('user_id', $id);
+
         $filter = [
-            'username' => request('search'),
             'sort_by' => request('sort_by', 'id'),
             'sort_order' => request('sort_order', 'desc'),
             'type' => request('type'),
             'per_page' => request('per_page', 15),
         ];
 
-        if (!empty($filter['username'])) {
-            $transactions->whereHas('user', function ($query) use ($filter) {
-                $query->where('name', $filter['username']);
-            });
-        }
         if (!empty($filter['type'])) {
             $transactions->where('type', $filter['type']);
         }
 
         $transactions = $transactions->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
-
-        return $transactions;
+        $user = User::select(['name', 'created_at'])->find($id);
+        return [
+            'transactions' => $transactions,
+            'user' => $user
+        ];
     }
 
     /**
