@@ -16,12 +16,11 @@ use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 
-class ProcessCsvQueueBatch implements ShouldQueue
+class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     public $timeout = 600; // 10 minutes
     public $tries = 1;
+    public $telemetry = true;
 
     protected $offset        = 0;
     protected $batchSize     = 100;

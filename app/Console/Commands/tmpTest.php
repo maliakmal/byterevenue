@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Helpers\MemoryUsageHelper;
+use App\Jobs\CheckDomainPropagationJob;
 use App\Jobs\FillingRecipientGroupJob;
 use App\Models\BatchFile;
 use App\Models\BroadcastLog;

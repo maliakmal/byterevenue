@@ -43,30 +43,28 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::get('user', [BlackListNumberController::class, 'updateBlackListNumber']);
     Route::get('black-list-numbers/user', [BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
-});
 
+    Route::middleware([CheckAdminRole::class])->group(function () {
+        Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
+        Route::post('jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
+        Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
+        Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
+        Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
 
-// web routes for admin.
-Route::middleware([CheckAdminRole::class])->group(function () {
-    Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
-    Route::post('jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
-    Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
-    Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
-    Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
+        Route::post('accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
+        Route::resource('url_shorteners', UrlShortenerController::class);
 
-    Route::post('accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
-    Route::resource('url_shorteners', UrlShortenerController::class);
+        Route::get('settings/upload-messages', [SettingController::class, 'uploadSendDataIndex'])->name('messages.uploadMessageSendDataIndex');
+        Route::post('settings/upload-messages', [SettingController::class, 'uploadSendData'])->name('messages.uploadMessageSendData');
+        Route::get('settings/upload-black-numbers', [SettingController::class, 'uploadBlackListNumberIndex'])->name('messages.uploadBlackListNumberIndex');
+        Route::post('settings/upload-black-numbers', [SettingController::class, 'uploadBlackListNumber'])->name('messages.uploadBlackListNumber');
+        Route::resource('settings', SettingController::class);
 
-    Route::get('settings/upload-messages', [SettingController::class, 'uploadSendDataIndex'])->name('messages.uploadMessageSendDataIndex');
-    Route::post('settings/upload-messages', [SettingController::class, 'uploadSendData'])->name('messages.uploadMessageSendData');
-    Route::get('settings/upload-black-numbers', [SettingController::class, 'uploadBlackListNumberIndex'])->name('messages.uploadBlackListNumberIndex');
-    Route::post('settings/upload-black-numbers', [SettingController::class, 'uploadBlackListNumber'])->name('messages.uploadBlackListNumber');
-    Route::resource('settings', SettingController::class);
+        Route::resource('black-list-numbers', BlackListNumberController::class);
+        Route::resource('black-list-words', BlackListWordController::class);
 
-    Route::resource('black-list-numbers', BlackListNumberController::class);
-    Route::resource('black-list-words', BlackListWordController::class);
-
-    Route::get('reports/messages', [ReportController::class, 'messages'])->name('reports.messages');
-    Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
-    Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
+        Route::get('reports/messages', [ReportController::class, 'messages'])->name('reports.messages');
+        Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
+        Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
+    });
 });

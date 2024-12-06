@@ -12,16 +12,15 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 
-class RefreshBroadcastLogCache implements ShouldQueue
+class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
 {
-    use Queueable, Dispatchable, InteractsWithQueue, SerializesModels;
-
     private $startDate;
     private $endDate;
     private $startEndString;
 
     public $timeout = 600; // 10 minutes
     public $tries = 1;
+    public $telemetry = false;
 
     /**
      * Create a new job instance.

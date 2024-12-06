@@ -556,9 +556,23 @@
                             </div>
                         </a>
                     </li>
-</ul>
-</div>
-@endrole
+                    <li class="px-3 py-2 rounded-sm mb-0.5 last:mb-0">
+                        <a class="block text-slate-200 hover:text-white truncate transition duration-150" href="{{ '/'. config('horizon.path') }}">
+                            <div class="flex items-center justify-between">
+                                <div class="grow flex items-center">
+                                    <svg width="40px" height="40px" viewBox="0 0 24 24" class="shrink-0 h-6 w-6">
+                                        <path d="M12 10C16.4183 10 20 8.20914 20 6C20 3.79086 16.4183 2 12 2C7.58172 2 4 3.79086 4 6C4 8.20914 7.58172 10 12 10Z"></path>
+                                        <path class="fill-current text-slate-400" d="M4 12V18C4 20.2091 7.58172 22 12 22C16.4183 22 20 20.2091 20 18V12C20 14.2091 16.4183 16 12 16C7.58172 16 4 14.2091 4 12Z"></path>
+                                        <path class="fill-current text-slate-600" d="M4 6V12C4 14.2091 7.58172 16 12 16C16.4183 16 20 14.2091 20 12V6C20 8.20914 16.4183 10 12 10C7.58172 10 4 8.20914 4 6Z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Horizon</span>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        @endrole
 
 
         <!-- Expand / collapse button -->

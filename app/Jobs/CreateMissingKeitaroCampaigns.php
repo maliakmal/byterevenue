@@ -2,13 +2,7 @@
 
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use App\Services\Campaign\CampaignService;
-use Illuminate\Support\Facades\Log;
 use App\Models\CampaignShortUrl;
 use App\Models\Campaign;
 use App\Repositories\Model\Campaign\CampaignRepository;
@@ -16,12 +10,13 @@ use App\Repositories\Model\UrlShortener\UrlShortenerRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 
-class CreateMissingKeitaroCampaigns implements ShouldQueue
+class CreateMissingKeitaroCampaigns extends BaseJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $campaignRepository = null;
     protected $urlShortenerRepository = null;
     protected $campaignShortUrlRepository = null;
+
+    public $telemetry = false;
 
     /**
      * Create a new job instance.

@@ -12,9 +12,10 @@ class SwaggerAllowedAccess
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param Request $request
+     * @param Closure $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         if (Auth::check()/* && Auth::user()->hasRole('api_user')*/) {
             return $next($request);
