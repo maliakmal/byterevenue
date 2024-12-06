@@ -33,7 +33,7 @@ Route::get('user', function (Request $request) {
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
-    Route::get('tokens', [AccountsApiController::class, 'showTokens']);
+    Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
     Route::post('tokens/add', [AccountsApiController::class, 'storeTokens']);
 
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
