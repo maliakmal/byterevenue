@@ -46,9 +46,9 @@ class JobsController extends Controller
         return view('jobs.campaigns', compact('params'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $params = $this->jobService->index();
+        $params = $this->jobService->index($request);
 
         if (request()->wantsJson()) {
             return $this->responseSuccess($params);

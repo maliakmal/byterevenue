@@ -60,7 +60,9 @@ class CampaignApiController extends ApiController
             'per_page' => $request->get('per_page', 5),
             'page' => $request->get('page', 1),
         ];
+
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
+
         return $this->responseSuccess($campaigns);
     }
 

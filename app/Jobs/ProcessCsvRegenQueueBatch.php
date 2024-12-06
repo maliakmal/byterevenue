@@ -46,14 +46,14 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
     {
         $this->campaign_service  = new CampaignService(app()->make(CampaignRepositoryInterface::class));
 
-        $this->url_shortener     = $params['url_shortener']     ?? $this->url_shortener;
-        $this->batch_no          = $params['batch_no']          ?? $this->batch_no;
-        $this->original_batch_no = $params['original_batch_no'] ?? $this->original_batch_no;
-        $this->original_batch    = $params['original_batch']    ?? $this->original_batch;
-        $this->offset            = $params['offset']            ?? $this->offset;
-        $this->batchSize         = $params['batchSize']         ?? $this->batchSize;
-        $this->batch_file        = $params['batch_file']        ?? $this->batch_file;
-        $this->is_last           = $params['is_last']           ?? $this->is_last;
+        $this->url_shortener       = $params['url_shortener']       ?? $this->url_shortener;
+        $this->batch_no            = $params['batch_no']            ?? $this->batch_no;
+        $this->original_batch_no   = $params['original_batch_no']   ?? $this->original_batch_no;
+        $this->original_batch      = $params['original_batch']      ?? $this->original_batch;
+        $this->offset              = $params['offset']              ?? $this->offset;
+        $this->batchSize           = $params['batchSize']           ?? $this->batchSize;
+        $this->batch_file          = $params['batch_file']          ?? $this->batch_file;
+        $this->is_last             = $params['is_last']             ?? $this->is_last;
         $this->campaign_short_urls = $params['campaign_short_urls'] ?? $this->campaign_short_urls;
 
         $this->onQueue(self::QUEUE_KEY);
@@ -74,7 +74,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             ->get();
 
         if ($this->logs->isEmpty()) {
-            Log::info("REgenerateJob (batch file no: ". $this->original_batch_no .") -> No matching entries found - break...");
+            Log::error("REgenerateJob (batch file no: ". $this->original_batch_no .") -> No matching entries found - break...");
 
             $this->batch_file->update([
                 'is_ready' => 1,
@@ -89,9 +89,10 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
         $ids = [];
         $cases = '';
         $casesCount = 0;
+        $campaign_short_urls = $this->campaign_short_urls;
 
         if (!$this->url_shortener) {
-            Log::debug("REgenerateJob (batch file id: ". $this->batch_file->id .") -> campaign_short_url doesnt exist - break...");
+            Log::error("REgenerateJob (batch file id: ". $this->batch_file->id .") -> campaign_short_url doesnt exist - break...");
 
             $this->batch_file->update(['has_errors' => 1]);
 
@@ -115,7 +116,7 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             $message = $log->message;
             $campaign = $log->campaign;
 
-            $campaign_short_url = isset($this->campaign_short_urls[$campaign->id]) ? $this->campaign_short_urls[$campaign->id] : null;
+            $campaign_short_url = $campaign_short_urls->where('campaign_id', $campaign->id)->first();
 
             if (!$campaign_short_url) {
                 Log::debug('REgenerateJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
@@ -156,10 +157,6 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
 
             \DB::statement($sql);
 
-        } catch (\Exception $e) {
-            Log::error("REgenerateJob (batch file id: ". $this->batch_file->id .") -> Error updating broadcast_logs: " . $e->getMessage());
-            $this->batch_file->update(['has_errors' => 1]);
-        } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update([
                     'is_ready' => 1,
@@ -170,6 +167,10 @@ class ProcessCsvRegenQueueBatch implements ShouldQueue
             }
 
             $this->original_batch->decrement('number_of_entries', $casesCount);
+
+        } catch (\Exception $e) {
+            Log::error("REgenerateJob (batch file id: ". $this->batch_file->id .") -> Error updating broadcast_logs: " . $e->getMessage());
+            $this->batch_file->update(['has_errors' => 1]);
         }
     }
 }
