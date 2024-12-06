@@ -106,7 +106,7 @@ class RecipientListService
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'name' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
+                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'email' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
                 DB::statement(
                     "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
                            SELECT $user_id, id, $recipientsList->id
