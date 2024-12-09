@@ -36,7 +36,11 @@ class AccountsService
                 'latest_campaign_total_ctr' => Campaign::select('total_ctr')
                     ->whereColumn('user_id', 'users.id')
                     ->latest('id')
-                    ->limit(1)
+                    ->limit(1),
+                'latest_transaction_date' => Transaction::select('created_at')
+                    ->whereColumn('user_id', 'users.id')
+                    ->latest('created_at')
+                    ->limit(1),
             ]);
 
         if (!empty($filter['username'])) {
