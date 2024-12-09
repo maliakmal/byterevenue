@@ -71,8 +71,14 @@ class UrlShortenerController extends Controller
         $request = new RegisterShortDomainRequest($inputs['name'],null, null, null,
             null, true, true, true, false);
 
-        try{
-            $response = KeitaroCaller::call($request)[0];
+        try {
+            $rawResponse = KeitaroCaller::call($request);
+
+            if ($rawResponse['error'] ?? null){
+                return redirect()->route('url_shorteners.index')->with('error', $rawResponse['error']);
+            }
+
+            $response = $rawResponse[0];
             $inputs['is_registered'] = true;
             $inputs['is_propagated'] = false;
 
