@@ -41,7 +41,7 @@ class ContactService
                 return $query->where('phone', 'like', $filter_phone);
             })
             ->when($name, function ($query, $name) {
-                return $query->where('name', $name);
+                return $query->where('name', 'like', "%$name%");
             })
             ->when($status, function ($query, $status) {
                 return $query->having('black_list_number_count', $status ? '<' : '>=', 1);
