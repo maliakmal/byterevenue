@@ -66,5 +66,5 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('reports/messages', [ReportController::class, 'messages'])->name('reports.messages');
         Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
         Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
-//    });
+    });
 });
