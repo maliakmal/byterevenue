@@ -48,7 +48,13 @@ class UrlShortenerService
         );
 
         try {
-            $response = KeitaroCaller::call($request)[0];
+            $rawResponse = KeitaroCaller::call($request);
+
+            if (isset($rawResponse['error'])) {
+                return ['error' => $rawResponse['error']];
+            }
+
+            $response = $rawResponse[0];
             $data['is_registered'] = true;
             $data['is_propagated'] = false;
 
@@ -60,6 +66,7 @@ class UrlShortenerService
             report($exception);
             return ['error' => 'Error Sync URL Shortener'];
         }
+
         UrlShortener::create($data);
         return ['message' => 'URL Shortener created successfully.'];
     }

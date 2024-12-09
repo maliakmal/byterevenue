@@ -41,8 +41,6 @@ class CreateMissingKeitaroCampaigns extends Command
         $campaign_service =  new CampaignService($this->campaignRepository);
         $incomplete = $this->campaignShortUrlRepository->getIncomplete();
 
-        $this->info(count($incomplete).' keitaro records need updating (Scheduler)');
-
         foreach($incomplete as $one){
 
             $campaign = $this->campaignRepository->find($one->campaign_id);
@@ -75,6 +73,6 @@ class CreateMissingKeitaroCampaigns extends Command
             ], $one->id);
         }
 
-        \Log::info('Keitaro Campaign flow task completed');
+        \Log::debug('Keitaro Campaign flow task completed');
     }
 }

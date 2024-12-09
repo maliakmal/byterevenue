@@ -1,49 +1,124 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Auth API",
+        "title": "API Documentation",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "/api",
-            "description": "API Server"
-        }
-    ],
     "paths": {
-        "/login": {
+        "/accounts": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get all accounts",
+                "operationId": "8df0d659f5d66363484629e1d8f39a65",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get account transactions",
+                "operationId": "e74da1a3fdd5d9552a24aedf06f40657",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Account ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tokens": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get tokens for the current user",
+                "operationId": "a1c0093d440cccca64939c5736a6bf1a",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/login": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Login user",
-                "operationId": "4a50da69eed48c10c8aaed7d3bc464b7",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "operationId": "c33b87a98c82f16142d47a67abfc0f44",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "User Email",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "user@email.com"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "User Password",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "password",
+                            "example": "password"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful login",
@@ -67,13 +142,13 @@
                 }
             }
         },
-        "/register": {
+        "/api/register": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Register user",
-                "operationId": "dda1672153edafa4a0ea8c018b987bd0",
+                "operationId": "7fa7471f9193a7df2b35812efd4a9f07",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -130,16 +205,16 @@
                 }
             }
         },
-        "/logout": {
+        "/api/logout": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Logout user",
-                "operationId": "a13fb0782060eedb569d06a2be760ecf",
+                "operationId": "244543bcf6ff3953c8eb7c99b16408cd",
                 "responses": {
                     "200": {
-                        "description": "Successful logout"
+                        "description": "User logged out"
                     }
                 },
                 "security": [
@@ -149,13 +224,13 @@
                 ]
             }
         },
-        "/refresh": {
+        "/api/refresh": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Refresh token",
-                "operationId": "cd84bb6cb470dc0b29aea651e0bd76dc",
+                "operationId": "d55d2f508440247e3fabf86c06bde3c0",
                 "responses": {
                     "200": {
                         "description": "Token refreshed",
@@ -184,13 +259,13 @@
                 ]
             }
         },
-        "/me": {
+        "/api/me": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Get authenticated user",
-                "operationId": "28f4886e2a25fe28ae37996deb1b49cb",
+                "operationId": "da50c3fd79e043bb1c55acc83f8d9681",
                 "responses": {
                     "200": {
                         "description": "Authenticated user",
@@ -215,13 +290,13 @@
                 ]
             }
         },
-        "/forgot-password": {
+        "/api/forgot-password": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Forgot password",
-                "operationId": "0de9717f269c6ee2af39d20b74bfd7cb",
+                "operationId": "bec21449eec6398ae8185be236ac0fc6",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -265,13 +340,13 @@
                 }
             }
         },
-        "/reset-password": {
+        "/api/reset-password": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Reset password",
-                "operationId": "c486905ae6763998b237b85ef3cf5bad",
+                "operationId": "d1ac03096417e6f2d3d873a7df9a842d",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -332,96 +407,13 @@
                 }
             }
         },
-        "/accounts": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get all accounts",
-                "operationId": "8e0f1b446fdd3a68e0e3851f5bdb4b38",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/accounts/{id}": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get account transactions",
-                "operationId": "da4baffc295406bba74d0ef4ae50b00a",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Account ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/tokens": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get tokens for the current user",
-                "operationId": "ee721374665cc212e98be58ae5fc84a2",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/broadcast_batches": {
             "post": {
                 "tags": [
                     "Broadcast Batches"
                 ],
                 "summary": "Store a new broadcast batch",
-                "operationId": "18ebbe97e7411263d01f628bd0ba6078",
+                "operationId": "331e8636ea0076a20c62f2d9f618a585",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -474,7 +466,7 @@
                     "Broadcast Batches"
                 ],
                 "summary": "Get a broadcast batch",
-                "operationId": "b9f46ba6c0215220517338d408d56618",
+                "operationId": "85afff5554918b21da07913e391b1c4c",
                 "parameters": [
                     {
                         "name": "id",
@@ -532,7 +524,7 @@
                     "Broadcast Batches"
                 ],
                 "summary": "Mark a broadcast batch as processed",
-                "operationId": "6c7c2d1202c81fe14191b0ae7af0d2d8",
+                "operationId": "9bbcb2c67319ba38f24a7973643508c2",
                 "parameters": [
                     {
                         "name": "id",
@@ -570,7 +562,7 @@
                     "Clients"
                 ],
                 "summary": "Get a list of clients",
-                "operationId": "bd34c9bc128861114476c7b74b0acca8",
+                "operationId": "41e096d09076958333faf8cff0b53042",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -592,7 +584,7 @@
                     "Clients"
                 ],
                 "summary": "Store a new client",
-                "operationId": "508c27bd26afc33f4b4dd0c1e845773a",
+                "operationId": "83ac7b75c764f3ea20a542f0fce4e353",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -641,7 +633,7 @@
                     "Clients"
                 ],
                 "summary": "Get a client",
-                "operationId": "062afcc30e3f62ecfc09dcaa65f2035a",
+                "operationId": "2137689c81ff286439cd96160e3d5f8e",
                 "parameters": [
                     {
                         "name": "id",
@@ -679,7 +671,7 @@
                     "Clients"
                 ],
                 "summary": "Update a client",
-                "operationId": "3df21b8785ef6a971cadd84c8edddc63",
+                "operationId": "9fde07aeb9400ce29c4ae619bc91c655",
                 "parameters": [
                     {
                         "name": "id",
@@ -737,7 +729,7 @@
                     "Clients"
                 ],
                 "summary": "Delete a client",
-                "operationId": "b141510983302dd9f31e29a802cd59aa",
+                "operationId": "34ad86817306850c4a75c180af4d9317",
                 "parameters": [
                     {
                         "name": "id",
@@ -775,7 +767,7 @@
                     "Contacts"
                 ],
                 "summary": "Get contacts",
-                "operationId": "8e72db11346ee7f9ba5504e5b8846e5e",
+                "operationId": "274543a930522dca1407d191723b3452",
                 "parameters": [
                     {
                         "name": "per_page",
@@ -843,7 +835,7 @@
                     "Contacts"
                 ],
                 "summary": "Store a new contact",
-                "operationId": "73672cd9e51dd958191f58d65c286c57",
+                "operationId": "e6ca6d1cae1cd2ac613533ab33b4c537",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -899,7 +891,7 @@
                     "Contacts"
                 ],
                 "summary": "Get a contact",
-                "operationId": "cbe3866352c6b713b5e9b6554cb918df",
+                "operationId": "2e6afb61d8bc9230d8b5859ff65c5de2",
                 "parameters": [
                     {
                         "name": "id",
@@ -940,7 +932,7 @@
                     "Contacts"
                 ],
                 "summary": "Update a contact",
-                "operationId": "db19a7d8eb6d3b1e7041deef62ce8528",
+                "operationId": "b8032fa1a11051040411bcfb2e4601b3",
                 "parameters": [
                     {
                         "name": "id",
@@ -1005,7 +997,7 @@
                     "Contacts"
                 ],
                 "summary": "Delete a contact",
-                "operationId": "662a157907ce2e0604fe1df5a82a81b8",
+                "operationId": "73e8332fb2f410a6c6df9a57a916019f",
                 "parameters": [
                     {
                         "name": "id",
@@ -1043,7 +1035,7 @@
                     "Contacts"
                 ],
                 "summary": "Edit a contact",
-                "operationId": "4ff14924aee38c3db640fa680fb47fca",
+                "operationId": "af29471deba8f049c4bb6f74ce690aa5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1086,7 +1078,7 @@
                     "Contacts"
                 ],
                 "summary": "Get contacts info",
-                "operationId": "e0117e87cce209dbe7475e48b3902b51",
+                "operationId": "db577520762d1101971ca48ff9949b6e",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1119,129 +1111,13 @@
                 }
             }
         },
-        "/api/dashboard": {
-            "get": {
-                "tags": [
-                    "Dashboard"
-                ],
-                "summary": "Get dashboard data",
-                "operationId": "756e965814281bc891fdcc0d74f11af2",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "dataFeed": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "campaigns": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "accounts": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "params": {
-                                            "type": "object"
-                                        },
-                                        "has_campaign": {
-                                            "type": "boolean"
-                                        },
-                                        "has_reception_list": {
-                                            "type": "boolean"
-                                        },
-                                        "campaigns_graph": {
-                                            "type": "object"
-                                        },
-                                        "send_graph": {
-                                            "type": "object"
-                                        },
-                                        "clicks_graph": {
-                                            "type": "object"
-                                        },
-                                        "ctr": {
-                                            "type": "number"
-                                        },
-                                        "labels": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "cache_updated_at": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/json-data-feed": {
-            "get": {
-                "tags": [
-                    "DataFeed"
-                ],
-                "summary": "Get data feed",
-                "operationId": "bfc30107f21256efeb1194f4e88eb486",
-                "parameters": [
-                    {
-                        "name": "dataType",
-                        "in": "query",
-                        "description": "Type of data to fetch",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Limit the number of results",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/recipient_lists": {
             "get": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Get a list of recipient lists",
-                "operationId": "c1ed587202f51474dce374164c1164e0",
+                "operationId": "4f1fb796c55679d8d1148b97ec2f0b74",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -1263,7 +1139,7 @@
                     "Recipient Lists"
                 ],
                 "summary": "Store a new recipient list",
-                "operationId": "d2ea229020cffff586fd8fe0ca9a2934",
+                "operationId": "5f405488a43a76ea3525065800369acb",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1309,7 +1185,7 @@
                     "Recipient Lists"
                 ],
                 "summary": "Get a recipient list",
-                "operationId": "0fa5a58403a66fd30ccdc7c907be45b0",
+                "operationId": "dace82324437f138d3ce7e5865d0c28b",
                 "parameters": [
                     {
                         "name": "id",
@@ -1350,7 +1226,7 @@
                     "Recipient Lists"
                 ],
                 "summary": "Update a recipient list",
-                "operationId": "e39b5cef17e8cac3e652d898c23a1447",
+                "operationId": "d8ab2851ed9bfcafbf5f59bec7859dde",
                 "parameters": [
                     {
                         "name": "id",
@@ -1401,7 +1277,7 @@
                     "Recipient Lists"
                 ],
                 "summary": "Delete a recipient list",
-                "operationId": "a26fdcafbcdccbfbb8ce767ee02a1635",
+                "operationId": "7f2d7e7af6d4a723e5213b08de0f7466",
                 "parameters": [
                     {
                         "name": "id",
@@ -1439,7 +1315,7 @@
                     "Simcards"
                 ],
                 "summary": "Get a list of simcards",
-                "operationId": "390f9268a41e01334bc1d1be07411ccf",
+                "operationId": "4104ccd24feaf825ac461386b7c086ed",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -1461,7 +1337,7 @@
                     "Simcards"
                 ],
                 "summary": "Store a new simcard",
-                "operationId": "17e3cc967e5f38cbc363694ec66c8920",
+                "operationId": "222e9208ee5a3e246a95f9b2052b0edf",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1510,7 +1386,7 @@
                     "Simcards"
                 ],
                 "summary": "Get a simcard",
-                "operationId": "6bf6e032660eff61daae88919d961d25",
+                "operationId": "512eab38d75c07b4c2fd8fed744c16d2",
                 "parameters": [
                     {
                         "name": "id",
@@ -1548,7 +1424,7 @@
                     "Simcards"
                 ],
                 "summary": "Update a simcard",
-                "operationId": "3b474482b1dd2fcea07f9fffc3068166",
+                "operationId": "f8b78c08ea3c7a20ff7e2e64acd9c2cb",
                 "parameters": [
                     {
                         "name": "id",
@@ -1606,7 +1482,7 @@
                     "Simcards"
                 ],
                 "summary": "Delete a simcard",
-                "operationId": "99fd2c4e6d47fcb63d4b2f2590a14e32",
+                "operationId": "73d07e0faaabbbde4e053f300d7104bf",
                 "parameters": [
                     {
                         "name": "id",
@@ -1650,12 +1526,12 @@
     },
     "tags": [
         {
-            "name": "Auth",
-            "description": "Auth"
-        },
-        {
             "name": "Accounts",
             "description": "Accounts"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
         },
         {
             "name": "Broadcast Batches",
@@ -1668,14 +1544,6 @@
         {
             "name": "Contacts",
             "description": "Contacts"
-        },
-        {
-            "name": "Dashboard",
-            "description": "Dashboard"
-        },
-        {
-            "name": "DataFeed",
-            "description": "DataFeed"
         },
         {
             "name": "Recipient Lists",

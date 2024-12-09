@@ -18,22 +18,19 @@
 1. Clone the repository to the target server directory
 2. Create a `/.env` file from `/.env.example` and fill in the necessary details
 3. From CLI run `composer install`
-4. From CLI run `php artisan key:generate`
-5. Create a main-database and fill DB values in the `.env` file
+4. Use Redis for caching and queueing
+   1. Fill the `REDIS_...` block values in the `/.env` file
+5. From CLI run `php artisan key:generate`
+6. Create a main-database and fill DB values in the `.env` file
    #### **[optional]** Create new Mysql server (second/archive connection for storage db)
    5.1. Fill the `DB_STORAGE_...` block values in the `/.env` file
    #### !Important: The 'storage_database' table has MyISAM engine, so make sure to set the correct engine in the `config/database.php` file 
-6. From CLI run `php artisan migrate`
-7. From CLI run `php artisan db:seed`
-8. From CLI run `npm install`
-9. From CLI run `npm run build`
-10. From CLI run `php artisan optimize:clear`
-11. Use Redis for caching and queueing
-12. Start queue workers:
-    1. `php artisan queue:work [--queue=default --tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
-    2. `php artisan queue:work --queue=campaign_contact_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
-    3. `php artisan queue:work --queue=CSV_generate_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
-    4. `php artisan queue:work --queue=import_recipient_list_processing [--tries=1 --max-jobs=0 --max-time=0 --memory=1024]`
+7. From CLI run: `php artisan migrate`
+8. From CLI run: `php artisan db:seed`
+9. From CLI run: `npm install`
+10. From CLI run: `npm run build`
+11. From CLI run: `php artisan optimize:clear`
+12. Start Horizon daemon: `php artisan horizon`
 
 ### Credentials
 
@@ -41,3 +38,6 @@
 |----------------------|-----------|------------|
 | `user@example.com`   | **user**  | `password` | 
 | `admin@example.com` | **admin** | `password` |
+
+### Notes
+- The project uses Laravel Horizon. Restart the Horizon daemon after each deployment

@@ -49,7 +49,7 @@ class UpdateClicksFromKeitaro extends Command
         while ($offset == 0 || $total > $offset) {
             try {
                 $response = $click_service->getClicksOnKeitaro($form, $end, $limit, $offset);
-                \Log::info('complete request to keitaro. Count of records: ' . count($response['rows'] ?? []));
+                \Log::debug('complete request to keitaro. Count of records: ' . count($response['rows'] ?? []));
             } catch (\Exception $exception) {
                 Log::error('error read clicks from keitaro', [
                     'form' => $form,
