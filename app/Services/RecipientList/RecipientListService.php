@@ -30,7 +30,7 @@ class RecipientListService
         $sortOrder = $request->input('sort_order', 'desc');
 
         $recipient_lists = auth()->user()->hasRole('admin')
-            ? RecipientsList::with(['user', 'recipientsGroup:recipients_list_id,count'])
+            ? RecipientsList::with(['user', 'recipientsGroup:recipients_list_id,count'])->withCount(['campaigns'])
             : auth()->user()->recipientLists()->with(['user', 'recipientsGroup:recipients_list_id,count']);
 
         if (isset($nameFilter)) {
