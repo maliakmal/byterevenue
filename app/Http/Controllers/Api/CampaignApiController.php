@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Requests\CampaignStoreRequest;
 use App\Http\Requests\CampaignUpdateRequest;
 use App\Models\Campaign;
+use App\Models\RecipientsList;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
@@ -103,10 +104,30 @@ class CampaignApiController extends ApiController
      */
     public function store(CampaignStoreRequest $request): JsonResponse
     {
+        $recipientsList = RecipientsList::find(intval($request->recipients_list_id));
+
+        if (!$recipientsList) {
+            return $this->responseError(message: 'Recipient list not found.');
+        }
+
+        $count_of_contacts = $recipientsList->recipientsGroup->count;
+
+        if ($count_of_contacts == 0) {
+            return $this->responseError(message: 'Recipient list is empty.');
+        }
+
+        $user = auth()->user();
+
+        if (!$user->hasEnoughTokens($count_of_contacts)) {
+            return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
+        }
+
+        $user->deductTokens($count_of_contacts);
+
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 
         if (isset($errors['message'])) {
-            return $this->responseError($errors['message']);
+            return $this->responseError(message: 'Failed to create campaign.');
         }
 
         return $this->responseSuccess(['campaign' => $campaign], 'Campaign created successfully.');
