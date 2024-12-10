@@ -5,13 +5,13 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/accounts": {
+        "/api/accounts": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Get all accounts",
-                "operationId": "8df0d659f5d66363484629e1d8f39a65",
+                "operationId": "37ba355159763393af70a542ea6d1b58",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -25,17 +25,38 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/accounts/{id}": {
+        "/api/accounts/{id}": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Get account transactions",
-                "operationId": "e74da1a3fdd5d9552a24aedf06f40657",
+                "operationId": "2bd980331725c7818f902c005ce57db4",
                 "parameters": [
                     {
                         "name": "id",
@@ -61,16 +82,21 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/tokens": {
+        "/api/tokens": {
             "get": {
                 "tags": [
                     "Accounts"
                 ],
                 "summary": "Get tokens for the current user",
-                "operationId": "a1c0093d440cccca64939c5736a6bf1a",
+                "operationId": "f209b2efc65c8acb36a135fc8e32cbc2",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -85,7 +111,12 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/login": {
@@ -128,7 +159,7 @@
                                     "properties": {
                                         "token": {
                                             "type": "string",
-                                            "example": "token"
+                                            "example": "xx|xxxxxxxxxxxxxxxx"
                                         }
                                     },
                                     "type": "object"
@@ -149,42 +180,50 @@
                 ],
                 "summary": "Register user",
                 "operationId": "7fa7471f9193a7df2b35812efd4a9f07",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "email",
-                                    "password",
-                                    "terms"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password"
-                                    },
-                                    "terms": {
-                                        "type": "boolean",
-                                        "example": true
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "User Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "John Doe"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "User Email",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "example@mail.com"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "User Password",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "password",
+                            "example": "password"
+                        }
+                    },
+                    {
+                        "name": "terms",
+                        "in": "query",
+                        "description": "Accept Terms and Conditions",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful registration",
@@ -192,9 +231,26 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "token": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
                                             "type": "string",
-                                            "example": "token"
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "xx|xxxxxxxxxxxxxxxx"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User registered successfully"
                                         }
                                     },
                                     "type": "object"
@@ -233,20 +289,7 @@
                 "operationId": "d55d2f508440247e3fabf86c06bde3c0",
                 "responses": {
                     "200": {
-                        "description": "Token refreshed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "token": {
-                                            "type": "string",
-                                            "example": "token"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Token refreshed"
                     },
                     "404": {
                         "description": "User not found"
@@ -268,13 +311,43 @@
                 "operationId": "da50c3fd79e043bb1c55acc83f8d9681",
                 "responses": {
                     "200": {
-                        "description": "Authenticated user",
+                        "description": "Password reset link sent",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "user": {
-                                            "type": "object"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
                                         }
                                     },
                                     "type": "object"
@@ -1516,6 +1589,60 @@
         }
     },
     "components": {
+        "schemas": {
+            "Response": {
+                "title": "Response",
+                "description": "Response block",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "data (array)": {
+                        "example": "[string: 'string', string: array, string: object]"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "User model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "example@mail.com"
+                    },
+                    "current_team_id": {
+                        "type": "integer|null"
+                    },
+                    "profile_photo_path": {
+                        "type": "string|null"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",

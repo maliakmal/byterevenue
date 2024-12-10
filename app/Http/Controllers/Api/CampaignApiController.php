@@ -9,10 +9,16 @@ use App\Models\Campaign;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CampaignApiController extends ApiController
 {
+    /**
+     * @param CampaignRepositoryInterface $campaignRepository
+     * @param BroadcastLogRepositoryInterface $broadcastLogRepository
+     * @param CampaignService $campaignService
+     */
     public function __construct(
         protected CampaignRepositoryInterface $campaignRepository,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
@@ -21,9 +27,9 @@ class CampaignApiController extends ApiController
 
     /**
      * @param Request $request
-     * @return mixed
+     * @return JsonResponse
      */
-    public function markAsIgnoreFromQueue(Request $request)
+    public function markAsIgnoreFromQueue(Request $request): JsonResponse
     {
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = true;
@@ -31,14 +37,14 @@ class CampaignApiController extends ApiController
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
 
-        $this->responseSuccess(options: $result);
+        return $this->responseSuccess(options: $result);
     }
 
     /**
      * @param Request $request
-     * @return mixed
+     * @return JsonResponse
      */
-    public function markAsNotIgnoreFromQueue(Request $request)
+    public function markAsNotIgnoreFromQueue(Request $request): JsonResponse
     {
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = false;
@@ -46,19 +52,23 @@ class CampaignApiController extends ApiController
         $result = $this->broadcastLogRepository->getQueueStats();
         $result['campaign'] = $campaign;
 
-        $this->responseSuccess(options: $result);
+        return $this->responseSuccess(options: $result);
     }
 
-    public function index(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
     {
         $filter = [
-            'search' => $request->get('search'),
-            'status' => $request->get('status'),
-            'user_id' => $request->get('user_id'),
-            'sort_by' => $request->get('sort_by', 'id'),
+            'search'     => $request->get('search'),
+            'status'     => $request->get('status'),
+            'user_id'    => $request->get('user_id'),
+            'sort_by'    => $request->get('sort_by', 'id'),
             'sort_order' => $request->get('sort_order', 'desc'),
-            'per_page' => $request->get('per_page', 5),
-            'page' => $request->get('page', 1),
+            'per_page'   => $request->get('per_page', 5),
+            'page'       => $request->get('page', 1),
         ];
 
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
@@ -66,7 +76,12 @@ class CampaignApiController extends ApiController
         return $this->responseSuccess($campaigns);
     }
 
-    public function show(int $id, Request $request)
+    /**
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function show(int $id, Request $request): JsonResponse
     {
         $filters = [
             'is_blocked' => $request->input('is_blocked'),
@@ -82,7 +97,11 @@ class CampaignApiController extends ApiController
         return $this->responseSuccess($campaignData);
     }
 
-    public function store(CampaignStoreRequest $request)
+    /**
+     * @param CampaignStoreRequest $request
+     * @return JsonResponse
+     */
+    public function store(CampaignStoreRequest $request): JsonResponse
     {
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 
@@ -93,7 +112,12 @@ class CampaignApiController extends ApiController
         return $this->responseSuccess(['campaign' => $campaign], 'Campaign created successfully.');
     }
 
-    public function update(CampaignUpdateRequest $request, Campaign $campaign)
+    /**
+     * @param CampaignUpdateRequest $request
+     * @param Campaign $campaign
+     * @return JsonResponse
+     */
+    public function update(CampaignUpdateRequest $request, Campaign $campaign): JsonResponse
     {
         $updatedCampaign = $this->campaignService->update($campaign->id, $request->validated());
 
@@ -104,9 +128,14 @@ class CampaignApiController extends ApiController
         return $this->responseSuccess($updatedCampaign, 'Campaign updated successfully.');
     }
 
-    public function destroy(Campaign $campaign)
+    /**
+     * @param Campaign $campaign
+     * @return JsonResponse
+     */
+    public function destroy(Campaign $campaign): JsonResponse
     {
         $campaign->delete();
+
         return $this->responseSuccess([], 'Campaign deleted successfully.');
     }
 }

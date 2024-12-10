@@ -16,33 +16,10 @@ class BroadcastBatchApiController extends ApiController
     ) {}
 
     /**
-     * @OA\Post(
-     *     path="/broadcast_batches",
-     *     summary="Store a new broadcast batch",
-     *     tags={"Broadcast Batches"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="campaign_id", type="integer", example=1),
-     *             @OA\Property(property="recipients_list_id", type="integer", example=1),
-     *             @OA\Property(property="message_id", type="integer", example=1)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Broadcast Job created successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="campaign", type="object"),
-     *             @OA\Property(property="broadcast_batch", type="object")
-     *         )
-     *     )
-     * )
      * @param BroadcastBatchStoreRequest $request
-     *
      * @return JsonResponse
      */
-    public function store(BroadcastBatchStoreRequest $request)
+    public function store(BroadcastBatchStoreRequest $request): JsonResponse
     {
         [$campaign, $broadcast_batch] = $this->broadcastBatchService->store($request->validated());
 
@@ -56,40 +33,15 @@ class BroadcastBatchApiController extends ApiController
     }
 
     /**
-     * @OA\Get(
-     *     path="/broadcast_batches/{id}",
-     *     summary="Get a broadcast batch",
-     *     tags={"Broadcast Batches"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer"),
-     *         description="Broadcast Batch ID"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="campaign", type="object"),
-     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="logs", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="broadcast_batch", type="object"),
-     *             @OA\Property(property="message", type="object"),
-     *             @OA\Property(property="recipient_lists", type="object")
-     *         )
-     *     )
-     * )
      * @param int $id
-     *
      * @return JsonResponse
      */
-    public function show(int $id)
+    public function show(int $id): JsonResponse
     {
         $broadcastBatch = BroadcastBatch::where('id', $id)
             ->with(['campaign', 'recipient_list', 'message'])
             ->firstOrFail();
+
         $recipient_lists = $broadcastBatch->recipient_list;
 
         if ($broadcastBatch->isDraft()) {
@@ -102,44 +54,21 @@ class BroadcastBatchApiController extends ApiController
                 ->paginate(10);
         }
 
-        return $this->responseSuccess(
-            [
-                'campaign' => $broadcastBatch->campaign,
-                'contacts' => $contacts,
-                'logs' => $logs,
-                'broadcast_batch' => $broadcastBatch,
-                'message' => $broadcastBatch->message,
-                'recipient_lists' => $recipient_lists,
-            ]
-        );
+        return $this->responseSuccess([
+            'campaign' => $broadcastBatch->campaign,
+            'contacts' => $contacts,
+            'logs'     => $logs,
+            'broadcast_batch' => $broadcastBatch,
+            'message'         => $broadcastBatch->message,
+            'recipient_lists' => $recipient_lists,
+        ]);
     }
 
     /**
-     * @OA\Post(
-     *     path="/broadcast_batches/mark_as_processed/{id}",
-     *     summary="Mark a broadcast batch as processed",
-     *     tags={"Broadcast Batches"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer"),
-     *         description="Broadcast Batch ID"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Broadcast Batch marked as processed",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string", example="Broadcast Batch marked as processed.")
-     *         )
-     *     )
-     * )
      * @param int $id
-     *
      * @return JsonResponse
      */
-    public function markAsProcessed(int $id)
+    public function markAsProcessed(int $id): JsonResponse
     {
         [$result, $message] = $this->broadcastBatchService->markedAsProcessed($id);
 

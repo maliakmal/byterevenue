@@ -26,6 +26,7 @@ class AccountsService
             'sort_order' => request('sort_order', 'desc'),
             'per_page' => request('per_page', 15),
         ];
+
         $accounts = User::withCount([
             'campaigns',
             'campaigns as processing_campaign_count' => function ($query) {
@@ -46,6 +47,7 @@ class AccountsService
         if (!empty($filter['username'])) {
             $accounts->where('name', $filter['username']);
         }
+
         $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
 
         return $accounts;

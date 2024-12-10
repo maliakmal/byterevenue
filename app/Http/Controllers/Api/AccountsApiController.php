@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class AccountsApiController extends ApiController
 {
     private AccountsService $accountsService;
+
     /**
      * @param AccountsService $accountsService
      */
@@ -19,52 +20,21 @@ class AccountsApiController extends ApiController
     }
 
     /**
-     * @OA\Get(
-     *     path="/accounts",
-     *     summary="Get all accounts",
-     *     tags={"Accounts"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $response = $this->accountsService->getAccounts($request);
+
         return $this->responseSuccess($response);
     }
 
     /**
-     * @OA\Get(
-     *     path="/accounts/{id}",
-     *     summary="Get account transactions",
-     *     tags={"Accounts"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string"),
-     *         description="Account ID"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
-     * @param string $id
+     * @param $id
      * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
         $response = $this->accountsService->getAccountTransactions($id);
 
@@ -72,19 +42,7 @@ class AccountsApiController extends ApiController
     }
 
     /**
-     * @OA\Get(
-     *     path="/tokens",
-     *     summary="Get tokens for the current user",
-     *     tags={"Accounts"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
-     *     )
-     * )
+     * @param int $id
      * @return JsonResponse
      */
     public function showTokens(int $id): JsonResponse
@@ -95,14 +53,17 @@ class AccountsApiController extends ApiController
     }
 
     /**
+     * @param Request $request
      * @return JsonResponse
      */
-    public function storeTokens(Request $request)
+    public function storeTokens(Request $request): JsonResponse
     {
         $response = $this->accountsService->addTokensToAccount($request);
+
         if (isset($response['errors'])) {
             return $this->responseError($response['errors']);
         }
+
         return $this->responseSuccess($response);
     }
 }

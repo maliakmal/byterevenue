@@ -31,10 +31,12 @@ Route::get('user', function (Request $request) {
 
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
+    // ADMIN options!
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
     Route::post('tokens/add', [AccountsApiController::class, 'storeTokens']);
+    // ####################
 
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
@@ -50,6 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
     Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
 
+    // ADMIN options!
     Route::prefix('short-domains')->controller(ShortDomainsApiController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
@@ -62,6 +65,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
         Route::post('regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
     });
+    // ####################
 });
 
 Route::prefix('areas')->name('api.areas.')->group(function () {
