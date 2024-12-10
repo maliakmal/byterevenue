@@ -215,7 +215,6 @@
                 }
                 var elements = data.data.data;
                 var str = "";
-                var i = 0;
                 for (i=0; i < elements.length; i++){
                     str += getElementString(elements[i]);
                 }
@@ -234,12 +233,13 @@
         function loadCitites(province){
             $('#city-filter').html("");
             $.LoadingOverlay("show");
-            $.get('api/areas/cities-by-province/' + province, function(data){
-                var i;
-                for (i=0; i < data.length; i++) {
+            $.get('api/areas/cities-by-province/' + province, function(data)
+            {
+                let cities = data.data;
+                for (i=0; i < cities.length; i++) {
                     var city = {
-                        id: data[i].code,
-                        text: data[i].city_name+" (+"+data[i].code+")"
+                        id: cities[i].code,
+                        text: cities[i].city_name+" (+"+cities[i].code+")"
                     };
                     var newOption = new Option(city.text, city.id, false, false);
                     $('#city-filter').append(newOption);

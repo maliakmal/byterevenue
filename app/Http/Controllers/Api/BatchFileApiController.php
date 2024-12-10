@@ -14,6 +14,7 @@ class BatchFileApiController extends ApiController
 {
     /**
      * @param CampaignRepositoryInterface $campaignRepository
+     * @param BroadcastLogRepositoryInterface $broadcastLogRepository
      */
     public function __construct(
         protected CampaignRepositoryInterface $campaignRepository,
@@ -22,10 +23,10 @@ class BatchFileApiController extends ApiController
 
     /**
      * @param Request $request
-     *
      * @return JsonResponse
      */
-    public function getFormContentFromCampaign(Request $request){
+    public function getFormContentFromCampaign(Request $request): JsonResponse
+    {
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $result = $campaign->message;
 
@@ -34,16 +35,16 @@ class BatchFileApiController extends ApiController
 
     /**
      * @param Request $request
-     *
      * @return JsonResponse
      */
-    public function checkStatus(Request $request){
+    public function checkStatus(Request $request): JsonResponse
+    {
         $file_ids = isset($_POST['files']) ? $_POST['files'] : [];
         $file_ids = is_array($file_ids) ? $file_ids : [];
         $file_ids[] = 0;
         $files = [];
 
-        foreach(BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file){
+        foreach (BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file) {
             $one = $file->toArray();
             $batch_no = $file->getBatchFromFilename();
             // get all entries with the campaig id and the batch no
@@ -61,10 +62,9 @@ class BatchFileApiController extends ApiController
 
     /**
      * @param Request $request
-     *
      * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $campaign_ids = $request->campaign_ids;
         $campaign_ids = is_array($campaign_ids) ? $campaign_ids : [];

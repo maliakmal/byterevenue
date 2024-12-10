@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
 use App\Models\UrlShortener;
-use App\Services\Keitaro\KeitaroCaller;
-use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use App\Services\UrlShortener\UrlShortenerService;
-use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ShortDomainsApiController extends ApiController
@@ -19,13 +17,22 @@ class ShortDomainsApiController extends ApiController
         private UrlShortenerService $urlShortenerService,
     ) {}
 
-    public function index(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
     {
         $shortDomains = $this->urlShortenerService->getAll($request);
+
         return $this->responseSuccess($shortDomains);
     }
 
-    public function store(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
     {
         $response = $this->urlShortenerService->create($request);
 
@@ -36,9 +43,16 @@ class ShortDomainsApiController extends ApiController
         return $this->responseSuccess($response, 'URL Shortener created successfully.');
     }
 
-    public function destroy(int $id)
+    /**
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
     {
-        UrlShortener::destroy($id);
-        return $this->responseSuccess(message: 'URL Shortener deleted successfully.');
+        if (UrlShortener::destroy($id)) {
+            return $this->responseSuccess(message: 'URL Shortener deleted successfully.');
+        }
+
+        return $this->responseError(message: 'URL Shortener not found.', status: 404);
     }
 }

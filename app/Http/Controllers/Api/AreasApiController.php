@@ -4,26 +4,39 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
 use App\Services\AreaCode\AreaCodeService;
+use Illuminate\Http\JsonResponse;
 
 class AreasApiController extends ApiController
 {
-    public function __construct(private AreaCodeService $areaCodeService)
+    /**
+     * @param AreaCodeService $areaCodeService
+     */
+    public function __construct(
+        private AreaCodeService $areaCodeService,
+    ) {}
+
+    /**
+     * @return JsonResponse
+     */
+    public function getAllProvinces(): JsonResponse
     {
-        //
+        return $this->responseSuccess($this->areaCodeService->getAllProvinces(caching: true));
     }
 
-    public function getAllProvinces()
+    /**
+     * @return JsonResponse
+     */
+    public function getAllCities(): JsonResponse
     {
-        return response()->json($this->areaCodeService->getAllProvinces());
+        return $this->responseSuccess($this->areaCodeService->getAllCities(caching: true));
     }
 
-    public function getAllCities()
+    /**
+     * @param string $province
+     * @return JsonResponse
+     */
+    public function citiesByProvince(string $province): JsonResponse
     {
-        return response()->json($this->areaCodeService->getAllCities());
-    }
-
-    public function citiesByProvince(string $province)
-    {
-        return response()->json($this->areaCodeService->getCities($province));
+        return $this->responseSuccess($this->areaCodeService->getCities($province, caching: true));
     }
 }

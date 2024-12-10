@@ -58,6 +58,26 @@ class CampaignController extends Controller
      */
     public function store(CampaignStoreRequest $request)
     {
+        $recipientsList = RecipientsList::find(intval($request->recipients_list_id));
+
+        if (!$recipientsList) {
+            return redirect()->route('campaigns.index')->withErrors(['error' => 'Recipient list not found.']);
+        }
+
+        $count_of_contacts = $recipientsList->recipientsGroup->count;
+
+        if ($count_of_contacts == 0) {
+            return redirect()->route('campaigns.index')->withErrors(['error' => 'Recipient list is empty.']);
+        }
+
+        $user = auth()->user();
+
+        if (!$user->hasEnoughTokens($count_of_contacts)) {
+            return redirect()->route('campaigns.index')->withErrors(['error' => 'You do not have enough tokens to send this campaign.']);
+        }
+
+        $user->deductTokens($count_of_contacts);
+
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 
         if (isset($errors['message'])) {

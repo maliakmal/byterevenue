@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\ApiController;
 use App\Repositories\Contract\BlackListNumber\BlackListNumberRepositoryInterface;
 use App\Trait\CSVReader;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BlackListNumberApiController extends ApiController
@@ -20,9 +21,9 @@ class BlackListNumberApiController extends ApiController
 
     /**
      * @param Request $request
-     * @return mixed
+     * @return JsonResponse
      */
-    public function updateBlackListNumber(Request $request)
+    public function updateBlackListNumber(Request $request): JsonResponse
     {
         $request->validate([
             'black_list_file' => "required|max:". config('app.csv.upload_max_size_allowed'),

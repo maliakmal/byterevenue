@@ -11,27 +11,39 @@ use App\Services\Campaign\CampaignService;
 use App\Services\JobService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class JobsApiController extends ApiController
 {
+    /**
+     * @param CampaignShortUrlRepositoryInterface $campaignShortUrlRepository
+     * @param CampaignService $campaignService
+     * @param BroadcastLogRepositoryInterface $broadcastLogRepository
+     * @param JobService $jobService
+     */
     public function __construct(
         protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
         protected CampaignService $campaignService,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected JobService $jobService
-    ) {
-    }
+    ) {}
 
-    public function fifo(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function fifo(Request $request): JsonResponse
     {
         $params = $this->jobService->index($request);
 
         return $this->responseSuccess($params);
     }
 
-    public function postIndex(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postIndex(Request $request): JsonResponse
     {
         $params = $request->validate([
             'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
@@ -52,10 +64,9 @@ class JobsApiController extends ApiController
 
     /**
      * @param JobRegenerateRequest $request
-     *
-     * @return JsonResponse|RedirectResponse
+     * @return JsonResponse
      */
-    public function regenerateUnsent(JobRegenerateRequest $request)
+    public function regenerateUnsent(JobRegenerateRequest $request): JsonResponse
     {
         $batch_file = $this->jobService->regenerateUnsent($request->validated());
 
@@ -67,10 +78,11 @@ class JobsApiController extends ApiController
     }
 
     /**
+     * Method for webhooks data
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateSentMessage(Request $request)
+    public function updateSentMessage(Request $request): JsonResponse
     {
         $request->validate([
             'u' => ['required', 'string', 'size:8'],
@@ -99,10 +111,11 @@ class JobsApiController extends ApiController
     }
 
     /**
+     * Method for webhooks data
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateClickMessage(Request $request)
+    public function updateClickMessage(Request $request): JsonResponse
     {
         $request->validate([
             'u' => ['required', 'string', 'size:8'],
