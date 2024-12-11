@@ -37,7 +37,7 @@ class ShortDomainsApiController extends ApiController
         $response = $this->urlShortenerService->create($request);
 
         if (isset($response['error'])) {
-            return $this->responseError(data: $response['error'], status:422);
+            return $this->responseError(message: $response['error'], status:422);
         }
 
         return $this->responseSuccess($response, 'URL Shortener created successfully.');

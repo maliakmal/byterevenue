@@ -49,7 +49,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
-    Route::post('tokens/add', [AccountsApiController::class, 'storeTokens']);
+    Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
 
     Route::prefix('short-domains')->controller(ShortDomainsApiController::class)->group(function () {
         Route::get('/', 'index');
@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/generateCsv', [JobsApiController::class, 'generateCsv'])->name('jobs.generateCsv');
         Route::post('/generateCsvByCampaigns', [JobsApiController::class, 'generateCsvByCampaigns'])->name('jobs.generateCsvByCampaigns');
         Route::post('regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
+        Route::get('/download/{id}',[JobsApiController::class, 'downloadFile'])->name('jobs.download-file');
     });
     // ####################
 });
