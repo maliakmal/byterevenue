@@ -58,17 +58,39 @@ class JobsController extends Controller
     }
 
     // start process of generating CSV (web-side)
-    public function postIndex(Request $request)
+    public function generateCsv(Request $request)
     {
         $params = $request->validate([
             'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
             'url_shortener'   => ['required', 'string'],
-            'type'            => ['required', 'string', 'in:campaign,fifo'],
-            'campaign_ids'    => ['required_if:type,campaign', 'array'],
-            'campaign_ids.*'  => ['required_if:type,campaign', 'integer'],
+            'type'            => ['required', 'string', 'in:fifo'],
         ]);
 
         $result = $this->jobService->processGenerate($params, needFullResponse: $request->ajax());
+
+        if ($result['error'] ?? null) {
+            return redirect()->route('jobs.index')->with('error', $result['error']);
+        }
+
+        if ($request->ajax()) {
+            return response()->json(['data' => $result['success'] ?? []]);
+        }
+
+        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+    }
+
+    // start process of generating CSV by Campaigns (web-side)
+    public function generateCsvByCampaigns(Request $request)
+    {
+        $params = $request->validate([
+            'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
+            'url_shortener'   => ['required', 'string'],
+            'type'            => ['required', 'string', 'in:campaign'],
+            'campaign_ids'    => ['required', 'array'],
+            'campaign_ids.*'  => ['required', 'integer'],
+        ]);
+
+        $result = $this->jobService->processGenerate($params);
 
         if ($result['error'] ?? null) {
             return redirect()->route('jobs.index')->with('error', $result['error']);
@@ -88,13 +110,13 @@ class JobsController extends Controller
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
-        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+        $result = $this->jobService->regenerateUnsent($request->validated());
 
-        if (!$batch_file) {
-            return redirect()->route('jobs.index')->with('error', 'CSV generation failed.');
+        if ($result['error'] ?? null) {
+            return redirect()->route('jobs.index')->with('error', $result['error']);
         }
 
-        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+        return redirect()->route('jobs.index')->with('success', $result['success']);
     }
 
     public function downloadFile($filename)

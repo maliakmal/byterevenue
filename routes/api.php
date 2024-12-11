@@ -31,13 +31,6 @@ Route::get('user', function (Request $request) {
 
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
-    // ADMIN options!
-    Route::get('accounts/', [AccountsApiController::class, 'index']);
-    Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
-    Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
-    Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
-    // ####################
-
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
@@ -52,7 +45,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
     Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
 
-    // ADMIN options!
+    // ADMIN options! add middleware for admin
+    Route::get('accounts/', [AccountsApiController::class, 'index']);
+    Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
+    Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
+    Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
+
     Route::prefix('short-domains')->controller(ShortDomainsApiController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
@@ -62,7 +60,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('jobs')->controller(JobsApiController::class)->group(function () {
         Route::get('fifo', [JobsApiController::class, 'fifo'])->name('jobs.fifo');
         Route::get('campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');
-        Route::post('/', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
+        Route::post('/generateCsv', [JobsApiController::class, 'generateCsv'])->name('jobs.generateCsv');
+        Route::post('/generateCsvByCampaigns', [JobsApiController::class, 'generateCsvByCampaigns'])->name('jobs.generateCsvByCampaigns');
         Route::post('regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
         Route::get('/download/{id}',[JobsApiController::class, 'downloadFile'])->name('jobs.download-file');
     });

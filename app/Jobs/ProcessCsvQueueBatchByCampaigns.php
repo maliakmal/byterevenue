@@ -2,13 +2,8 @@
 
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
-use App\Models\Message;
 use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
 use App\Services\Campaign\CampaignService;
@@ -16,13 +11,13 @@ use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 
-class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
+class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
 {
     public $timeout = 600; // 10 minutes
     public $tries = 1;
     public $telemetry = true;
 
-    protected $offset        = 0;
+    protected $remainder     = 0;
     protected $batchSize     = 100;
     protected $url_shortener = null;
     protected $logs          = null;
@@ -46,8 +41,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
         $this->urlShortenerRepository     = app()->make(UrlShortenerRepositoryInterface::class);
         $this->url_shortener = $params['url_shortener'] ?? $this->url_shortener;
         $this->batch_no      = $params['batch_no']      ?? $this->batch_no;
-        $this->campaign_ids  = $params['campaign_ids']  ?? $this->campaign_ids;
-        $this->offset        = $params['offset']        ?? $this->offset;
+        $this->remainder     = $params['remainder']     ?? $this->remainder;
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
@@ -64,12 +58,17 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
         $batch_no = $this->batch_no;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
 
-        $this->logs = BroadcastLog::query()
+        $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
-            ->limit($this->batchSize)
-            ->get();
+            ->limit($this->batchSize);
+
+        if (!empty($this->campaign_ids)) {
+            $query->whereIn('campaign_id', $this->campaign_ids);
+        }
+
+        $this->logs = $query->get();
 
         if ($this->logs->isEmpty()) {
             Log::debug('No matching entries found - skipping...');
@@ -81,7 +80,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
             return;
         }
 
-        Log::info('GenerateJob -> logs count: ' . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Offset: ' . $this->offset);
+        Log::info('GenerateJob -> logs count: ' . count($this->logs) . ' Batch no: ' . $this->batch_no . ' Remainder: ' . $this->remainder);
 
         $ids = [];
         $cases = '';

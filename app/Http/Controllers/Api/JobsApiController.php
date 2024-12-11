@@ -43,17 +43,38 @@ class JobsApiController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function postIndex(Request $request): JsonResponse
+    public function generateCsv(Request $request): JsonResponse
     {
         $params = $request->validate([
             'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
             'url_shortener'   => ['required', 'string'],
-            'type'            => ['required', 'string', 'in:campaign,fifo'],
-            'campaign_ids'    => ['required_if:type,campaign', 'array'],
-            'campaign_ids.*'  => ['required_if:type,campaign', 'integer'],
+            'type'            => ['required', 'string', 'in:fifo'],
         ]);
 
         $result = $this->jobService->processGenerate(params: $params, needFullResponse: true);
+
+        if ($result['error'] ?? null) {
+            return $this->responseError($result['error']);
+        }
+
+        return $this->responseSuccess($result['success']);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function generateCsvByCampaigns(Request $request): JsonResponse
+    {
+        $params = $request->validate([
+            'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
+            'url_shortener'   => ['required', 'string'],
+            'type'            => ['required', 'string', 'in:campaign'],
+            'campaign_ids'    => ['required', 'array'],
+            'campaign_ids.*'  => ['required', 'integer'],
+        ]);
+
+        $result = $this->jobService->processGenerateByCampaigns(params: $params);
 
         if ($result['error'] ?? null) {
             return $this->responseError($result['error']);
@@ -68,13 +89,13 @@ class JobsApiController extends ApiController
      */
     public function regenerateUnsent(JobRegenerateRequest $request): JsonResponse
     {
-        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+        $result = $this->jobService->regenerateUnsent($request->validated());
 
-        if (!$batch_file) {
-            return $this->responseError(message: 'CSV generation failed.');
+        if ($result['error'] ?? null) {
+            return $this->responseError($result['error']);
         }
 
-        return $this->responseSuccess($batch_file);
+        return $this->responseSuccess($result['success']);
     }
 
     /**
