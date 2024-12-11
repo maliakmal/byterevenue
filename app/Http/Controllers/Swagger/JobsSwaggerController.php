@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 
 class JobsSwaggerController extends SwaggerController
 {
-    public function postIndex(Request $request) {}
+    public function generateCsv(Request $request) {}
+
+    public function generateCsvByCampaigns(Request $request) {}
 
     public function regenerateUnsent(JobRegenerateRequest $request) {}
 

@@ -52,13 +52,13 @@
 
       <div class="mt-5 bg-white overflow-hidden  sm:rounded-lg hidden">
         <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
-          <form action="{{ route('jobs.postIndex') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
+          <form action="{{ route('jobs.generateCsvByCampaigns') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
               @csrf
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
                   <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-                  <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
+                  <input type="number" id="number_messages" name="number_messages_1" min="1" max="100000" step="1" required>
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
@@ -167,13 +167,13 @@
 
     <div  id="frm-generate-csv" class="mb-5 bg-white overflow-hidden show-if-exportable shadow-xl sm:rounded-lg show-when-campaign-clicked hidden">
         <div class="p-4   bg-white border-b border-gray-200">
-          <form action="{{ route('jobs.postIndex') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
+          <form action="{{ route('jobs.generateCsvByCampaigns') }}?_h={{ time() }}" enctype="multipart/form-data" method="post">
               @csrf
               <div class="text-3xl pt-5 font-bold text-slate-800 dark:text-slate-100 mr-2">Generate Message Exports</div>
               <p>This would generate a csv of deliverable messages which can be downloaded from the table below.</p>
               <div class="mb-4 mt-4">
-                  <label for="number_messages" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
-                  <input type="number" id="number_messages" name="number_messages" min="1" max="100000" step="1" value="100" required>
+                  <label for="number_messages_2" class="block text-gray-700 text-sm font-bold mb-2">Number of messages</label>
+                  <input type="number" id="number_messages_2" name="number_messages_2" min="1" max="100000" step="1" value="100" required>
               </div>
               <div class="mb-4 mt-4">
                 <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Short Domains</label>
@@ -372,7 +372,7 @@
         }
 
         $.ajax({
-            url: '/api/jobs', // Replace with your API endpoint
+            url: '/api/jobs/generateCsvByCampaigns', // Replace with your API endpoint
             method: 'POST',
             data: {
                 campaign_ids: campaignServiceManager.selected_campaign,
@@ -627,12 +627,12 @@
       var template = $('#files-template').html();
       showPreloader();
       $.ajax({
-        url: '/jobs/', // Replace with your API endpoint
+        url: '/jobs/generateCsvByCampaigns', // Replace with your API endpoint
         method: 'POST',
         data: {
           campaign_ids: campaignServiceManager.getCampaignIds(),
           type:'campaign',
-          number_messages: $('input#number_messages').val(),
+          number_messages: $('input#number_messages_2').val(),
           url_shortener: $('#frm-generate-csv').find('select#url_shortener').first().val(),
           _token: '{{ csrf_token() }}'
         },

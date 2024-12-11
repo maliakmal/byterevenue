@@ -46,7 +46,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::middleware([CheckAdminRole::class])->group(function () {
         Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');
-        Route::post('jobs', [JobsController::class, 'postIndex'])->name('jobs.postIndex');
+        Route::post('jobs/generateCsv', [JobsController::class, 'generateCsv'])->name('jobs.generateCsv');
+        Route::post('jobs/generateCsvByCampaigns', [JobsController::class, 'generateCsvByCampaigns'])->name('jobs.generateCsvByCampaigns');
         Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
         Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
         Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
