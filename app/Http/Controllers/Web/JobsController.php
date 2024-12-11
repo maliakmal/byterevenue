@@ -110,13 +110,13 @@ class JobsController extends Controller
      */
     public function regenerateUnsent(JobRegenerateRequest $request)
     {
-        $batch_file = $this->jobService->regenerateUnsent($request->validated());
+        $result = $this->jobService->regenerateUnsent($request->validated());
 
-        if (!$batch_file) {
-            return redirect()->route('jobs.index')->with('error', 'CSV generation failed.');
+        if ($result['error'] ?? null) {
+            return $this->responseError($result['error']);
         }
 
-        return redirect()->route('jobs.index')->with('success', 'CSV is being generated.');
+        return $this->responseSuccess($result['success']);
     }
 
     public function downloadFile($filename)

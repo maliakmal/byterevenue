@@ -313,7 +313,7 @@ class JobService
     /**
      * @param array $data
      *
-     * @return null|BatchFile
+     * @return array
      */
     public function regenerateUnsent(array $data)
     {
@@ -328,7 +328,7 @@ class JobService
         if (is_null($urlShortener)) {
             Log::error('REgenerateService -> Url shortener not found');
 
-            return null;
+            return ['error' => 'Url shortener not found'];
         }
 
         $domain_id = $urlShortener->asset_id;
@@ -337,7 +337,7 @@ class JobService
         if (is_null($original_batch) || $original_batch->number_of_entries <= 0) {
             Log::error('REgenerateService -> Original batch not found or empty');
 
-            return null;
+            return ['error' => 'Original batch not found or empty'];
         }
 
         preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $original_batch->filename, $matches);
@@ -347,7 +347,7 @@ class JobService
         } else {
             Log::error('REgenerateService -> Original batch number not found on parsing filename');
 
-            return null;
+            return ['error' => 'Original batch number not found on parsing filename'];
         }
 
         $batchSize = 1000; // ids scope for each job
@@ -375,6 +375,7 @@ class JobService
         if (!empty($campaign_short_urls_new)) {
             $newCampaignsData = ['campaigns' => $campaign_short_urls_new, 'domain_id' => $domain_id];
             Log::info('GenerateService -> New Keitaro Campaigns Generation starts with data: ', $newCampaignsData);
+
             dispatch(new CreateCampaignsOnKeitaro($newCampaignsData));
         }
 
@@ -384,7 +385,8 @@ class JobService
 
         if ($numBatches == 0) {
             \Log::error('REgenerateService -> No unsent messages found for regeneration');
-            return null;
+
+            return ['error' => 'No unsent messages found for regeneration'];
         }
 
         // todo:: maybe set status regen in original batch
@@ -421,7 +423,7 @@ class JobService
             dispatch(new ProcessCsvRegenQueueBatch($params));
         }
 
-        return $batch_file;
+        return ['success' => 'CSV is being regenerated.'];
     }
 
     /**
