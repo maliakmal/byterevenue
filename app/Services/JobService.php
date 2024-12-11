@@ -383,6 +383,7 @@ class JobService
         $filename = "/csv/byterevenue-regen-$batch_no.csv";
 
         if ($numBatches == 0) {
+            \Log::error('REgenerateService -> No unsent messages found for regeneration');
             return null;
         }
 

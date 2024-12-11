@@ -19,6 +19,8 @@ use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
+Route::view('api/repidoc', 'rapidoc_api');
+Route::view('api/redoc', 'redoc_api');
 
 // routes for livewire
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
