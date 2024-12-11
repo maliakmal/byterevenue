@@ -35,7 +35,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
-    Route::post('tokens/add', [AccountsApiController::class, 'storeTokens']);
+    Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
     // ####################
 
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('campaigns', [JobsApiController::class, 'campaigns'])->name('jobs.campaigns');
         Route::post('/', [JobsApiController::class, 'postIndex'])->name('jobs.postIndex');
         Route::post('regenerate', [JobsApiController::class, 'regenerateUnsent'])->name('jobs.regenerate');
+        Route::get('/download/{id}',[JobsApiController::class, 'downloadFile'])->name('jobs.download-file');
     });
     // ####################
 });

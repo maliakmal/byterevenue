@@ -141,4 +141,10 @@ class JobsApiController extends ApiController
         // answer for outside services
         return response()->success();
     }
+
+    public function downloadFile($id)
+    {
+        return $this->jobService->downloadFile($id);
+    }
+
 }
