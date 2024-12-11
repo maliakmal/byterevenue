@@ -113,10 +113,10 @@ class JobsController extends Controller
         $result = $this->jobService->regenerateUnsent($request->validated());
 
         if ($result['error'] ?? null) {
-            return $this->responseError($result['error']);
+            return redirect()->route('jobs.index')->with('error', $result['error']);
         }
 
-        return $this->responseSuccess($result['success']);
+        return redirect()->route('jobs.index')->with('success', $result['success']);
     }
 
     public function downloadFile($filename)
