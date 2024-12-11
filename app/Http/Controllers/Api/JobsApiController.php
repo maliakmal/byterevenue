@@ -36,7 +36,7 @@ class JobsApiController extends ApiController
     {
         $params = $this->jobService->index($request);
 
-        return $this->responseSuccess(message: $params);
+        return $this->responseSuccess($params);
     }
 
     /**
