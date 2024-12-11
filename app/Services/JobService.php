@@ -87,7 +87,7 @@ class JobService
         return $result;
     }
 
-    public function processGenerate(array $params, $needFullResponse = null)
+    public function processGenerate(array $params)
     {
         $requestCount      = intval($params['number_messages']); // count of records in CSV
         $urlShortenerName  = trim($params['url_shortener']);
@@ -187,7 +187,7 @@ class JobService
             dispatch(new ProcessCsvQueueBatch($params));
         }
 
-        return ['success' => true];
+        return ['success' => 'CSV is being generated.'];
     }
 
     public function processGenerateByCampaigns(array $params)
@@ -307,7 +307,7 @@ class JobService
         $one['total_clicked'] = $specs['total_clicked'];
         $one['created_at_ago'] = $batch_file->created_at->diffForHumans();
 
-        return ['success' => true];
+        return ['success' => 'CSV is being generated.'];
     }
 
     /**

@@ -36,7 +36,7 @@ class JobsApiController extends ApiController
     {
         $params = $this->jobService->index($request);
 
-        return $this->responseSuccess($params);
+        return $this->responseSuccess(message: $params);
     }
 
     /**
@@ -51,13 +51,13 @@ class JobsApiController extends ApiController
             'type'            => ['required', 'string', 'in:fifo'],
         ]);
 
-        $result = $this->jobService->processGenerate(params: $params, needFullResponse: true);
+        $result = $this->jobService->processGenerate(params: $params);
 
         if ($result['error'] ?? null) {
-            return $this->responseError($result['error']);
+            return $this->responseError(message: $result['error']);
         }
 
-        return $this->responseSuccess($result['success']);
+        return $this->responseSuccess(message: $result['success']);
     }
 
     /**
@@ -77,10 +77,10 @@ class JobsApiController extends ApiController
         $result = $this->jobService->processGenerateByCampaigns(params: $params);
 
         if ($result['error'] ?? null) {
-            return $this->responseError($result['error']);
+            return $this->responseError(message: $result['error']);
         }
 
-        return $this->responseSuccess($result['success']);
+        return $this->responseSuccess(message: $result['success']);
     }
 
     /**
@@ -92,10 +92,10 @@ class JobsApiController extends ApiController
         $result = $this->jobService->regenerateUnsent($request->validated());
 
         if ($result['error'] ?? null) {
-            return $this->responseError($result['error']);
+            return $this->responseError(message: $result['error']);
         }
 
-        return $this->responseSuccess($result['success']);
+        return $this->responseSuccess(message: $result['success']);
     }
 
     /**
