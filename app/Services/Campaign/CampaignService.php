@@ -303,7 +303,7 @@ class CampaignService
      */
     public function update(int $id, array $data)
     {
-        $campaign = Campaign::find($id);
+        $campaign = Campaign::with(['recipient_list', 'user', 'message'])->find($id);
         $campaignFields = [
             'title',
             'description',
@@ -325,7 +325,6 @@ class CampaignService
         ];
 
         $campaign->message->update($message_data);
-
         return $campaign;
     }
 
