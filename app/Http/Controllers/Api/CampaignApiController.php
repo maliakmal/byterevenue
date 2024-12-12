@@ -159,4 +159,20 @@ class CampaignApiController extends ApiController
 
         return $this->responseSuccess([], 'Campaign deleted successfully.');
     }
+
+    /**
+     * @param int $id
+     *
+     * @return JsonResponse
+     */
+    public function markAsProcessed(int $id)
+    {
+        [$result, $message] = $this->campaignService->markAsProcessed($id);
+
+        if ($result) {
+            return $this->responseSuccess(message: $message);
+        }
+
+        return $this->responseError(message: $message);
+    }
 }
