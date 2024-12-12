@@ -155,9 +155,16 @@ class CampaignApiController extends ApiController
      */
     public function destroy(Campaign $campaign): JsonResponse
     {
-        $campaign->delete();
+        $campaign = Campaign::findOrfail($campaign->id);
 
-        return $this->responseSuccess([], 'Campaign deleted successfully.');
+        if ($campaign->status === Campaign::STATUS_DRAFT) {
+            $campaign->delete();
+
+            return $this->responseSuccess(message: 'Campaign deleted successfully.');
+        }
+
+        return $this->responseError(message: 'Campaign has been dispatched and cannot be deleted.');
+
     }
 
     /**
