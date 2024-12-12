@@ -89,7 +89,7 @@ use Illuminate\Routing\Controller;
  *
  * @OA\ExternalDocumentation(
  *     description="Alternative viewer for the API documentation",
- *     url="/api-docs/repidoc"
+ *     url="/api-docs"
  * )
  */
 abstract class SwaggerController extends Controller

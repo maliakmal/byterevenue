@@ -735,6 +735,49 @@
                 ]
             }
         },
+        "/api/campaigns/create": {
+            "put": {
+                "tags": [
+                    "Campaigns"
+                ],
+                "summary": "Create a new campaign",
+                "operationId": "4ba964755b48d56039336b83233d2ecb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "campaign_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "recipients_list_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "message_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Campaign created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/data-source": {
             "get": {
                 "tags": [
@@ -1394,6 +1437,6 @@
     ],
     "externalDocs": {
         "description": "Alternative viewer for the API documentation",
-        "url": "/api-docs/repidoc"
+        "url": "/api-docs"
     }
 }

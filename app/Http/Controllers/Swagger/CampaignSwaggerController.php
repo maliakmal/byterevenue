@@ -49,6 +49,26 @@ class CampaignSwaggerController extends SwaggerController
 
     public function show(int $id, Request $request) {}
 
+    /**
+     * @OA\Put(
+     *     path="/api/campaigns/create",
+     *     summary="Create a new campaign",
+     *     tags={"Campaigns"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="campaign_id", type="integer", example=1),
+     *             @OA\Property(property="recipients_list_id", type="integer", example=1),
+     *             @OA\Property(property="message_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Campaign created"
+     *     )
+     * )
+     */
     public function store(CampaignStoreRequest $request) {}
 
     public function update(CampaignUpdateRequest $request, Campaign $campaign) {}
