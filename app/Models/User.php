@@ -102,7 +102,7 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => $amount,
-            'type' => 'purchase',
+            'type' => $amount > 0 ? 'purchase' : 'usage',
         ]);
         $this->tokens += $amount;
         $this->save();

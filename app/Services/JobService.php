@@ -16,6 +16,7 @@ use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JobService
 {
@@ -456,5 +457,34 @@ class JobService
         //BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
 
         return $params;
+    }
+
+    public function downloadFile($id)
+    {
+        $batch = BatchFile::find($id);
+        $response = new StreamedResponse(function () use ($batch) {
+            $handle = fopen('php://output', 'w');
+            // Output the column headings
+            fputcsv($handle, ['UID', 'Phone', 'Subject', 'Text']);
+
+            $batch_no = $batch->getBatchFromFilename();
+
+            // Query and write data to the file
+            $rows = BroadcastLog::select()->where('batch', '=', $batch_no)->orderby('id', 'ASC')->cursor();
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    trim($row->slug),
+                    trim($row->recipient_phone),
+                    '',
+                    trim($row->message_body),
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $id . '.csv"');
+        return $response;
     }
 }

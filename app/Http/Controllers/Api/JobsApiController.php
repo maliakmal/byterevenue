@@ -103,4 +103,10 @@ class JobsApiController extends ApiController
     {
         return $this->batchFileDownloadService->streamingNewBatchFile($filename);
     }
+
+    public function downloadFile($id)
+    {
+        return $this->jobService->downloadFile($id);
+    }
+
 }

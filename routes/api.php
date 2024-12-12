@@ -61,7 +61,7 @@ Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
-    Route::post('tokens/add', [AccountsApiController::class, 'storeTokens']);
+    Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
 
     Route::get('short-domains', [ShortDomainsApiController::class, 'index']);
     Route::post('short-domains', [ShortDomainsApiController::class, 'store']);

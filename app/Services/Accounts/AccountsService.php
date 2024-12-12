@@ -88,16 +88,12 @@ class AccountsService
      */
     public function addTokensToAccount(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'user_id' => ['required', 'exists:users,id'],
             'amount' => ['required', 'numeric'],
         ]);
 
-        if ($validator->fails()) {
-            return ['errors' => $validator->errors()];
-        }
-
-        $data = $validator->validated();
+        $data = $request->all();
 
         $account = User::find($data['user_id']);
         $account->addTokens($data['amount']);
