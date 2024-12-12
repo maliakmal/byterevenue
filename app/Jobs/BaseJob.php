@@ -14,7 +14,7 @@ abstract class BaseJob implements ShouldQueue
 
     public function tags()
     {
-        if (property_exists($this, 'telemetry') && $this->telemetry) {
+        if (property_exists($this, 'telemetry')) {
             return array_merge(['telemetry'], $this->tags ?? []);
         }
     }

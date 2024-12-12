@@ -3,13 +3,8 @@
 namespace App\Jobs;
 
 use App\Services\GlobalCachingService;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
-use App\Models\Message;
 use App\Models\Campaign;
 use App\Models\CampaignShortUrl;
 use App\Services\Campaign\CampaignService;

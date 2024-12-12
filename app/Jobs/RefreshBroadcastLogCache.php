@@ -6,10 +6,6 @@ use App\Models\BroadcastLog;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 
 class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue

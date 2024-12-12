@@ -16,8 +16,6 @@ class CreateMissingKeitaroCampaigns extends BaseJob implements ShouldQueue
     protected $urlShortenerRepository = null;
     protected $campaignShortUrlRepository = null;
 
-    public $telemetry = false;
-
     /**
      * Create a new job instance.
      */

@@ -10,7 +10,6 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
 {
     public $timeout = 600; // 10 minutes
     public $tries = 1;
-    public $telemetry = false;
 
     protected $campaign = null;
     protected $limit = 1000;

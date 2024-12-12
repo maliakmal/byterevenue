@@ -4,19 +4,10 @@ namespace App\Jobs;
 
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\GlobalCachingService;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use App\Models\BroadcastLog;
-use App\Models\CampaignShortUrl;
 use App\Models\Campaign;
-use App\Models\UrlShortener;
-use App\Models\Message;
 use App\Services\Campaign\CampaignService;
-use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
-use App\Repositories\Contract\UrlShortener\UrlShortenerRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 
 class ProcessCsvRegenQueueBatch extends BaseJob implements ShouldQueue
