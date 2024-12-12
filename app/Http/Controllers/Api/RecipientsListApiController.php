@@ -77,7 +77,9 @@ class RecipientsListApiController extends ApiController
     {
         $recipientsList = RecipientsList::findOrFail($id);
         $recipientsGroup = $recipientsList->recipientsGroup;
-        $contacts = $recipientsGroup->getAllContactsPaginated(10);
+        $contacts = [];
+        if (isset($recipientsGroup))
+            $contacts = $recipientsGroup->getAllContactsPaginated(10);
 
         return $this->responseSuccess([
             'recipientList' => $recipientsList,
