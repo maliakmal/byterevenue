@@ -32,7 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
-//    Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
+    Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
 //    Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);
     Route::apiResource('campaigns', CampaignApiController::class);
 
