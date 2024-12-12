@@ -222,6 +222,7 @@ class JobService
         $totalRecords = 0;
         $campaigns_count = [];
         $campaigns_models = [];
+
         foreach ($campaign_ids as $uniq_campaign_id) {
             $get_or_create_short = $this->createCampaignShortUrl($uniq_campaign_id, $urlShortenerName, $urlShortener);
 

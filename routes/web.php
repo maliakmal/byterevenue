@@ -15,12 +15,12 @@ use App\Http\Controllers\Web\SettingController;
 use App\Http\Controllers\Web\BlackListNumberController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\BlackListWordController;
+use App\Http\Controllers\Web\AreasController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
-Route::view('api/repidoc', 'rapidoc_api');
-Route::view('api/redoc', 'redoc_api');
+Route::view('api-docs', 'repidoc_api');
 
 // routes for livewire
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
@@ -45,6 +45,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::get('user', [BlackListNumberController::class, 'updateBlackListNumber']);
     Route::get('black-list-numbers/user', [BlackListNumberController::class, 'getBlackListNumberForUser'])->name('block_numbers_user');
+
+    Route::get('areas/get-all-provinces', [AreasController::class, 'getAllProvinces']);
+    Route::get('areas/get-all-cities', [AreasController::class, 'getAllCities']);
+    Route::get('areas/cities-by-province/{province}', [AreasController::class, 'citiesByProvince']);
 
     Route::middleware([CheckAdminRole::class])->group(function () {
         Route::get('jobs/fifo', [JobsController::class, 'index'])->name('jobs.index');

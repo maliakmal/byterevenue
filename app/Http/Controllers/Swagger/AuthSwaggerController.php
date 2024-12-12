@@ -40,7 +40,15 @@ class AuthSwaggerController extends SwaggerController
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Invalid credentials"
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="The provided credentials are incorrect")
+     *         )
      *     )
      * )
      */
@@ -104,6 +112,38 @@ class AuthSwaggerController extends SwaggerController
      *             ),
      *             @OA\Property(property="message", type="string", example="User registered successfully")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="The email field must be a valid email address."
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="email",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="The email field must be a valid email address."
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="password",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="The password field is required."
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
@@ -117,8 +157,14 @@ class AuthSwaggerController extends SwaggerController
      *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
-     *         description="User logged out"
-     *     )
+     *         description="Logged out",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *         )
+     *     ),
      * )
      */
     public function logout() {}
@@ -129,18 +175,28 @@ class AuthSwaggerController extends SwaggerController
      *     summary="Refresh token",
      *     tags={"Auth"},
      *     security={{"bearerAuth": {}}},
-     *     @OA\Response(response=200, description="Token refreshed",
-     *         @OA\Property(property="success", type="boolean", example=true),
-     *         @OA\Property(property="status", type="string", example="success"),
-     *         @OA\Property(property="data", type="object",
-     *             @OA\Property(property="token", type="string", example="xx|xxxxxxxxxxxxxxxx")
-     *         ),
-     *         @OA\Property(property="message", type="string", example="Token refreshed successfully")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="token", type="string", example="xx|xxxxxxxxxxxxxxxx")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Token refreshed successfully")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="User not found"
-     *     )
+     *         description="User not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="User not found")
+     *         )
+     *     ),
      * )
      */
     public function refresh() {}
@@ -179,11 +235,15 @@ class AuthSwaggerController extends SwaggerController
      *     path="/api/forgot-password",
      *     summary="Forgot password",
      *     tags={"Auth"},
-     *     @OA\RequestBody(
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *         description="User Email",
+     *         @OA\Schema(
+     *             type="string",
+     *             format="email",
+     *             example="example@email.com"
      *         )
      *     ),
      *     @OA\Response(
@@ -194,8 +254,28 @@ class AuthSwaggerController extends SwaggerController
      *         )
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Invalid email"
+     *         response=422,
+     *         description="Unprocessable Content",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="The email field must be a valid email address."
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="email",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="The email field must be a valid email address."
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
@@ -206,16 +286,42 @@ class AuthSwaggerController extends SwaggerController
      *     path="/api/reset-password",
      *     summary="Reset password",
      *     tags={"Auth"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"token","email","password","password_confirmation"},
-     *             @OA\Property(property="token", type="string", example="token"),
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="newpassword"),
-     *             @OA\Property(property="password_confirmation", type="string", format="password", example="newpassword")
-     *         )
-     *     ),
+     *     @OA\Parameter(
+     *     name="token",
+     *     in="query",
+     *     required=true,
+     *     description="Password reset token",
+     *     @OA\Schema(
+     *         type="string",
+     *         example="token"
+     *     )),
+     *     @OA\Parameter(
+     *     name="email",
+     *     in="query",
+     *     required=true,
+     *     description="User Email",
+     *     @OA\Schema(
+     *         type="string",
+     *         format="email",
+     *     )),
+     *     @OA\Parameter(
+     *     name="password",
+     *     in="query",
+     *     required=true,
+     *     description="User Password",
+     *     @OA\Schema(
+     *         type="string",
+     *         format="password",
+     *     )),
+     *     @OA\Parameter(
+     *     name="password_confirmation",
+     *     in="query",
+     *     required=true,
+     *     description="User Password Confirmation",
+     *     @OA\Schema(
+     *         type="string",
+     *         format="password",
+     *     )),
      *     @OA\Response(
      *         response=200,
      *         description="Password reset successful",
@@ -224,7 +330,7 @@ class AuthSwaggerController extends SwaggerController
      *         )
      *     ),
      *     @OA\Response(
-     *         response=400,
+     *         response=422,
      *         description="Invalid token or email"
      *     )
      * )

@@ -2,123 +2,10 @@
     "openapi": "3.0.0",
     "info": {
         "title": "API Documentation",
+        "description": "Additional documentation for the application:",
         "version": "1.0.0"
     },
     "paths": {
-        "/api/accounts": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get all accounts",
-                "operationId": "37ba355159763393af70a542ea6d1b58",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthenticated."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/accounts/{id}": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get account transactions",
-                "operationId": "2bd980331725c7818f902c005ce57db4",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Account ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/tokens": {
-            "get": {
-                "tags": [
-                    "Accounts"
-                ],
-                "summary": "Get tokens for the current user",
-                "operationId": "f209b2efc65c8acb36a135fc8e32cbc2",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/login": {
             "post": {
                 "tags": [
@@ -168,7 +55,34 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials"
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The provided credentials are incorrect"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -257,6 +171,41 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email field must be a valid email address."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The email field must be a valid email address."
+                                                    }
+                                                },
+                                                "password": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The password field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -270,7 +219,31 @@
                 "operationId": "244543bcf6ff3953c8eb7c99b16408cd",
                 "responses": {
                     "200": {
-                        "description": "User logged out"
+                        "description": "Logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -289,10 +262,64 @@
                 "operationId": "d55d2f508440247e3fabf86c06bde3c0",
                 "responses": {
                     "200": {
-                        "description": "Token refreshed"
+                        "description": "Token refreshed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "xx|xxxxxxxxxxxxxxxx"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token refreshed successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "User not found"
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -370,26 +397,19 @@
                 ],
                 "summary": "Forgot password",
                 "operationId": "bec21449eec6398ae8185be236ac0fc6",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "User Email",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "example@email.com"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Password reset link sent",
@@ -407,8 +427,33 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Invalid email"
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email field must be a valid email address."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The email field must be a valid email address."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -420,43 +465,48 @@
                 ],
                 "summary": "Reset password",
                 "operationId": "d1ac03096417e6f2d3d873a7df9a842d",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "token",
-                                    "email",
-                                    "password",
-                                    "password_confirmation"
-                                ],
-                                "properties": {
-                                    "token": {
-                                        "type": "string",
-                                        "example": "token"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "newpassword"
-                                    },
-                                    "password_confirmation": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "newpassword"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "query",
+                        "description": "Password reset token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "token"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "User Email",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "User Password",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "password"
+                        }
+                    },
+                    {
+                        "name": "password_confirmation",
+                        "in": "query",
+                        "description": "User Password Confirmation",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "password"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Password reset successful",
@@ -474,7 +524,7 @@
                             }
                         }
                     },
-                    "400": {
+                    "422": {
                         "description": "Invalid token or email"
                     }
                 }
@@ -629,218 +679,69 @@
                 }
             }
         },
-        "/clients": {
+        "/api/campaigns/mark-processed/{id}": {
             "get": {
                 "tags": [
-                    "Clients"
+                    "Campaigns"
                 ],
-                "summary": "Get a list of clients",
-                "operationId": "41e096d09076958333faf8cff0b53042",
+                "summary": "Mark campaign as processed",
+                "operationId": "6c3923495491023ea435b2223277cd1b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Campaign ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successful response",
+                        "description": "Campaign marked as processed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/campaigns": {
+            "get": {
+                "tags": [
+                    "Campaigns"
+                ],
+                "summary": "Get all campaigns",
+                "operationId": "ab7cae905067dc68fac239b8f577823f",
+                "responses": {
+                    "200": {
+                        "description": "List of campaigns",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
+                                    "$ref": "#/components/schemas/Response"
                                 }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Store a new client",
-                "operationId": "83ac7b75c764f3ea20a542f0fce4e353",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Client Name"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "client@example.com"
-                                    }
-                                },
-                                "type": "object"
                             }
                         }
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Client created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
-                }
+                ]
             }
         },
-        "/clients/{id}": {
+        "/api/data-source": {
             "get": {
                 "tags": [
-                    "Clients"
+                    "Data-Source (Contacts)"
                 ],
-                "summary": "Get a client",
-                "operationId": "2137689c81ff286439cd96160e3d5f8e",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Client ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Update a client",
-                "operationId": "9fde07aeb9400ce29c4ae619bc91c655",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Client ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Updated Client Name"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "updatedclient@example.com"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Client updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Delete a client",
-                "operationId": "34ad86817306850c4a75c180af4d9317",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Client ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Client deleted successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Client deleted successfully."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/data-source": {
-            "get": {
-                "tags": [
-                    "Contacts"
-                ],
-                "summary": "Get contacts",
-                "operationId": "274543a930522dca1407d191723b3452",
+                "summary": "All Data-Source",
+                "operationId": "a83b9ce5f49f6ddd8084c1075986b861",
                 "parameters": [
                     {
                         "name": "per_page",
@@ -885,15 +786,20 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/Pagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "properties": {
-                                        "contacts": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "area_data": {
-                                            "type": "object"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
                                         }
                                     },
                                     "type": "object"
@@ -901,70 +807,45 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "post": {
                 "tags": [
-                    "Contacts"
+                    "Data-Source (Contacts)"
                 ],
-                "summary": "Store a new contact",
-                "operationId": "e6ca6d1cae1cd2ac613533ab33b4c537",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john.doe@example.com"
-                                    },
-                                    "phone": {
-                                        "type": "string",
-                                        "example": "1234567890"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "Create a new contact",
+                "operationId": "a1470614312769a16e82945655d65e24",
                 "responses": {
                     "200": {
                         "description": "Contact created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        },
-                                        "phone": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Contact"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/data-source/{id}": {
+        "/api/data-source/{id}": {
             "get": {
                 "tags": [
-                    "Contacts"
+                    "Data-Source (Contacts)"
                 ],
                 "summary": "Get a contact",
-                "operationId": "2e6afb61d8bc9230d8b5859ff65c5de2",
+                "operationId": "2438d6208cf248220ac26f58895d6201",
                 "parameters": [
                     {
                         "name": "id",
@@ -982,30 +863,24 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        },
-                                        "phone": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Response"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "put": {
                 "tags": [
-                    "Contacts"
+                    "Data-Source (Contacts)"
                 ],
                 "summary": "Update a contact",
-                "operationId": "b8032fa1a11051040411bcfb2e4601b3",
+                "operationId": "8286ed0f73b8ff53893c511c3616bab5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1013,64 +888,65 @@
                         "description": "Contact ID",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Contact name",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "string"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "Contact email",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    },
+                    {
+                        "name": "phone",
+                        "in": "query",
+                        "description": "Contact phone",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "string"
                         }
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john.doe@example.com"
-                                    },
-                                    "phone": {
-                                        "type": "string",
-                                        "example": "1234567890"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Contact updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        },
-                                        "phone": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Contact"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "delete": {
                 "tags": [
-                    "Contacts"
+                    "Data-Source (Contacts)"
                 ],
                 "summary": "Delete a contact",
-                "operationId": "73e8332fb2f410a6c6df9a57a916019f",
+                "operationId": "ec377e7d0efa169e010ed2b5d161a360",
                 "parameters": [
                     {
                         "name": "id",
@@ -1088,177 +964,97 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Contact deleted successfully."
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Response"
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/data-source/{id}/edit": {
-            "get": {
-                "tags": [
-                    "Contacts"
-                ],
-                "summary": "Edit a contact",
-                "operationId": "af29471deba8f049c4bb6f74ce690aa5",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Contact ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "email": {
-                                            "type": "string"
-                                        },
-                                        "phone": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/data-source/info": {
-            "post": {
-                "tags": [
-                    "Contacts"
-                ],
-                "summary": "Get contacts info",
-                "operationId": "db577520762d1101971ca48ff9949b6e",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "contacts": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "type": "object"
                             }
                         }
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
-                }
+                ]
             }
         },
-        "/recipient_lists": {
+        "/api/recipient_lists": {
             "get": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Get a list of recipient lists",
-                "operationId": "4f1fb796c55679d8d1148b97ec2f0b74",
+                "operationId": "d6c801ccc4a26bd180a00167bc906e70",
                 "responses": {
                     "200": {
                         "description": "Successful response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
+                                    "$ref": "#/components/schemas/Pagination"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "post": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Store a new recipient list",
-                "operationId": "5f405488a43a76ea3525065800369acb",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "List Name"
-                                    },
-                                    "csv_file": {
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "operationId": "091905ca8b601d6c6a04e39f0ae08bc5",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Recipient List Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "csv_file",
+                        "in": "query",
+                        "description": "CSV file with contacts",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Recipient list created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Response"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
-        "/recipient_lists/{id}": {
+        "/api/recipient_lists/{id}": {
             "get": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Get a recipient list",
-                "operationId": "dace82324437f138d3ce7e5865d0c28b",
+                "operationId": "0542c272e95225fb174299cb36a15e56",
                 "parameters": [
                     {
                         "name": "id",
@@ -1292,14 +1088,19 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "put": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Update a recipient list",
-                "operationId": "d8ab2851ed9bfcafbf5f59bec7859dde",
+                "operationId": "7527a2e706f1f6bf8a33180d439d860a",
                 "parameters": [
                     {
                         "name": "id",
@@ -1309,48 +1110,50 @@
                         "schema": {
                             "type": "integer"
                         }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Updated List Name"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Recipient List Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "source",
+                        "in": "query",
+                        "description": "Recipient List Source",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "Recipient list updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "recipientList": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Response"
                                 }
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             },
             "delete": {
                 "tags": [
                     "Recipient Lists"
                 ],
                 "summary": "Delete a recipient list",
-                "operationId": "7f2d7e7af6d4a723e5213b08de0f7466",
+                "operationId": "b90971ec79cd1b51443c60f8f23ab3f5",
                 "parameters": [
                     {
                         "name": "id",
@@ -1368,223 +1171,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "List deleted successfully."
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/Response"
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/simcards": {
-            "get": {
-                "tags": [
-                    "Simcards"
-                ],
-                "summary": "Get a list of simcards",
-                "operationId": "4104ccd24feaf825ac461386b7c086ed",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Simcards"
-                ],
-                "summary": "Store a new simcard",
-                "operationId": "222e9208ee5a3e246a95f9b2052b0edf",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Simcard Name"
-                                    },
-                                    "number": {
-                                        "type": "string",
-                                        "example": "1234567890"
-                                    }
-                                },
-                                "type": "object"
                             }
                         }
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Simcard created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "number": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/simcards/{id}": {
-            "get": {
-                "tags": [
-                    "Simcards"
-                ],
-                "summary": "Get a simcard",
-                "operationId": "512eab38d75c07b4c2fd8fed744c16d2",
-                "parameters": [
+                "security": [
                     {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Simcard ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
+                        "bearerAuth": []
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "number": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Simcards"
-                ],
-                "summary": "Update a simcard",
-                "operationId": "f8b78c08ea3c7a20ff7e2e64acd9c2cb",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Simcard ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Updated Simcard Name"
-                                    },
-                                    "number": {
-                                        "type": "string",
-                                        "example": "0987654321"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Simcard updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        },
-                                        "number": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Simcards"
-                ],
-                "summary": "Delete a simcard",
-                "operationId": "73d07e0faaabbbde4e053f300d7104bf",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Simcard ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Simcard deleted successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Simcard deleted successfully."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
+                ]
             }
         }
     },
@@ -1595,13 +1192,15 @@
                 "description": "Response block",
                 "properties": {
                     "success": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "example": "true|false"
                     },
                     "status": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "'success'|'error'"
                     },
                     "data (array)": {
-                        "example": "[string: 'string', string: array, string: object]"
+                        "example": "[string: 'string', string: array, string: object, ...]"
                     },
                     "message": {
                         "type": "string"
@@ -1633,11 +1232,131 @@
                     },
                     "created_at": {
                         "type": "string",
+                        "format": "date-time",
+                        "example": "2021-01-01 00:00:00"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2021-01-01 00:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "Pagination": {
+                "title": "Standart Response with Pagination",
+                "description": "Response block with data pagination",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "current_page": {
+                                    "type": "integer"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "[collection of models]": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "first_page_url": {
+                                    "type": "string"
+                                },
+                                "from": {
+                                    "type": "integer"
+                                },
+                                "last_page": {
+                                    "type": "integer"
+                                },
+                                "last_page_url": {
+                                    "type": "string"
+                                },
+                                "links": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "label": {
+                                                "type": "string"
+                                            },
+                                            "active": {
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "next_page_url": {
+                                    "type": "string"
+                                },
+                                "path": {
+                                    "type": "string"
+                                },
+                                "per_page": {
+                                    "type": "integer"
+                                },
+                                "prev_page_url": {
+                                    "type": "string"
+                                },
+                                "to": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "Message": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Contact": {
+                "title": "Contact",
+                "description": "Contact model",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
                         "format": "date-time"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "recipients_list_id": {
+                        "type": "integer"
+                    },
+                    "file_tag": {
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -1653,10 +1372,6 @@
     },
     "tags": [
         {
-            "name": "Accounts",
-            "description": "Accounts"
-        },
-        {
             "name": "Auth",
             "description": "Auth"
         },
@@ -1665,20 +1380,20 @@
             "description": "Broadcast Batches"
         },
         {
-            "name": "Clients",
-            "description": "Clients"
+            "name": "Campaigns",
+            "description": "Campaigns"
         },
         {
-            "name": "Contacts",
-            "description": "Contacts"
+            "name": "Data-Source (Contacts)",
+            "description": "Data-Source (Contacts)"
         },
         {
             "name": "Recipient Lists",
             "description": "Recipient Lists"
-        },
-        {
-            "name": "Simcards",
-            "description": "Simcards"
         }
-    ]
+    ],
+    "externalDocs": {
+        "description": "Alternative viewer for the API documentation",
+        "url": "/api-docs/repidoc"
+    }
 }

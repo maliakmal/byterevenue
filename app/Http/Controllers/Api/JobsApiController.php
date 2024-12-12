@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\JobRegenerateRequest;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
+use App\Services\BatchFileDownloadService;
 use App\Services\Campaign\CampaignService;
 use App\Services\JobService;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,12 +19,14 @@ class JobsApiController extends ApiController
      * @param CampaignService $campaignService
      * @param BroadcastLogRepositoryInterface $broadcastLogRepository
      * @param JobService $jobService
+     * @param BatchFileDownloadService $batchFileDownloadService
      */
     public function __construct(
         protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
         protected CampaignService $campaignService,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
-        protected JobService $jobService
+        protected JobService $jobService,
+        protected BatchFileDownloadService $batchFileDownloadService,
     ) {}
 
     /**
@@ -98,69 +99,9 @@ class JobsApiController extends ApiController
         return $this->responseSuccess(message: $result['success']);
     }
 
-    /**
-     * Method for webhooks data
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateSentMessage(Request $request): JsonResponse
+    public function downloadFile($filename)
     {
-        $request->validate([
-            'u' => ['required', 'string', 'size:8'],
-        ]);
-
-        $uid = $request->u;
-        $model = $this->broadcastLogRepository->findBy('slug', $uid);
-
-        if (!$model) {
-            // answer for outside services
-            return response()->error('not found');
-        }
-
-        if (
-            !$this->broadcastLogRepository->updateByModel([
-                'sent_at' => Carbon::now(),
-                'is_sent' => true,
-                'status' => BroadcastLogStatus::SENT,
-            ], $model)
-        ) {
-            // answer for outside services
-            return response()->error('update failed');
-        }
-        // answer for outside services
-        return response()->success();
-    }
-
-    /**
-     * Method for webhooks data
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateClickMessage(Request $request): JsonResponse
-    {
-        $request->validate([
-            'u' => ['required', 'string', 'size:8'],
-        ]);
-
-        $uid = $request->u;
-        $model = $this->broadcastLogRepository->findBy('slug', $uid);
-
-        if (!$model) {
-            // answer for outside services
-            return response()->error('not found');
-        }
-
-        if (
-            !$this->broadcastLogRepository->updateByModel([
-                'is_click' => true,
-                'clicked_at' => Carbon::now(),
-            ], $model)
-        ) {
-            // answer for outside services
-            return response()->error('update failed');
-        }
-        // answer for outside services
-        return response()->success();
+        return $this->batchFileDownloadService->streamingNewBatchFile($filename);
     }
 
     public function downloadFile($id)

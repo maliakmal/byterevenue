@@ -8,7 +8,7 @@
 </head>
 <body>
 <rapi-doc
-    spec-url="{{ url('docs') }}"
+    spec-url="{{ url('documentation') }}"
     theme="light"
     show-header="true"
     allow-spec-url-load="false"

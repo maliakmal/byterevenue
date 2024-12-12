@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ContactApiController extends ApiController
 {
+    // TODO:: Admin privileges for some methods in this controller (e.g. destroy method), or edit other models
+
     /**
      * @param ContactService $contactService
      */
