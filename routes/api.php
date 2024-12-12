@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\RecipientsListApiController;
 use App\Http\Controllers\Api\BroadcastBatchApiController;
 use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
+use App\Http\Controllers\Api\BatchFileApiController;
 use App\Http\Middleware\CheckAdminRole;
 
 // group auth routes for auth api
@@ -50,11 +51,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 //    Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
 
 //    Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
-
-//    Route::post('batch_files', [BatchFileApiController::class, 'index']);
-//    Route::post('batch_files/check-status', [BatchFileApiController::class, 'checkStatus']);
-//    Route::post('batch_files/get-form-content-from-campaign', [BatchFileApiController::class, 'getFormContentFromCampaign']);
 });
+
+Route::post('batch_files', [BatchFileApiController::class, 'index']);
+Route::post('batch_files/check-status', [BatchFileApiController::class, 'checkStatus']);
+Route::post('batch_files/get-form-content-from-campaign', [BatchFileApiController::class, 'getFormContentFromCampaign']);
 
 // ADMIN options
 Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
