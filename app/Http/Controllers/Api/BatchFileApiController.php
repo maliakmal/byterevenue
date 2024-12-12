@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\ApiController;
 use App\Models\BatchFile;
 use App\Models\Campaign;
+use App\Models\UrlShortener;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use Illuminate\Http\JsonResponse;
@@ -82,9 +83,11 @@ class BatchFileApiController extends ApiController
             'message' => $message,
         ];
 
+        $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get()->toArray();
+
         foreach($campaigns as $campaign) {
 
-            foreach($campaign->batchFiles()->orderby('id', 'desc')->get() as $file){
+            foreach($campaign->batchFiles()->orderby('id', 'desc')->get() as $file) {
                 $one = $file->toArray();
                 $batch_no = $file->getBatchFromFilename();
                 // get all entries with the campaig id and the batch no
@@ -99,6 +102,7 @@ class BatchFileApiController extends ApiController
         }
 
         $result['files'] = $files;
+        $result['urlShorteners'] = $urlShorteners;
 
         return $this->responseSuccess($result);
     }
