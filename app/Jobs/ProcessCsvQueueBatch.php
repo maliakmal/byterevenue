@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\GlobalCachingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,6 +35,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
     protected $campaignShortUrlRepository = null;
     protected $urlShortenerRepository     = null;
     protected $broadcastLogRepository     = null;
+    protected $cache_service              = null;
 
     const QUEUE_KEY = 'CSV_generate_processing';
 
@@ -52,6 +54,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
         $this->campaign_short_urls = $params['campaign_short_urls'] ?? $this->campaign_short_urls;
+        $this->cache_service       = app()->make(GlobalCachingService::class);
 
         $this->onQueue(self::QUEUE_KEY);
     }
@@ -147,6 +150,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
         } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update(['is_ready' => 1]);
+                $this->cache_service->setWarmingCacheRequest('global_queue');
             }
         }
     }

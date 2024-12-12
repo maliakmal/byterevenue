@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
+use App\Services\GlobalCachingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -35,6 +36,7 @@ class ProcessCsvRegenQueueBatch extends BaseJob implements ShouldQueue
     protected $batch_file        = null;
     protected $is_last           = false;
     protected $campaign_short_urls = [];
+    protected $cache_service       = null;
 
     const QUEUE_KEY = 'CSV_generate_processing';
 
@@ -54,6 +56,7 @@ class ProcessCsvRegenQueueBatch extends BaseJob implements ShouldQueue
         $this->batch_file          = $params['batch_file']          ?? $this->batch_file;
         $this->is_last             = $params['is_last']             ?? $this->is_last;
         $this->campaign_short_urls = $params['campaign_short_urls'] ?? $this->campaign_short_urls;
+        $this->cache_service       = app()->make(GlobalCachingService::class);
 
         $this->onQueue(self::QUEUE_KEY);
     }
@@ -171,5 +174,7 @@ class ProcessCsvRegenQueueBatch extends BaseJob implements ShouldQueue
             Log::error("REgenerateJob (batch file id: ". $this->batch_file->id .") -> Error updating broadcast_logs: " . $e->getMessage());
             $this->batch_file->update(['has_errors' => 1]);
         }
+
+        $this->cache_service->setWarmingCacheRequest('global_queue');
     }
 }

@@ -117,36 +117,6 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $ids->toArray();
     }
 
-
-    public function getQueueStats()
-    {
-        $result = [];
-
-//        $result['total_in_queue'] = $this->model->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
-//                                                ->where('campaigns.is_ignored_on_queue', '=', 0)->count();
-//        $result['total_not_downloaded_in_queue'] = $this->model->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
-//                                                ->where('campaigns.is_ignored_on_queue', '=', 0)->where('is_downloaded_as_csv', 0)->count();
-
-        $notIgnoredCampaigns = \DB::table('campaigns')->where('is_ignored_on_queue', '=', 0)->pluck('id')->toArray();
-
-//        $result['total_in_queue'] = $this->model
-//            ->whereIn('campaign_id', $notIgnoredCampaigns)
-//            ->whereNull('batch')
-//            ->count();
-//
-//        $result['total_not_downloaded_in_queue'] = $this->model
-//            ->whereIn('campaign_id', $notIgnoredCampaigns)
-//            ->whereNull('batch')
-//            ->where('is_downloaded_as_csv', 0)
-//            ->count();
-
-        $result['total_in_queue'] = 101;
-
-        $result['total_not_downloaded_in_queue'] = 102;
-
-        return $result;
-    }
-
     public function getTotalSentAndClicksByCampaign($campaign_id)
     {
         $totals = \DB::connection('mysql')

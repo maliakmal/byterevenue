@@ -21,4 +21,6 @@ Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 
 Schedule::command('app:create-missing-keitaro-campaigns')->everyTenMinutes()->withoutOverlapping();
 
+Schedule::command('app:warm-cache')->everyMinute()->withoutOverlapping();
+
 // Schedule::command('sync:recipients-group')->everyHour()->withoutOverlapping();

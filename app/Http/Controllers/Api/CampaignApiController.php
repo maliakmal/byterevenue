@@ -10,6 +10,7 @@ use App\Models\RecipientsList;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
+use App\Services\GlobalCachingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,12 +31,14 @@ class CampaignApiController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function markAsIgnoreFromQueue(Request $request): JsonResponse
+    public function markAsIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = true;
         $campaign->save();
-        $result = $this->broadcastLogRepository->getQueueStats();
+        $result = [];
+        $result['total_in_queue'] = $cachingService->getTotalInQueue();
+        $result['total_not_downloaded_in_queue'] = $cachingService->getTotalNotDownloadedInQueue();
         $result['campaign'] = $campaign;
 
         return $this->responseSuccess(options: $result);
@@ -45,12 +48,14 @@ class CampaignApiController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function markAsNotIgnoreFromQueue(Request $request): JsonResponse
+    public function markAsNotIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = false;
         $campaign->save();
-        $result = $this->broadcastLogRepository->getQueueStats();
+        $result = [];
+        $result['total_in_queue'] = $cachingService->getTotalInQueue();
+        $result['total_not_downloaded_in_queue'] = $cachingService->getTotalNotDownloadedInQueue();
         $result['campaign'] = $campaign;
 
         return $this->responseSuccess(options: $result);

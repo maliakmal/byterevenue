@@ -10,6 +10,7 @@ use App\Models\BroadcastLog;
 use App\Models\CampaignShortUrl;
 use App\Models\RecipientsGroup;
 use App\Models\RecipientsList;
+use App\Services\GlobalCachingService;
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Console\Command;
@@ -33,8 +34,8 @@ class tmpTest extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(GlobalCachingService $cachingService)
     {
-        //
+        $cachingService->setWarmingCacheRequest('global_queue');
     }
 }

@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -32,7 +31,7 @@ class JobService
      */
     public function index(Request $request)
     {
-        $download_me = null;
+        $globalCachingService = new GlobalCachingService();
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
@@ -41,17 +40,15 @@ class JobService
             ->orderby('id', 'desc')
             ->get();
 
-        $files = BatchFile::with('urlShortener')//TODO:: count of campaigns from campaigns_ids field
+        $files = BatchFile::with('urlShortener') //???TODO:: count of campaigns from campaigns_ids field
             ->orderby($sortBy, $sortOrder)
             ->paginate(15);
 
         // get count of all messages in the queue
-        $queue_stats = $this->broadcastLogRepository->getQueueStats();
-        $params['total_in_queue'] = $queue_stats['total_in_queue'];
+        $params['total_in_queue'] = $globalCachingService->getTotalInQueue();
         $params['files'] = $files;
-        $params['download_me'] = $download_me;
         $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];// BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
+        $params['total_not_downloaded_in_queue'] = $globalCachingService->getTotalNotDownloadedInQueue();
 
         return $params;
     }
@@ -452,17 +449,16 @@ class JobService
             : $this->campaignService->getUnsentByIds($uniq_campaign_ids);
 
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
+        $globalCachingService = new GlobalCachingService();
 
         $params = [];
         $params['clients'] = User::all();
         $params['selected_client'] = $user_id;
-        $queue_stats = $this->broadcastLogRepository->getQueueStats();
-        $params['total_in_queue'] = $queue_stats['total_in_queue'];//BroadcastLog::select()->count();
+        $params['total_in_queue'] = $globalCachingService->getTotalInQueue();
         $params['campaigns'] = $campaigns;
         $params['files'] = [];
         $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $queue_stats['total_not_downloaded_in_queue'];
-        //BroadcastLog::select()->where('is_downloaded_as_csv', 0)->count();
+        $params['total_not_downloaded_in_queue'] = $globalCachingService->getTotalNotDownloadedInQueue();
 
         return $params;
     }
