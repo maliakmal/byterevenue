@@ -22,7 +22,8 @@ class RecipientsListApiController extends ApiController
      */
     public function __construct(
         private RecipientListService $recipientListService,
-    ) {}
+    ) {
+    }
 
     /**
      * @param Request $request
@@ -77,7 +78,9 @@ class RecipientsListApiController extends ApiController
     {
         $recipientsList = RecipientsList::findOrFail($id);
         $recipientsGroup = $recipientsList->recipientsGroup;
-        $contacts = $recipientsGroup->getAllContactsPaginated(10);
+        $contacts = [];
+        if (isset($recipientsGroup))
+            $contacts = $recipientsGroup->getAllContactsPaginated(10);
 
         return $this->responseSuccess([
             'recipientList' => $recipientsList,
@@ -107,7 +110,7 @@ class RecipientsListApiController extends ApiController
     {
         $item = RecipientsList::withCount('campaigns')->findOrFail($id);
         if ($item->campaigns_count > 0) {
-            return $this->responseError('List is associated with a campaign - this cannot be deleted.');
+            return $this->responseError(message: 'List is associated with a campaign - this cannot be deleted.');
         }
 
         $item->delete();
