@@ -13,14 +13,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * @OA\Tag(
- *     name="RecipientLists",
- *     description="Operations about user"
- * )
- */
 class RecipientsListApiController extends ApiController
 {
+    // TODO::CONTROL OF OWNER OF THE LIST!
+
     /**
      * @param RecipientListService $recipientListService
      */

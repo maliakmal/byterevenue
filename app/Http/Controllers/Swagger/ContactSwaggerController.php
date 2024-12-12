@@ -11,9 +11,10 @@ class ContactSwaggerController extends SwaggerController
 {
     /**
      * @OA\Get(
-     *     path="/data-source",
-     *     summary="Get contacts",
-     *     tags={"Contacts"},
+     *     path="/api/data-source",
+     *     summary="All Data-Source",
+     *     tags={"Data-Source (Contacts)"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="per_page",
      *         in="query",
@@ -45,10 +46,13 @@ class ContactSwaggerController extends SwaggerController
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
+     *         @OA\JsonContent(ref="#/components/schemas/Pagination")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
      *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="contacts", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="area_data", type="object")
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
      *         )
      *     )
      * )
@@ -59,26 +63,17 @@ class ContactSwaggerController extends SwaggerController
 
     /**
      * @OA\Post(
-     *     path="/data-source",
-     *     summary="Store a new contact",
-     *     tags={"Contacts"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", example="john.doe@example.com"),
-     *             @OA\Property(property="phone", type="string", example="1234567890")
-     *         )
-     *     ),
+     *     path="/api/data-source",
+     *     summary="Create a new contact",
+     *     tags={"Data-Source (Contacts)"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Property(property="name", type="string", example="John Doe", description="Contact name", required=true),
+     *     @OA\Property(property="email", type="string", example="example@mail.com", description="Contact email", required=true),
+     *     @OA\Property(property="phone", type="string", example="1234567890", description="Contact phone", required=true),
      *     @OA\Response(
      *         response=200,
      *         description="Contact created successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="phone", type="string")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/Contact"),
      *     )
      * )
      * @param ContactStoreRequest $request
@@ -88,9 +83,10 @@ class ContactSwaggerController extends SwaggerController
 
     /**
      * @OA\Get(
-     *     path="/data-source/{id}",
+     *     path="/api/data-source/{id}",
      *     summary="Get a contact",
-     *     tags={"Contacts"},
+     *     tags={"Data-Source (Contacts)"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -101,12 +97,7 @@ class ContactSwaggerController extends SwaggerController
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="phone", type="string")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/Response")
      *     )
      * )
      * @param int $id
@@ -115,75 +106,66 @@ class ContactSwaggerController extends SwaggerController
     public function show(int $id) {}
 
     /**
-     * @OA\Get(
-     *     path="/data-source/{id}/edit",
-     *     summary="Edit a contact",
-     *     tags={"Contacts"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer"),
-     *         description="Contact ID"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="phone", type="string")
-     *         )
-     *     )
-     * )
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function edit(int $id) {}
-
-    /**
      * @OA\Put(
-     *     path="/data-source/{id}",
+     *     path="/api/data-source/{id}",
      *     summary="Update a contact",
-     *     tags={"Contacts"},
+     *     tags={"Data-Source (Contacts)"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
-     *         @OA\Schema(type="integer"),
-     *         description="Contact ID"
+     *         description="Contact ID",
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
      *     ),
-     *     @OA\RequestBody(
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", example="john.doe@example.com"),
-     *             @OA\Property(property="phone", type="string", example="1234567890")
+     *         description="Contact name",
+     *         @OA\Schema(
+     *             type="string",
+     *             format="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         required=true,
+     *         description="Contact email",
+     *         @OA\Schema(
+     *             type="string",
+     *             format="email"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="phone",
+     *         in="query",
+     *         required=true,
+     *         description="Contact phone",
+     *         @OA\Schema(
+     *             type="string",
+     *             format="string"
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Contact updated successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="phone", type="string")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/Contact")
      *     )
      * )
-     * @param int $id
-     * @param ContactUpdateRequest $request
-     * @return JsonResponse
      */
     public function update(int $id, ContactUpdateRequest $request) {}
 
     /**
      * @OA\Delete(
-     *     path="/data-source/{id}",
+     *     path="/api/data-source/{id}",
      *     summary="Delete a contact",
-     *     tags={"Contacts"},
+     *     tags={"Data-Source (Contacts)"},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -194,38 +176,11 @@ class ContactSwaggerController extends SwaggerController
      *     @OA\Response(
      *         response=200,
      *         description="Contact deleted successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string", example="Contact deleted successfully.")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/Response")
      *     )
      * )
      * @param int $id
      * @return JsonResponse
      */
     public function destroy(int $id) {}
-
-    /**
-     * @OA\Post(
-     *     path="/data-source/info",
-     *     summary="Get contacts info",
-     *     tags={"Contacts"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="contacts", type="array", @OA\Items(type="integer"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful response",
-     *         @OA\JsonContent(
-     *             type="object"
-     *         )
-     *     )
-     * )
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function contactsInfo(Request $request) {}
 }

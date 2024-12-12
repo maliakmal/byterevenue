@@ -6,15 +6,9 @@ use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CampaignsGetRequest;
 use App\Http\Requests\JobRegenerateRequest;
-use App\Jobs\CreateCampaignsOnKeitaro;
-use App\Jobs\ProcessCsvQueueBatch;
-use App\Models\BatchFile;
-use App\Models\BroadcastLog;
-use App\Models\Campaign;
-use App\Models\CampaignShortUrl;
-use App\Models\UrlShortener;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
+use App\Services\BatchFileDownloadService;
 use App\Services\Campaign\CampaignService;
 use App\Services\JobService;
 use Carbon\Carbon;
@@ -22,7 +16,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JobsController extends Controller
@@ -31,7 +24,8 @@ class JobsController extends Controller
         protected CampaignShortUrlRepositoryInterface $campaignShortUrlRepository,
         protected CampaignService $campaignService,
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
-        protected JobService $jobService
+        protected JobService $jobService,
+        protected BatchFileDownloadService $batchFileDownloadService,
     ) {}
 
     /**
@@ -66,7 +60,7 @@ class JobsController extends Controller
             'type'            => ['required', 'string', 'in:fifo'],
         ]);
 
-        $result = $this->jobService->processGenerate($params, needFullResponse: $request->ajax());
+        $result = $this->jobService->processGenerate($params);
 
         if ($result['error'] ?? null) {
             return redirect()->route('jobs.index')->with('error', $result['error']);
@@ -119,34 +113,13 @@ class JobsController extends Controller
         return redirect()->route('jobs.index')->with('success', $result['success']);
     }
 
+    /**
+     * @param $filename
+     * @return StreamedResponse
+     */
     public function downloadFile($filename)
     {
-        $batch = BatchFile::find($filename);
-        $response = new StreamedResponse(function () use ($batch) {
-            $handle = fopen('php://output', 'w');
-            // Output the column headings
-            fputcsv($handle, ['UID', 'Phone', 'Subject', 'Text']);
-
-            $batch_no = $batch->getBatchFromFilename();
-
-            // Query and write data to the file
-            $rows = BroadcastLog::select()->where('batch', '=', $batch_no)->orderby('id', 'ASC')->cursor();
-            foreach ($rows as $row) {
-                fputcsv($handle, [
-                    trim($row->slug),
-                    trim($row->recipient_phone),
-                    '',
-                    trim($row->message_body),
-                ]);
-            }
-
-            fclose($handle);
-        });
-
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '.csv"');
-
-        return $response;
+        return $this->batchFileDownloadService->streamingNewBatchFile($filename);
     }
 
     /**
