@@ -9,7 +9,7 @@ class GlobalCachingService
     const CACHE_PREFIX            = 'global_caching_';
     const CACHE_REQUEST_PREFIX    = 'global_caching_request_';
     const CACHE_PROCESSING_PREFIX = 'global_caching_processing_';
-    const DEFAULT_CACHE_TTL = 60; // 1 hours
+    const DEFAULT_CACHE_TTL = 60 * 60; // 1 hours
     const GLOBAL_CACHE_KEYS = [
         'global_queue',
     ];
@@ -40,18 +40,14 @@ class GlobalCachingService
     public function warmCacheProcessing(): void
     {
         // global_queue data
-        if (cache()->get(self::CACHE_REQUEST_PREFIX . 'global_queue')) {
-            $this->runCurrentProcessing('global_queue', function () {
-                GlobalQueueWarmCacheJob::dispatch();
-            });
-        }
+        $this->runCurrentProcessing('global_queue', function () {
+            GlobalQueueWarmCacheJob::dispatch();
+        });
 
         // other keys data
-        if (cache()->get(self::CACHE_REQUEST_PREFIX . 'other_key')) {
-            $this->runCurrentProcessing('other_key', function () {
-                //
-            });
-        }
+        $this->runCurrentProcessing('other_key', function () {
+            //
+        });
     }
 
     private function runCurrentProcessing(string $key, callable $callback): void

@@ -38,8 +38,6 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
      */
     public function handle(BroadcastLogRepository $broadcastLogRepository): void
     {
-        \Log::debug('Refreshing broadcast log cache');
-
         $start = microtime(true);
 
         Cache::forever('ready_'. $this->startEndString, true);

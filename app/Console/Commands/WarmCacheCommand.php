@@ -34,6 +34,6 @@ class WarmCacheCommand extends Command
             $cachingService->setWarmingCacheRequest('global_queue');
         }
 
-        //$cachingService->warmCacheProcessing();
+        $cachingService->warmCacheProcessing();
     }
 }
