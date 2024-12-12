@@ -733,15 +733,13 @@
                         "bearerAuth": []
                     }
                 ]
-            }
-        },
-        "/api/campaigns/create": {
-            "put": {
+            },
+            "post": {
                 "tags": [
                     "Campaigns"
                 ],
                 "summary": "Create a new campaign",
-                "operationId": "4ba964755b48d56039336b83233d2ecb",
+                "operationId": "67abf3039962f8acce346f1e85f143c3",
                 "requestBody": {
                     "required": true,
                     "content": {

@@ -50,8 +50,8 @@ class CampaignSwaggerController extends SwaggerController
     public function show(int $id, Request $request) {}
 
     /**
-     * @OA\Put(
-     *     path="/api/campaigns/create",
+     * @OA\Post(
+     *     path="/api/campaigns",
      *     summary="Create a new campaign",
      *     tags={"Campaigns"},
      *     security={{"bearerAuth": {}}},
