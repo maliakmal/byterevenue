@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\CampaignShortUrl\CampaignShortUrlRepository;
 use App\Services\Campaign\CampaignService;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -34,13 +35,19 @@ class JobService
         $download_me = null;
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
-        $urlShorteners = UrlShortener::withCount('campaignShortUrls')->onlyRegistered()->orderby('id', 'desc')->get();
+
+        $urlShorteners = UrlShortener::withCount('campaignShortUrls')
+            ->onlyRegistered()
+            ->orderby('id', 'desc')
+            ->get();
+
         $files = BatchFile::with('urlShortener')//TODO:: count of campaigns from campaigns_ids field
-            ->orderby($sortBy, $sortOrder)->paginate(15);
+            ->orderby($sortBy, $sortOrder)
+            ->paginate(15);
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
-        $params['total_in_queue'] = $queue_stats['total_in_queue'];//BroadcastLog::select()->count();
+        $params['total_in_queue'] = $queue_stats['total_in_queue'];
         $params['files'] = $files;
         $params['download_me'] = $download_me;
         $params['urlShorteners'] = $urlShorteners;
