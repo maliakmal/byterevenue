@@ -35,7 +35,7 @@ class JobService
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
         $urlShorteners = UrlShortener::withCount('campaignShortUrls')->onlyRegistered()->orderby('id', 'desc')->get();
-        $files = BatchFile::with('urlShortener')->withCount('campaigns')->orderby($sortBy, $sortOrder)->paginate(15);
+        $files = BatchFile::with('urlShortener')->orderby($sortBy, $sortOrder)->paginate(15);
 
         // get count of all messages in the queue
         $queue_stats = $this->broadcastLogRepository->getQueueStats();
