@@ -70,7 +70,7 @@ class BroadcastBatchApiController extends ApiController
      */
     public function markAsProcessed(int $id): JsonResponse
     {
-        [$result, $message] = $this->broadcastBatchService->markedAsProcessed($id);
+        [$result, $message] = $this->broadcastBatchService->markedAsProcessed(intval($id));
 
         return $result
             ? $this->responseSuccess([], $message)
