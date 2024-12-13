@@ -16,6 +16,7 @@ class RecipientsList extends Model
         return $this->belongsTo(User::class);
     }
 
+//    this relation has been reworked to RecipientsGroup ids and count attributes
 //    public function contacts()
 //    {
 //        return $this->belongsToMany(Contact::class, 'contact_recipient_list', 'recipients_list_id', 'contact_id');

@@ -36,10 +36,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        \DB::table('broadcast_logs')->where('message_id', '>', 7)
-            ->where('message_id', '<', 12)
-            ->update(['message_id' => 7]);
-
-        dd('completed');
+        //
     }
 }
