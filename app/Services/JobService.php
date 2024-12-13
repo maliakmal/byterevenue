@@ -25,7 +25,8 @@ class JobService
         private CampaignShortUrlRepository $campaignShortUrlRepository,
         private BroadcastLogRepositoryInterface $broadcastLogRepository,
         private GlobalCachingService $globalCachingService
-    ) {}
+    ) {
+    }
 
     /**
      * @return array
@@ -33,6 +34,7 @@ class JobService
     public function index(Request $request)
     {
         $id = str_replace('File', '', $request->input('search'));
+        $shortDomain = $request->input('short_domain');
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
@@ -42,8 +44,13 @@ class JobService
             ->get();
 
         $files = BatchFile::with('urlShortener') //???TODO:: count of campaigns from campaigns_ids field
-            ->when($id, function($query, $id) {
+            ->when($id, function ($query, $id) {
                 return $query->whereId($id);
+            })
+            ->when($shortDomain, function ($query, $shortDomain) {
+                return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
+                });
             })
             ->orderby($sortBy, $sortOrder)
             ->paginate(15);
@@ -80,16 +87,16 @@ class JobService
             Log::alert('GenerateService -> keitaro campaignShortUrl create: ', [
                 'uniq_campaign_id: ' => $uniq_campaign_id,
                 'urlShortenerName: ' => $urlShortenerName,
-                'url_shortener'      => $urlShortener,
+                'url_shortener' => $urlShortener,
                 'alias_for_campaign' => $alias_for_campaign,
-                'url_for_keitaro'    => $url_for_keitaro,
+                'url_for_keitaro' => $url_for_keitaro,
             ]);
 
             $result['new'] = $this->campaignShortUrlRepository->create([
-                'campaign_id'        => $uniq_campaign_id,
-                'url_shortener'      => $url_for_keitaro,    // store reference to the short domain <-> campaign
-                'campaign_alias'     => $alias_for_campaign,
-                'url_shortener_id'   => $urlShortener->id,
+                'campaign_id' => $uniq_campaign_id,
+                'url_shortener' => $url_for_keitaro,    // store reference to the short domain <-> campaign
+                'campaign_alias' => $alias_for_campaign,
+                'url_shortener_id' => $urlShortener->id,
                 'deleted_on_keitaro' => false
             ]);
         }
@@ -99,14 +106,14 @@ class JobService
 
     public function processGenerate(array $params)
     {
-        $requestCount      = intval($params['number_messages']); // count of records in CSV
-        $urlShortenerName  = trim($params['url_shortener']);
+        $requestCount = intval($params['number_messages']); // count of records in CSV
+        $urlShortenerName = trim($params['url_shortener']);
 
         Log::alert('Request for CSV generation. Starting process...', $params);
 
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
-        $domain_id    = $urlShortener->asset_id;
-        $campaign_short_urls     = [];
+        $domain_id = $urlShortener->asset_id;
+        $campaign_short_urls = [];
         $campaign_short_urls_new = [];
         $batchSize = 1000; // ids scope for each job
 
@@ -123,7 +130,7 @@ class JobService
             return ['error' => 'No messages ready for CSV generation.'];
         }
 
-//        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
+        //        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
         $campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
@@ -154,7 +161,7 @@ class JobService
         $numBatches = intval(ceil($availableCount / $batchSize));
         $batch_no = str_replace('.', '', microtime(true));
 
-        Log::info('GenerateService -> Request count: '. $requestCount .' ; Records available '. $availableCount);
+        Log::info('GenerateService -> Request count: ' . $requestCount . ' ; Records available ' . $availableCount);
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";
 
@@ -203,16 +210,16 @@ class JobService
 
     public function processGenerateByCampaigns(array $params)
     {
-        $requestCount     = intval($params['number_messages']); // count of records in CSV
+        $requestCount = intval($params['number_messages']); // count of records in CSV
         $urlShortenerName = trim($params['url_shortener']);
-        $campaign_ids     = $params['campaign_ids'] ?? [];
-        $campaigns_data   = [];
+        $campaign_ids = $params['campaign_ids'] ?? [];
+        $campaigns_data = [];
 
         Log::alert('Request for CSV generation. Starting process...', $params);
 
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
-        $domain_id    = $urlShortener->asset_id;
-        $campaign_short_urls     = [];
+        $domain_id = $urlShortener->asset_id;
+        $campaign_short_urls = [];
         $campaign_short_urls_new = [];
         $batchSize = 1000; // ids scope for each job
 
@@ -264,7 +271,7 @@ class JobService
         $availableCount = $totalRecords > $requestCount ? $requestCount : $totalRecords;
         $batch_no = str_replace('.', '', microtime(true));
 
-        Log::info('GenerateService -> Request count: '. $requestCount .' ; Records available '. $availableCount);
+        Log::info('GenerateService -> Request count: ' . $requestCount . ' ; Records available ' . $availableCount);
 
         $filename = "/csv/byterevenue-messages-$batch_no.csv";
 
@@ -290,7 +297,8 @@ class JobService
             foreach ($campaigns_count as $campaign_id => $records_count) {
                 $chunk = $part > $campaigns_count[$campaign_id] ? $campaigns_count[$campaign_id] : $part;
 
-                if ($chunk <= 0 || $availableCount <=0) continue;
+                if ($chunk <= 0 || $availableCount <= 0)
+                    continue;
 
                 $params = [
                     'batchSize' => $chunk,
@@ -407,11 +415,11 @@ class JobService
             'filename' => $filename,
             'path' => $filename, // duplicated filename mb remove
             'number_of_entries' => $total,
-            'is_ready'          => 0,
-            'prev_batch_id'     => $original_batch->id,
-            'campaign_ids'      => $campaign_ids,
-            'url_shortener_id'  => $urlShortener->id,
-            'type'              => 'regen',
+            'is_ready' => 0,
+            'prev_batch_id' => $original_batch->id,
+            'campaign_ids' => $campaign_ids,
+            'url_shortener_id' => $urlShortener->id,
+            'type' => 'regen',
         ]);
 
         $batch_file->campaigns()->attach($campaign_ids);
