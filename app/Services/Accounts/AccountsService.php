@@ -21,7 +21,7 @@ class AccountsService
     public function getAccounts(Request $request)
     {
         $filter = [
-            'username' => request('search'),
+            'account' => request('account'),
             'sort_by' => request('sort_by', 'id'),
             'sort_order' => request('sort_order', 'desc'),
             'per_page' => request('per_page', 15),
@@ -44,8 +44,8 @@ class AccountsService
                     ->limit(1),
             ]);
 
-        if (!empty($filter['username'])) {
-            $accounts->where('name', $filter['username']);
+        if (!empty($filter['account'])) {
+            $accounts->where('name', 'like', '%' . $filter['account'] . '%')->orWhere('email', 'like', '%' . $filter['account'] . '%');
         }
 
         $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
@@ -131,5 +131,11 @@ class AccountsService
         }
 
         return $transactions->get();
+    }
+
+    public function delete($id)
+    {
+        User::whereId($id)->delete();
+        return ['message' => 'Account deleted successfully.'];
     }
 }

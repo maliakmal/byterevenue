@@ -66,4 +66,19 @@ class AccountsApiController extends ApiController
 
         return $this->responseSuccess($response);
     }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function delete($id): JsonResponse
+    {
+        $response = $this->accountsService->delete($id);
+
+        if (isset($response['errors'])) {
+            return $this->responseError($response['errors']);
+        }
+
+        return $this->responseSuccess($response);
+    }
 }

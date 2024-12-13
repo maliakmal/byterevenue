@@ -61,6 +61,7 @@ Route::post('batch_files/get-form-content-from-campaign', [BatchFileApiControlle
 Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
+    Route::delete('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
     Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
 
