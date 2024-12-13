@@ -32,6 +32,7 @@ class JobService
      */
     public function index(Request $request)
     {
+        $id = str_replace('File', '', $request->input('search'));
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
@@ -41,6 +42,7 @@ class JobService
             ->get();
 
         $files = BatchFile::with('urlShortener') //???TODO:: count of campaigns from campaigns_ids field
+            ->whereId($id)
             ->orderby($sortBy, $sortOrder)
             ->paginate(15);
 
