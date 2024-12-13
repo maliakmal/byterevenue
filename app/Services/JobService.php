@@ -34,7 +34,6 @@ class JobService
     public function index(Request $request)
     {
         $id = str_replace('File', '', $request->input('search'));
-        $shortDomain = $request->input('short_domain');
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
