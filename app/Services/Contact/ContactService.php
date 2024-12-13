@@ -29,8 +29,8 @@ class ContactService
         $area_code  = $request->input('area_code', '');
         $status     = $request->input('status');
         $phone      = $request->input('phone', '');
-        $sortBy       = $request->input('sort_by', 'id');
-        $sortOrder       = $request->input('sort_order', 'desc');
+        $sortBy     = $request->input('sort_by', 'id');
+        $sortOrder  = $request->input('sort_order', 'desc');
 
         $filter_phone = $area_code ?: '%';
         $filter_phone .= ($phone ?: '') .'%';
@@ -67,9 +67,9 @@ class ContactService
             ->where('is_sent', true)
             ->count();
 
-        $campaigns = BroadcastLog::whereIn('contact_id', $ids)
-            ->groupBy('campaign_id')
-            ->count();
+        $campaigns = 0;//BroadcastLog::whereIn('contact_id', $ids)
+//            ->groupBy('campaign_id')
+//            ->count();
 
         // $recipientLists = DB::table('contact_recipient_list')
         //     ->whereIn('contact_id', $ids)
