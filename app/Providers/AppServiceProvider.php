@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Campaign;
 use App\Models\Setting;
 use App\Models\User;
+use App\Observers\CampaignObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -55,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
                 . '&email='
                 . $user->getEmailForPasswordReset();
         });
+
+        Campaign::observe(CampaignObserver::class);
     }
 
     private function registerConfigs()

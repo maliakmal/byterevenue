@@ -10,7 +10,9 @@ use Tuupola\Base62;
 class Campaign extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
+
     const STATUS_DRAFT = 0;
     const STATUS_PROCESSING = 1;
     const STATUS_DONE = 2;

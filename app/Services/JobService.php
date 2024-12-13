@@ -23,7 +23,8 @@ class JobService
     public function __construct(
         private CampaignService $campaignService,
         private CampaignShortUrlRepository $campaignShortUrlRepository,
-        private BroadcastLogRepositoryInterface $broadcastLogRepository
+        private BroadcastLogRepositoryInterface $broadcastLogRepository,
+        private GlobalCachingService $globalCachingService
     ) {}
 
     /**
@@ -31,7 +32,6 @@ class JobService
      */
     public function index(Request $request)
     {
-        $globalCachingService = new GlobalCachingService();
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
@@ -45,10 +45,10 @@ class JobService
             ->paginate(15);
 
         // get count of all messages in the queue
-        $params['total_in_queue'] = $globalCachingService->getTotalInQueue();
+        $params['total_in_queue'] = $this->globalCachingService->getTotalInQueue();
         $params['files'] = $files;
         $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $globalCachingService->getTotalNotDownloadedInQueue();
+        $params['total_not_downloaded_in_queue'] = $this->globalCachingService->getTotalNotDownloadedInQueue();
 
         return $params;
     }
@@ -119,7 +119,8 @@ class JobService
             return ['error' => 'No messages ready for CSV generation.'];
         }
 
-        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
+//        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
+        $campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
@@ -441,7 +442,8 @@ class JobService
     public function campaigns(array $data)
     {
         // get all campaigns which have messages ready to be sent
-        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+        // $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+        $uniq_campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
         $user_id = $data['filter_client'] ?? null;
 
         $campaigns = isset($user_id)
@@ -449,16 +451,15 @@ class JobService
             : $this->campaignService->getUnsentByIds($uniq_campaign_ids);
 
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get();
-        $globalCachingService = new GlobalCachingService();
 
         $params = [];
         $params['clients'] = User::all();
         $params['selected_client'] = $user_id;
-        $params['total_in_queue'] = $globalCachingService->getTotalInQueue();
+        $params['total_in_queue'] = $this->globalCachingService->getTotalInQueue();
         $params['campaigns'] = $campaigns;
         $params['files'] = [];
         $params['urlShorteners'] = $urlShorteners;
-        $params['total_not_downloaded_in_queue'] = $globalCachingService->getTotalNotDownloadedInQueue();
+        $params['total_not_downloaded_in_queue'] = $this->globalCachingService->getTotalNotDownloadedInQueue();
 
         return $params;
     }

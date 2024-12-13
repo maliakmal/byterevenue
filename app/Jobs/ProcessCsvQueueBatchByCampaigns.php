@@ -65,6 +65,7 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
             ->whereNull('batch')
+            ->where('is_downloaded_as_csv', 0)
             ->limit($this->batchSize);
 
         if (!empty($this->campaign_ids)) {
@@ -143,13 +144,19 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
             \DB::statement($sql);
 
             $this->batch_file->increment('generated_count', $casesCount);
+
+            cache()->put(
+                GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue',
+                cache(GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue', 0) - $casesCount,
+                GlobalCachingService::DEFAULT_CACHE_TTL
+            );
         } catch (\Exception $e) {
             Log::error('GenerateJob -> Error updating broadcast_logs: ' . $e->getMessage());
             $this->batch_file->update(['has_errors' => 1]);
         } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update(['is_ready' => 1]);
-                $this->cache_service->setWarmingCacheRequest('global_queue');
+                $this->cache_service->setWarmingCacheRequest(['global_queue', 'unique_campaigns_ids']);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\GlobalCachingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
@@ -62,6 +63,8 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
             ];
         }
 
+        $countOfNewRecords = count($data);
+
         unset($contacts);
 
         // Insert any remaining records in the batch
@@ -70,6 +73,18 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
             try {
                 \DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
                 \DB::table('broadcast_logs')->insert($data);
+
+                cache()->put(
+                    GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue',
+                    cache(GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue', 0) + $countOfNewRecords,
+                    GlobalCachingService::DEFAULT_CACHE_TTL
+                );
+
+                cache()->put(
+                    GlobalCachingService::CACHE_PREFIX . 'total_in_queue',
+                    cache(GlobalCachingService::CACHE_PREFIX . 'total_in_queue', 0) + $countOfNewRecords,
+                    GlobalCachingService::DEFAULT_CACHE_TTL
+                );
             }
             catch (\Exception $e) {
                 \Log::error('Error inserting broadcast_logs: ' . $e->getMessage());

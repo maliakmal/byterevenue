@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\GlobalQueueWarmCacheJob;
+use App\Jobs\UniqueCampaignsIdsWarmCacheJob;
 
 class GlobalCachingService
 {
@@ -12,6 +13,7 @@ class GlobalCachingService
     const DEFAULT_CACHE_TTL = 60 * 60; // 1 hours
     const GLOBAL_CACHE_KEYS = [
         'global_queue',
+        'unique_campaigns_ids',
     ];
 
     // GETTERS
@@ -29,24 +31,39 @@ class GlobalCachingService
         return $value ?: 0;
     }
 
-    // PROCESSING
-    public function setWarmingCacheRequest(string $key): void
+    public function getUniqueCampaignsIds(): array
     {
-        if (in_array($key, self::GLOBAL_CACHE_KEYS)) {
-            cache()->put(self::CACHE_REQUEST_PREFIX . $key, time(), self::DEFAULT_CACHE_TTL);
+        $value = cache()->get(self::CACHE_PREFIX . 'unique_campaigns_ids');
+
+        return $value ?: [];
+    }
+
+    // PROCESSING
+    /** @param string|array $key */
+    public function setWarmingCacheRequest(mixed $key): void
+    {
+        if (is_array($key)) {
+            foreach ($key as $singleKey) {
+                if (in_array($singleKey, self::GLOBAL_CACHE_KEYS)) {
+                    cache()->put(self::CACHE_REQUEST_PREFIX . $singleKey, time(), self::DEFAULT_CACHE_TTL);
+                }
+            }
+        } else {
+            if (in_array($key, self::GLOBAL_CACHE_KEYS)) {
+                cache()->put(self::CACHE_REQUEST_PREFIX . $key, time(), self::DEFAULT_CACHE_TTL);
+            }
         }
+
     }
 
     public function warmCacheProcessing(): void
     {
-        // global_queue data
         $this->runCurrentProcessing('global_queue', function () {
             GlobalQueueWarmCacheJob::dispatch();
         });
 
-        // other keys data
-        $this->runCurrentProcessing('other_key', function () {
-            //
+        $this->runCurrentProcessing('unique_campaigns_ids', function () {
+            UniqueCampaignsIdsWarmCacheJob::dispatch();
         });
     }
 

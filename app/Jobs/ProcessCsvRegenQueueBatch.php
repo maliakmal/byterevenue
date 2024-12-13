@@ -156,13 +156,18 @@ class ProcessCsvRegenQueueBatch extends BaseJob implements ShouldQueue
                     'generated_count' => $this->batch_file->generated_count + $casesCount,
                 ]);
 
-                $this->cache_service->setWarmingCacheRequest('global_queue');
+                $this->cache_service->setWarmingCacheRequest(['global_queue', 'unique_campaigns_ids']);
             } else {
                 $this->batch_file->increment('generated_count', $casesCount);
             }
 
             $this->original_batch->decrement('number_of_entries', $casesCount);
 
+            cache()->put(
+                GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue',
+                cache(GlobalCachingService::CACHE_PREFIX . 'total_not_downloaded_in_queue', 0) + $casesCount,
+                GlobalCachingService::DEFAULT_CACHE_TTL
+            );
         } catch (\Exception $e) {
             Log::error("REgenerateJob (batch file id: ". $this->batch_file->id .") -> Error updating broadcast_logs: " . $e->getMessage());
             $this->batch_file->update(['has_errors' => 1]);

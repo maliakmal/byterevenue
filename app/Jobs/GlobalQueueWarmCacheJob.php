@@ -11,16 +11,20 @@ class GlobalQueueWarmCacheJob extends BaseJob
     public function handle(): void
     {
         \Log::alert('GlobalQueueWarmCacheJob started job');
-        $notIgnoredCampaigns = \DB::table('campaigns')->where('is_ignored_on_queue', '=', 0)->pluck('id')->toArray();
+        $IgnoredCampaigns = \DB::table('campaigns')->where('is_ignored_on_queue', 1)->pluck('id')->toArray();
+        $filterOfCampaigns = count($IgnoredCampaigns) > 0;
 
         $total_in_queue = \DB::table('broadcast_logs')
-            ->whereIn('campaign_id', $notIgnoredCampaigns)
-            ->whereNull('batch')
+            ->when($filterOfCampaigns, function ($query) use ($IgnoredCampaigns) {
+                return $query->whereNotIn('campaign_id', $IgnoredCampaigns);
+            })
             ->count();
 
         $total_not_downloaded_in_queue = \DB::table('broadcast_logs')
-            ->whereIn('campaign_id', $notIgnoredCampaigns)
-            ->whereNull('batch')
+            ->when($filterOfCampaigns, function ($query) use ($IgnoredCampaigns) {
+                return $query->whereNotIn('campaign_id', $IgnoredCampaigns);
+            })
+//            ->whereNull('batch')
             ->where('is_downloaded_as_csv', 0)
             ->count();
 

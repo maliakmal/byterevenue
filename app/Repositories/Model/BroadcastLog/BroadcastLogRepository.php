@@ -102,10 +102,10 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         $subquery = \DB::table('broadcast_logs')
             ->select('campaign_id')
             ->whereNull('batch')
-            ->when(!is_null($limit), function ($query) use ($limit) {
+            ->when(!!$limit, function ($query) use ($limit) {
                 return $query->take($limit);
             })
-            ->when(!is_null($ignored_campaigns), function ($query) use ($ignored_campaigns) {
+            ->when(!!$ignored_campaigns, function ($query) use ($ignored_campaigns) {
                 return $query->whereNotIn('campaign_id', $ignored_campaigns);
             });
 
