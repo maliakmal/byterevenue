@@ -19,13 +19,13 @@ class ContactService
         $perPage    = $request->input('per_page', 15);
         $name       = $request->input('name');
         $area_code  = $request->input('area_code', '');
-        $status     = $request->input('status');
+        $status     = intval($request->input('status',-1));
         $phone      = $request->input('phone', '');
         $sortBy     = $request->input('sort_by', 'id');
         $sortOrder  = $request->input('sort_order', 'desc');
 
         $filter_phone = $area_code ?: '%';
-        $filter_phone .= ($phone ?: '') .'%';
+        $filter_phone .= ($phone ?: '') . '%';
 
         $contacts = $user->hasRole('admin') ? Contact::query() : Contact::where('user_id', $user->id);
         $contacts = $contacts->withCount(['blackListNumber'])->with('recipientLists')
@@ -35,7 +35,7 @@ class ContactService
             ->when($name, function ($query, $name) {
                 return $query->where('name', 'like', "%$name%");
             })
-            ->when($status, function ($query, $status) {
+            ->when(in_array($status, [0, 1]), function ($query) use ($status) {
                 return $query->having('black_list_number_count', $status ? '<' : '>=', 1);
             })
             ->orderBy($sortBy, $sortOrder)->paginate($perPage);
