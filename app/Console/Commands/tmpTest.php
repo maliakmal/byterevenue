@@ -34,8 +34,12 @@ class tmpTest extends Command
     /**
      * Execute the console command.
      */
-    public function handle(GlobalCachingService $cachingService)
+    public function handle()
     {
-        $cachingService->setWarmingCacheRequest('global_queue');
+        \DB::table('broadcast_logs')->where('id', '>', 7)
+            ->andWhere('id', '<', 12)
+            ->update(['id' => 7]);
+
+        dd('completed');
     }
 }

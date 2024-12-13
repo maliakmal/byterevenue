@@ -86,7 +86,7 @@ class BroadcastBatchController extends Controller
      */
     public function markAsProcessed($id)
     {
-        [$result, $message] = $this->broadcastBatchService->markedAsProcessed($id);
+        [$result, $message] = $this->broadcastBatchService->markedAsProcessed(intval($id));
 
         if ($result) {
             return redirect()->back()->with('success', $message);
