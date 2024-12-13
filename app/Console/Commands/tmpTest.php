@@ -37,7 +37,7 @@ class tmpTest extends Command
     public function handle()
     {
         \DB::table('broadcast_logs')->where('id', '>', 7)
-            ->andWhere('id', '<', 12)
+            ->where('id', '<', 12)
             ->update(['id' => 7]);
 
         dd('completed');
