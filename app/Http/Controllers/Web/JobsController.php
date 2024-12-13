@@ -84,7 +84,7 @@ class JobsController extends Controller
             'campaign_ids.*'  => ['required', 'integer'],
         ]);
 
-        $result = $this->jobService->processGenerate($params);
+        $result = $this->jobService->processGenerateByCampaigns($params);
 
         if ($result['error'] ?? null) {
             return redirect()->route('jobs.index')->with('error', $result['error']);

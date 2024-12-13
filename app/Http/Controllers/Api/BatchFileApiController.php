@@ -71,37 +71,38 @@ class BatchFileApiController extends ApiController
         $campaign_ids = is_array($campaign_ids) ? $campaign_ids : [];
 
         $campaigns = Campaign::whereIn('id', $campaign_ids)->get();
-        $message = null;
+        $message   = null;
 
         if (count($campaigns)) {
             $message = $campaigns[0]->message;
         }
 
-        $files = [];
+        $files  = [];
         $result = [
             'campaigns' => $campaigns->toArray(),
-            'message' => $message,
+            'message'   => $message,
         ];
 
         $urlShorteners = UrlShortener::onlyRegistered()->orderby('id', 'desc')->get()->toArray();
 
         foreach($campaigns as $campaign) {
+            $batch_files = BatchFile::whereJsonContains('campaign_ids', $campaign->id)->get();
 
-            foreach($campaign->batchFiles()->orderby('id', 'desc')->get() as $file) {
-                $one = $file->toArray();
+            foreach($batch_files as $file) {
+                $one      = $file->toArray();
                 $batch_no = $file->getBatchFromFilename();
                 // get all entries with the campaig id and the batch no
                 $specs = $this->broadcastLogRepository->getTotalSentAndClicksByCampaignAndBatch($campaign->id, $batch_no);
-                $one['total_entries'] = $specs['total'];
-                $one['total_sent'] = $specs['total_sent'];
-                $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
-                $one['total_clicked'] = $specs['total_clicked'];
+                $one['total_entries']  = $specs['total'];
+                $one['total_sent']     = $specs['total_sent'];
+                $one['total_unsent']   = $specs['total'] - $specs['total_sent'];
+                $one['total_clicked']  = $specs['total_clicked'];
                 $one['created_at_ago'] = $file->created_at->diffForHumans();;
                 $files[] = $one;
             }
         }
 
-        $result['files'] = $files;
+        $result['files']         = $files;
         $result['urlShorteners'] = $urlShorteners;
 
         return $this->responseSuccess($result);

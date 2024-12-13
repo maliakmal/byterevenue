@@ -131,11 +131,9 @@ class Campaign extends Model
             ->where('is_click', false);
     }
 
-
-    public function batchFiles()
-    {
-        return $this->belongsToMany(BatchFile::class, 'batch_file_campaign');
-    }
-
-
+//    rework this relationship to campaign_ids array in batch_files
+//    public function batchFiles()
+//    {
+//        return $this->belongsToMany(BatchFile::class, 'batch_file_campaign');
+//    }
 }
