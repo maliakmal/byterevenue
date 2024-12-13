@@ -181,9 +181,9 @@ class CampaignApiController extends ApiController
      *
      * @return JsonResponse
      */
-    public function markAsProcessed(int $id)
+    public function markAsProcessed($id)
     {
-        [$result, $message] = $this->campaignService->markAsProcessed($id);
+        [$result, $message] = $this->campaignService->markAsProcessed(intval($id));
 
         if ($result) {
             return $this->responseSuccess(message: $message);
