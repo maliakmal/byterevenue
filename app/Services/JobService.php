@@ -42,7 +42,9 @@ class JobService
             ->get();
 
         $files = BatchFile::with('urlShortener') //???TODO:: count of campaigns from campaigns_ids field
-            ->whereId($id)
+            ->when($id, function($query, $id) {
+                return $query->whereId($id);
+            })
             ->orderby($sortBy, $sortOrder)
             ->paginate(15);
 
