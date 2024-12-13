@@ -73,7 +73,7 @@ Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
     Route::post('jobs/generateCsv', [JobsApiController::class, 'generateCsv']);
     Route::post('jobs/generateCsvByCampaigns', [JobsApiController::class, 'generateCsvByCampaigns']);
     Route::post('jobs/regenerate', [JobsApiController::class, 'regenerateUnsent']);
-    Route::get('download/{filename}', [JobsApiController::class, 'downloadFile']);
+    Route::get('jobs/download/{filename}', [JobsApiController::class, 'downloadFile']);
 
     Route::post('campaigns/ignore', [CampaignApiController::class, 'markAsIgnoreFromQueue']);
     Route::post('campaigns/unignore', [CampaignApiController::class, 'markAsNotIgnoreFromQueue']);

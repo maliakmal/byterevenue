@@ -2,6 +2,7 @@
 
 namespace App\Services\Contact;
 
+use App\Models\BroadcastLog;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -45,9 +46,33 @@ class ContactService
                 ->where('is_sent', true)
                 ->count();
 
-            $contact['campaigns_count'] = intval($contact->recipientLists?->campaigns_count);
+            $contact['campaigns_count'] = intval($contact->recipientLists?->sum('campaigns_count'));
         }
 
         return $contacts;
+    }
+
+    /**
+     * @param array $ids
+     *
+     * @return array
+     */
+    public function getInfo(array $ids)
+    {
+        $sent = BroadcastLog::whereIn('contact_id', $ids)
+            ->where('is_sent', true)
+            ->count();
+
+        $contact = Contact::with('recipientLists')->whereIn('id', $ids)->first();
+
+        $campaigns = intval($contact->recipientLists?->sum('campaigns_count'));
+
+        $recipientsLists = $contact->recipientLists->count();
+
+        return [
+            'sent' => $sent,
+            'campaigns' => $campaigns,
+            'recipientLists' => $recipientsLists,
+        ];
     }
 }
