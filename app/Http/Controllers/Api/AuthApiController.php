@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Fortify\PasswordValidationRules;
 use App\Http\Controllers\ApiController;
+use App\Mail\UserRegistered;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Jetstream;
@@ -59,6 +61,8 @@ class AuthApiController extends ApiController
         ]);
 
         $token = $user->createToken($user->name .'-AuthToken')->plainTextToken;
+
+        Mail::to($user->email)->send(new UserRegistered($user));
 
         return $this->responseSuccess(compact('token'));
     }
