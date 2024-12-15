@@ -23,7 +23,7 @@ class CampaignStoreRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'description' => 'string|max:255',
+            'description' => 'required|string|min:3|max:50000',
             'recipients_list_id' => 'required|integer',
             'message_subject' => 'required|string|max:255',
             'message_body' => 'required|string',
