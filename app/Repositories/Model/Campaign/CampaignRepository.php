@@ -105,7 +105,8 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         }
 
         if (!empty($filter['search'])) {
-            $campaigns->where('title', 'like', '%' . $filter['search'] . '%');
+            $campaigns->where('title', 'like', '%' . $filter['search'] . '%')
+                ->orWhere('id', $filter['search']);
         }
 
         $campaigns->orderBy($filter['sort_by'], $filter['sort_order']);
