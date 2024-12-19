@@ -8,6 +8,7 @@ use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\BatchFileDownloadService;
 use App\Services\Campaign\CampaignService;
+use App\Services\Accounts\AccountsService;
 use App\Services\JobService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -69,10 +70,10 @@ class JobsApiController extends ApiController
     {
         $params = $request->validate([
             'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
-            'url_shortener'   => ['required', 'string'],
-            'type'            => ['required', 'string', 'in:campaign'],
-            'campaign_ids'    => ['required', 'array'],
-            'campaign_ids.*'  => ['required', 'integer'],
+            'url_shortener' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:campaign'],
+            'campaign_ids' => ['required', 'array'],
+            'campaign_ids.*' => ['required', 'integer'],
         ]);
 
         $result = $this->jobService->processGenerateByCampaigns(params: $params);
@@ -104,9 +105,19 @@ class JobsApiController extends ApiController
         return $this->batchFileDownloadService->streamingNewBatchFile($filename);
     }
 
-//    public function downloadFile($id)
-//    {
-//        return $this->jobService->downloadFile($id);
-//    }
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getQueueStats(Request $request): JsonResponse
+    {
+        $response = $this->jobService->getQueueStats($request);
+
+        if (isset($response['errors'])) {
+            return $this->responseError($response['errors']);
+        }
+
+        return $this->responseSuccess($response);
+    }
 
 }

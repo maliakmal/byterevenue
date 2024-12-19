@@ -31,7 +31,8 @@ class AccountsService
             'campaigns',
             'campaigns as processing_campaign_count' => function ($query) {
                 $query->where('status', Campaign::STATUS_PROCESSING);
-            }
+            },
+            'recipientLists'
         ])
             ->addSelect([
                 'latest_campaign_total_ctr' => Campaign::select('total_ctr')

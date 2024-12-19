@@ -518,4 +518,35 @@ class JobService
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $id . '.csv"');
         return $response;
     }
+
+    public function getQueueStats(Request $request)
+    {
+        $filter = [
+            'account' => $request->input('account'),
+            'sort_by' => $request->input('sort_by', 'id'),
+            'sort_order' => $request->input('sort_order', 'desc'),
+            'per_page' => $request->input('per_page', 15),
+        ];
+
+        $accounts = User::withCount([
+            'campaigns',
+            'recipientLists',
+        ])
+            ->addSelect([
+                'sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')
+                    ->whereColumn('user_id', 'users.id'),
+                'clicked' => Campaign::selectRaw('SUM(total_recipients_click_thru)')
+                    ->whereColumn('user_id', 'users.id'),
+                'campaigns_average_ctr' => Campaign::selectRaw('AVG(total_ctr)')
+                    ->whereColumn('user_id', 'users.id'),
+            ]);
+
+        if (!empty($filter['account'])) {
+            $accounts->where('name', 'like', '%' . $filter['account'] . '%')->orWhere('email', 'like', '%' . $filter['account'] . '%');
+        }
+
+        $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
+
+        return $accounts;
+    }
 }
