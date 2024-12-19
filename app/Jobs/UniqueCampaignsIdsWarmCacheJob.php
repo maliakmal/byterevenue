@@ -6,7 +6,6 @@ use App\Services\GlobalCachingService;
 
 class UniqueCampaignsIdsWarmCacheJob extends BaseJob
 {
-    public $telemetry = true;
     public $broadcastLogRepository;
 
     public function __construct()

@@ -57,15 +57,14 @@ class JobService
             ->when($status, function ($query, $status) {
                 switch ($status) {
                     case BatchFile::STATUS_ERROR:
-                        return $query->where('has_errors', true);
+                        return $query->where('has_errors', 1);
                     case BatchFile::STATUS_COMPLETED:
-                        return $query->where('is_ready', true)->where('number_of_entries', '>', 0);
+                        return $query->where('is_ready', 1)->where('number_of_entries', '>', 0);
                     case BatchFile::STATUS_REGENERATED:
-                        return $query->where('is_ready', true)
-                            ->where('number_of_entries', 0)
-                            ->where('generated_count', '>', 0);
+                        return $query->where('is_ready', 1)
+                            ->whereNotNull('prev_batch_id');
                     case BatchFile::STATUS_GENERATED:
-                        return $query->where('is_ready', false)
+                        return $query->where('is_ready', 0)
                             ->where('number_of_entries', '>', 0);
                 }
             })
