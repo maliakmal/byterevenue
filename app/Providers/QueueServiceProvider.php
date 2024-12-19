@@ -23,7 +23,7 @@ class QueueServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (config('app.env') !== 'production') {
+        if (config('app.env') !== 'production' || true) {
             Queue::before(function (JobProcessing $event) {
                 $event->job->startTime = microtime(true);
                 $event->job->startMemory = memory_get_usage();

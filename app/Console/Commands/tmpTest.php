@@ -25,6 +25,9 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        //
+        \DB::table('contacts')->whereNotNull('phone')
+            ->update([
+                'phone' => \DB::raw("CAST(REGEXP_REPLACE(phone, '[^0-9]', '') AS UNSIGNED)")
+            ]);
     }
 }
