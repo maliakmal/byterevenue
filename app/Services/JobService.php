@@ -65,7 +65,8 @@ class JobService
                             ->where('number_of_entries', 0)
                             ->where('generated_count', '>', 0);
                     case BatchFile::STATUS_GENERATED:
-                        return $query->whereNotNull('prev_batch_id');
+                        return $query->where('is_ready', 0)
+                            ->where('has_errors', 0);
                 }
             })
             ->orderby($sortBy, $sortOrder)
@@ -252,7 +253,7 @@ class JobService
         if (empty($campaign_ids)) return ['error' => 'No campaigns ready for CSV generation.'];
 
         $totalRecords     = 0;
-        $campaigns_count  = [];
+        $campaigns_array  = [];
         $campaigns_models = [];
 
         foreach ($campaign_ids as $uniq_campaign_id) {
@@ -262,11 +263,11 @@ class JobService
             $campaign_short_urls_new[] = $get_or_create_short['new'] ?? null;
             $campaign_short_urls[]     = $get_or_create_short['exists'] ?? $get_or_create_short['new'];
             $campaigns_models[$uniq_campaign_id] = Campaign::findOrFail($uniq_campaign_id);
-            $campaigns_count[$uniq_campaign_id]  = BroadcastLog::query()
+            $campaigns_array[$uniq_campaign_id]  = BroadcastLog::query()
                 ->where('campaign_id', $uniq_campaign_id)
                 ->whereNull('batch')
                 ->count();
-            $totalRecords += $campaigns_count[$uniq_campaign_id];
+            $totalRecords += $campaigns_array[$uniq_campaign_id];
         }
 
         if (!$totalRecords) {
@@ -308,8 +309,8 @@ class JobService
         while ($availableCount > 0) {
             if ($bypass-- < 0) throw new \Exception('Infinite loop!');
 
-            foreach ($campaigns_count as $campaign_id => $records_count) {
-                $chunk = $part > $campaigns_count[$campaign_id] ? $campaigns_count[$campaign_id] : $part;
+            foreach ($campaigns_array as $campaign_id => $records_count) {
+                $chunk = $part > $campaigns_array[$campaign_id] ? $campaigns_array[$campaign_id] : $part;
 
                 if ($chunk <= 0 || $availableCount <= 0) continue;
 
@@ -324,7 +325,7 @@ class JobService
                     'remainder'           => $availableCount,
                 ];
 
-                $campaigns_count[$campaign_id] -= $chunk;
+                $campaigns_array[$campaign_id] -= $chunk;
                 $availableCount -= $chunk;
 
                 dispatch(new ProcessCsvQueueBatchByCampaigns($params));

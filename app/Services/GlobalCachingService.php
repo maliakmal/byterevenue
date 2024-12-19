@@ -70,9 +70,7 @@ class GlobalCachingService
 
     private function runCurrentProcessing(string $key, callable $callback): void
     {
-        \Log::alert('start warm cache');
         if (cache()->get(self::CACHE_REQUEST_PREFIX . $key)) {
-            \Log::alert('conditions warm cache', ['key' => $key]);
             if (is_null(cache()->get(self::CACHE_PROCESSING_PREFIX . $key))) {
                 \Log::alert('start warm cache', ['key' => $key]);
                 cache()->forget(self::CACHE_REQUEST_PREFIX . $key);

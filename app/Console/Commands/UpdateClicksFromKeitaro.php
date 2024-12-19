@@ -110,7 +110,7 @@ class UpdateClicksFromKeitaro extends Command
             }
 
             $offset += $limit;
-            $total = $response['total'];
+            $total = $response['total'] ?? 0;
         }
 
         //if ($this->hasChanges) {

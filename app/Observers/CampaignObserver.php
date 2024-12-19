@@ -20,10 +20,8 @@ class CampaignObserver
     public function updated(Campaign $campaign): void
     {
         // then updated to processing status
-        \Log::alert('upd campaign', ['status' => $campaign->isDirty('status') && $campaign->status === Campaign::STATUS_PROCESSING]);
         if ($campaign->isDirty('status') && $campaign->status === Campaign::STATUS_PROCESSING) {
             // set warming cache request
-            \Log::alert('set renew campaigns ids cache marker');
             app()->make('App\Services\GlobalCachingService')->setWarmingCacheRequest('unique_campaigns_ids');
         }
     }
