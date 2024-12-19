@@ -35,8 +35,10 @@ class JobService
     {
         $id = str_replace('File', '', $request->input('search'));
         $shortDomain = $request->input('short_domain');
+        $status = $request->input('status');
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
+        $perPage = $request->input('per_page', '15');
 
         $urlShorteners = UrlShortener::withCount('campaignShortUrls')
             ->onlyRegistered()
@@ -52,8 +54,25 @@ class JobService
                     return $urlQuery->where('name', 'like', "%$shortDomain%");
                 });
             })
+            ->when($status, function ($query, $status) {
+                switch ($status) {
+                    case BatchFile::STATUS_ERROR:
+                        return $query->where('has_errors', true);
+                    case BatchFile::STATUS_COMPLETED:
+                        return $query->where('is_ready', true)->where('number_of_entries', '>', 0);
+                    case BatchFile::STATUS_REGENERATED:
+                        return $query->where('is_ready', true)
+                            ->where('number_of_entries', 0)
+                            ->where('generated_count', '>', 0);
+                    case BatchFile::STATUS_GENERATED:
+                        return $query->where('is_ready', false)
+                            ->where('number_of_entries', '>', 0);
+                }
+            })
             ->orderby($sortBy, $sortOrder)
-            ->paginate(15);
+            ->paginate(
+                $perPage
+            );
 
         // get count of all messages in the queue
         $params['total_in_queue'] = $this->globalCachingService->getTotalInQueue();

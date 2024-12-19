@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class BatchFile extends Model
 {
+    const STATUS_COMPLETED = 1;
+    const STATUS_ERROR = 2;
+    const STATUS_GENERATED = 3;
+    const STATUS_REGENERATED = 4;
     protected $guarded = [];
 
     protected $casts = [
