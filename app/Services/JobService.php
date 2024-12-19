@@ -66,7 +66,7 @@ class JobService
                             ->where('generated_count', '>', 0);
                     case BatchFile::STATUS_GENERATED:
                         return $query->where('is_ready', 0)
-                            ->where('number_of_entries', '>', 0);
+                            ->whereNotNull('prev_batch_id');
                 }
             })
             ->orderby($sortBy, $sortOrder)
