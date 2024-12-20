@@ -23,7 +23,7 @@ class CampaignUpdateRequest extends FormRequest
     {
         return [
             'title' => 'string|max:255',
-            'description' => 'required|string|min:3|max:50000',
+            'description' => 'nullable|string',
             'recipients_list_id' => 'integer|exists:recipients_lists,id',
             'message_subject' => 'string|max:255',
             'message_body' => 'string',

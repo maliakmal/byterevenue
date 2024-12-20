@@ -91,23 +91,29 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         $casesCount = 0;
         $campaign_short_urls = $this->campaign_short_urls;
 
+        //\Log::debug('campaign_short_urls:', ['campaign_short_urls' => $campaign_short_urls]);
         foreach ($this->logs as $log) {
             $ids[]    = "'". $log->id ."'";
             $campaign = $log->campaign;
             $message  = $log->message;
 
             if (!$message) {
-                Log::error('GenerateJob -> Message not found for log id - ' . $log->id . ' - skipping...');
+                Log::error('GenerateJob -> Message not found for log id - ' . $log->id . ' - skipping...', [
+                    'log:' => $log,
+                    'campaign:' => $campaign,
+                ]);
 
                 continue;
             }
 
             $campaign_short_url = $campaign_short_urls->where('campaign_id', $campaign->id)->first();
-
+            //\Log::debug('campaign_short_url:', ['campaign_short_url' => $campaign_short_url]);
             if (!$campaign_short_url) {
                 Log::debug('GenerateJob -> campaign_short_url doesnt exist for log id ' . $log->id . ' - skipping...', [
-                    'log' => $log,
-                    'campaign' => $campaign,
+                    'campaign_short_urls:' => $campaign_short_urls,
+                    'campaign_short_url:' => $campaign_short_url,
+                    'log:' => $log,
+                    'campaign:' => $campaign,
                 ]);
 
                 continue;

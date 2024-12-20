@@ -42,6 +42,7 @@ class GlobalCachingService
     /** @param string|array $key */
     public function setWarmingCacheRequest(mixed $key): void
     {
+        \Log::alert('set marker', ['m' => $key]);
         if (is_array($key)) {
             foreach ($key as $singleKey) {
                 if (in_array($singleKey, self::GLOBAL_CACHE_KEYS)) {
@@ -71,6 +72,7 @@ class GlobalCachingService
     {
         if (cache()->get(self::CACHE_REQUEST_PREFIX . $key)) {
             if (is_null(cache()->get(self::CACHE_PROCESSING_PREFIX . $key))) {
+                \Log::alert('start warm cache', ['key' => $key]);
                 cache()->forget(self::CACHE_REQUEST_PREFIX . $key);
                 cache()->put(self::CACHE_PROCESSING_PREFIX . $key, time(), self::DEFAULT_CACHE_TTL);
 

@@ -64,7 +64,7 @@ class UpdateClicksFromKeitaro extends Command
             }
             $uid_param = config('app.keitaro.uid_param', 'sub_id_1');
 
-            foreach ($response['rows'] as $row){
+            foreach ($response['rows'] ?? [] as $row){
                 $log_id = $row[$uid_param];
 
                 if (trim($log_id) == '') { // (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
@@ -110,7 +110,7 @@ class UpdateClicksFromKeitaro extends Command
             }
 
             $offset += $limit;
-            $total = $response['total'];
+            $total = $response['total'] ?? 0;
         }
 
         //if ($this->hasChanges) {
