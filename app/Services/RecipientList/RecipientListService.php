@@ -131,7 +131,7 @@ class RecipientListService
                 ]);
 
                 DB::commit();
-
+                \Log::alert('Contacts imported successfully.', ['data: ' => $data]);
                 return [true, 'Contacts imported successfully.'];
             } catch (\Exception $e) {
                 DB::rollback();
