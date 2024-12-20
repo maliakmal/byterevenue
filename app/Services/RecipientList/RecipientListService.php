@@ -113,7 +113,7 @@ class RecipientListService
                                 (" . implode(', ', $dummyVariables) . ")
                                SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ",
                                    email = " . ($emailVar != '@dummy' ? 'email' : "''") . ",
-                                   phone = REGEXP_REPLACE(TRIM(phone), '[^0-9]', ''),
+                                   phone = CAST(REGEXP_REPLACE(TRIM(phone), '[^0-9]', '') AS UNSIGNED),
                                    created_at = NOW(),
                                    user_id='$user_id',
                                    file_tag='$newFileName',

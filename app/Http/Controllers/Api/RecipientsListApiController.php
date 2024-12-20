@@ -59,13 +59,13 @@ class RecipientsListApiController extends ApiController
             return $this->responseError(message: 'Already processing');
         }
 
-        $importRecipientsListId = ImportRecipientsList::create([
+        $importRecipientsList = ImportRecipientsList::create([
             'user_id' => auth()->id(),
             'data' => $data,
             'file_path' => $filePath,
         ]);
 
-        ImportRecipientListsJob::dispatch($importRecipientsListId);
+        ImportRecipientListsJob::dispatch($importRecipientsList);
 
         return $this->responseSuccess(message: 'The list is being processed and created');
     }
