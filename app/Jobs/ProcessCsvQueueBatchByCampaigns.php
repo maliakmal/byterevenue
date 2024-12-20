@@ -47,6 +47,7 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         $this->batchSize     = $params['batchSize']     ?? $this->batchSize;
         $this->batch_file    = $params['batch_file']    ?? $this->batch_file;
         $this->is_last       = $params['is_last']       ?? $this->is_last;
+        $this->campaign_ids  = $params['campaign_ids']  ?? $this->campaign_ids;
         $this->campaign_short_urls = $params['campaign_short_urls'] ?? $this->campaign_short_urls;
         $this->cache_service       = app()->make(GlobalCachingService::class);
 
@@ -67,6 +68,8 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
             ->whereNull('batch')
             ->where('is_downloaded_as_csv', 0)
             ->limit($this->batchSize);
+
+        \Log::debug('campaign_ids: ', $this->campaign_ids);
 
         if (!empty($this->campaign_ids)) {
             $query->whereIn('campaign_id', $this->campaign_ids);
