@@ -111,13 +111,19 @@ class RecipientListService
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'email' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
-                DB::statement(
-                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
-                           SELECT $user_id, id, $recipientsList->id
-                           FROM contacts
-                           WHERE file_tag='$newFileName'"
-                );
+                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ",
+                                   email = " . ($emailVar != '@dummy' ? 'email' : "''") . ",
+                                   phone = REGEXP_REPLACE(TRIM(phone), '[^0-9]', ''),
+                                   created_at = NOW(),
+                                   user_id='$user_id',
+                                   file_tag='$newFileName',
+                                   updated_at = NOW()");
+//                DB::statement(
+//                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
+//                           SELECT $user_id, id, $recipientsList->id
+//                           FROM contacts
+//                           WHERE file_tag='$newFileName'"
+//                );
 
                 $recipientsList->update([
                     'is_imported' => true,
@@ -129,10 +135,11 @@ class RecipientListService
                 return [true, 'Contacts imported successfully.'];
             } catch (\Exception $e) {
                 DB::rollback();
-
+                \Log::error('Error importing CSV file: ' . $e->getMessage());
                 return [false, 'Error importing CSV file: ' . $e->getMessage()];
             }
         }
+        // <- RETURN in try branch?, abandoned code next ->
 
         // $data['entry_type'] != 'file'
         else {
