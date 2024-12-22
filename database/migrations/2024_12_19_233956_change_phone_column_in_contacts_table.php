@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        \DB::table('contacts')->whereNotNull('phone')
+            ->update([
+                'phone' => \DB::raw("CAST(REGEXP_REPLACE(phone, '[^0-9]', '') AS UNSIGNED)")
+            ]);
+
         Schema::table('contacts', function (Blueprint $table) {
             $table->unsignedBigInteger('phone')->change();
         });

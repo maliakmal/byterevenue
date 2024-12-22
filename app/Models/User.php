@@ -94,8 +94,9 @@ class User extends Authenticatable
         return $this->tokens >= $required_tokens ? true : false;
     }
 
-    public function deductTokens($amount){
-        $this->decrement('tokens', $amount);
+    public function deductTokens($amount)
+    {
+        return $this->decrement('tokens', $amount);
     }
 
     public function addTokens($amount){
