@@ -70,7 +70,8 @@ Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
     Route::delete('short-domains/{id}', [ShortDomainsApiController::class, 'destroy']);
 
     Route::get('jobs/fifo', [JobsApiController::class, 'fifo']);
-    Route::get('/jobs/clients', [JobsApiController::class, 'getQueueStats']);
+    Route::get('jobs/campaigns-files', [JobsApiController::class, 'campaignsFiles']);
+    Route::get('jobs/clients', [JobsApiController::class, 'getQueueStats']);
     Route::post('jobs/generateCsv', [JobsApiController::class, 'generateCsv']);
     Route::post('jobs/generateCsvByCampaigns', [JobsApiController::class, 'generateCsvByCampaigns']);
     Route::post('jobs/regenerate', [JobsApiController::class, 'regenerateUnsent']);
