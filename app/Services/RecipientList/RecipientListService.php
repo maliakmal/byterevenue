@@ -111,13 +111,14 @@ class RecipientListService
                                LINES TERMINATED BY '\n'
                                IGNORE 1 ROWS
                                 (" . implode(', ', $dummyVariables) . ")
-                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ", email =  " . ($emailVar != '@dummy' ? 'email' : "''") . ", phone = TRIM(phone), created_at = NOW(), user_id='$user_id', file_tag='$newFileName', updated_at = NOW()");
-                DB::statement(
-                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
-                           SELECT $user_id, id, $recipientsList->id
-                           FROM contacts
-                           WHERE file_tag='$newFileName'"
-                );
+                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ",
+                                   email = " . ($emailVar != '@dummy' ? 'email' : "''") . ",
+                                   phone = CAST(REGEXP_REPLACE(TRIM(phone), '[^0-9]', '') AS UNSIGNED),
+                                   created_at = NOW(),
+                                   user_id='$user_id',
+                                   file_tag='$newFileName',
+                                   updated_at = NOW(),
+                                   recipients_list_id='$recipientsList->id'");
 
                 $recipientsList->update([
                     'is_imported' => true,
@@ -125,11 +126,11 @@ class RecipientListService
                 ]);
 
                 DB::commit();
-
+                \Log::alert('Contacts imported successfully.', ['data: ' => $data]);
                 return [true, 'Contacts imported successfully.'];
             } catch (\Exception $e) {
                 DB::rollback();
-
+                \Log::error('Error importing CSV file: ' . $e->getMessage());
                 return [false, 'Error importing CSV file: ' . $e->getMessage()];
             }
         }
@@ -200,7 +201,7 @@ class RecipientListService
 
             DB::commit();
 
-            return [true, 'Contacts imported successfully.'];
+            return [true, 'Contacts imported successfully1.'];
         } catch (\Exception $e) {
             DB::rollback();
 

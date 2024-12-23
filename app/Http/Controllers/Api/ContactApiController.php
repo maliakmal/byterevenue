@@ -38,10 +38,13 @@ class ContactApiController extends ApiController
      */
     public function store(ContactStoreRequest $request): JsonResponse
     {
+        $intPhone = (int)preg_replace('/[^0-9]/', '', $request->phone);
+        $intPhone = $intPhone ?: null;
+
         $contact = auth()->user()->contacts()->create([
             'name'  => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
+            'phone' => $intPhone,
         ]);
 
         return $this->responseSuccess($contact);
@@ -82,10 +85,13 @@ class ContactApiController extends ApiController
             return $this->responseError([], 'Contact not found.', 404);
         }
 
+        $intPhone = (int)preg_replace('/[^0-9]/', '', $request->phone);
+        $intPhone = $intPhone ?: null;
+
         $contact->update([
             'name'  => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
+            'phone' => $intPhone,
         ]);
 
         $info = $this->contactService->getInfo([$id]);

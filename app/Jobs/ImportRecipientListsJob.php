@@ -39,10 +39,9 @@ class ImportRecipientListsJob extends BaseJob implements ShouldQueue
 
         $this->recipient_list_service->store($data, $file, $this->list->user);
         $this->list->update(['processed_at' => now()->toDateTimeString()]);
-        \Log::info('ImportRecipientListsJob: ' . $this->list->id . ' processed');
+        \Log::info('ImportRecipientListsJob: #' . $this->list->id . ' processed');
 
         FillingRecipientGroupJob::dispatch();
-        \Log::info('FillingRecipientGroupJob dispatched');
     }
 
     /**
@@ -55,6 +54,6 @@ class ImportRecipientListsJob extends BaseJob implements ShouldQueue
             'is_failed'    => true,
         ]);
 
-        \Log::info('ImportRecipientListsJob: ' . $this->list->id . ' failed');
+        \Log::info('ImportRecipientListsJob: #' . $this->list->id . ' failed');
     }
 }
