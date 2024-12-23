@@ -65,7 +65,9 @@ class MoveLogsToStorage extends Command
             ];
         }
 
+        \DB::connection('storage_mysql')->statement('ALTER TABLE broadcast_storage_master DISABLE KEYS');
         \DB::connection('storage_mysql')->table('broadcast_storage_master')->insert($block);
+        \DB::connection('storage_mysql')->statement('ALTER TABLE broadcast_storage_master ENABLE KEYS');
 
         $ids = $logs->pluck('id')->toArray();
 

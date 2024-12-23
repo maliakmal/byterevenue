@@ -41,7 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // ???
     Route::post('broadcast_batches', [BroadcastBatchApiController::class, 'store']);
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);
-    Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
+//    Route::post('broadcast_batches/mark_as_processed/{id}', [BroadcastBatchApiController::class, 'markAsProcessed']);
     // ###
 
     Route::get('areas/get-all-provinces', [AreasApiController::class, 'getAllProvinces']);
