@@ -31,6 +31,8 @@ class FillingRecipientGroupJob extends BaseJob implements ShouldQueue
             ->whereNull('ready_at')
             ->first();
 
+        \Log::info('FillingRecipientGroupJob dispatched', ['group' => $group]);
+
         if (!$group) {
             \Log::info('No recipients group found for job FillingRecipientGroupJob');
             return;
@@ -40,11 +42,11 @@ class FillingRecipientGroupJob extends BaseJob implements ShouldQueue
 
         $recipientsList = $group->recipientsList;
 
-        \DB::table('contact_recipient_list')
+        \DB::table('contacts')
             ->where('recipients_list_id', $recipientsList->id)
-            ->select('id','contact_id')
+            ->select('id')
             ->chunkById($this->chunkSize, function (Collection $chunk) {
-                $this->ids = array_merge($this->ids, $chunk->pluck('contact_id')->toArray());
+                $this->ids = array_merge($this->ids, $chunk->pluck('id')->toArray());
             });
 
         $group->update([
