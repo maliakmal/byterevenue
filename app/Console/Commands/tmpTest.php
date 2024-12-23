@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Hidehalo\Nanoid\Client;
 use Illuminate\Console\Command;
 
 class tmpTest extends Command
