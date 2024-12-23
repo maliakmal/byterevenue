@@ -42,7 +42,6 @@ class ImportRecipientListsJob extends BaseJob implements ShouldQueue
         \Log::info('ImportRecipientListsJob: #' . $this->list->id . ' processed');
 
         FillingRecipientGroupJob::dispatch();
-        \Log::info('FillingRecipientGroupJob dispatched');
     }
 
     /**

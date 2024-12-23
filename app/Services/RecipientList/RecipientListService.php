@@ -117,13 +117,8 @@ class RecipientListService
                                    created_at = NOW(),
                                    user_id='$user_id',
                                    file_tag='$newFileName',
-                                   updated_at = NOW()");
-//                DB::statement(
-//                    "INSERT INTO contact_recipient_list (user_id, contact_id, recipients_list_id)
-//                           SELECT $user_id, id, $recipientsList->id
-//                           FROM contacts
-//                           WHERE file_tag='$newFileName'"
-//                );
+                                   updated_at = NOW(),
+                                   recipients_list_id='$recipientsList->id'");
 
                 $recipientsList->update([
                     'is_imported' => true,
@@ -139,7 +134,6 @@ class RecipientListService
                 return [false, 'Error importing CSV file: ' . $e->getMessage()];
             }
         }
-        // <- RETURN in try branch?, abandoned code next ->
 
         // $data['entry_type'] != 'file'
         else {
@@ -207,7 +201,7 @@ class RecipientListService
 
             DB::commit();
 
-            return [true, 'Contacts imported successfully.'];
+            return [true, 'Contacts imported successfully1.'];
         } catch (\Exception $e) {
             DB::rollback();
 
