@@ -40,12 +40,71 @@ class JobService
         $sortOrder = $request->input('sort_order', 'desc');
         $perPage = $request->input('per_page', '15');
 
-        $urlShorteners = UrlShortener::withCount('campaignShortUrls')
-            ->onlyRegistered()
+        $urlShorteners = UrlShortener::onlyRegistered()
             ->orderby('id', 'desc')
             ->get();
 
         $files = BatchFile::with('urlShortener') //???TODO:: count of campaigns from campaigns_ids field
+            ->when($id, function ($query, $id) {
+                return $query->whereId($id);
+            })
+            ->when($shortDomain, function ($query, $shortDomain) {
+                return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
+                });
+            })
+            ->when($status, function ($query, $status) {
+                switch ($status) {
+                    case BatchFile::STATUS_ERROR:
+                        return $query->where('has_errors', 1);
+                    case BatchFile::STATUS_COMPLETED:
+                        return $query->where('is_ready', 1)->where('number_of_entries', '>', 0);
+                    case BatchFile::STATUS_REGENERATED:
+                        return $query->where('has_errors', 0)
+                            ->where('number_of_entries', 0)
+                            ->where('generated_count', '>', 0);
+                    case BatchFile::STATUS_GENERATED:
+                        return $query->where('is_ready', 0)
+                            ->where('has_errors', 0);
+                }
+            })
+            ->orderby($sortBy, $sortOrder)
+            ->paginate(
+                $perPage
+            );
+
+        // get count of all messages in the queue
+        $params['total_in_queue'] = $this->globalCachingService->getTotalInQueue();
+        $params['files'] = $files;
+        $params['urlShorteners'] = $urlShorteners;
+        $params['total_not_downloaded_in_queue'] = $this->globalCachingService->getTotalNotDownloadedInQueue();
+
+        return $params;
+    }
+
+    /**
+     * @return array
+     */
+    public function campaignsFiles(Request $request)
+    {
+        $id = str_replace('File', '', $request->input('search'));
+        $shortDomain = $request->input('short_domain');
+        $status = $request->input('status');
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $perPage = $request->input('per_page', '15');
+        $campaign_ids = $request->input('campaign_ids') ? explode(',', $request->input('campaign_ids')) : null;
+
+        $urlShorteners = UrlShortener::onlyRegistered()
+            ->latest()
+            ->get();
+
+        $files = BatchFile::with('urlShortener')
+            ->where(function ($query) use ($campaign_ids) {
+                foreach ($campaign_ids as $id) {
+                    $query->OrWhereJsonContains('campaign_ids', intval($id));
+                }
+            })
             ->when($id, function ($query, $id) {
                 return $query->whereId($id);
             })
@@ -231,29 +290,30 @@ class JobService
     {
         Log::alert('Request for CSV (Campaign) generation. Starting process...', $params);
 
-        $requestCount     = intval($params['number_messages']); // count of records in CSV
+        $requestCount = intval($params['number_messages']); // count of records in CSV
         $urlShortenerName = trim($params['url_shortener']);
-        $campaign_ids     = $params['campaign_ids'] ?? [];
-        $campaigns_data   = [];
+        $campaign_ids = $params['campaign_ids'] ?? [];
+        $campaigns_data = [];
 
         $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
-        $domain_id    = $urlShortener->asset_id;
-        $batchSize    = 1000; // ids scope for each job
-        $campaign_short_urls     = [];
+        $domain_id = $urlShortener->asset_id;
+        $batchSize = 1000; // ids scope for each job
+        $campaign_short_urls = [];
         $campaign_short_urls_new = [];
 
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
 
         $allowedCompanyIds = array_values(array_diff($campaign_ids, $ignored_campaigns));
-        $campaign_ids      = Campaign::whereIn('id', $allowedCompanyIds)->pluck('id')->toArray();
+        $campaign_ids = Campaign::whereIn('id', $allowedCompanyIds)->pluck('id')->toArray();
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
-        if (empty($campaign_ids)) return ['error' => 'No campaigns ready for CSV generation.'];
+        if (empty($campaign_ids))
+            return ['error' => 'No campaigns ready for CSV generation.'];
 
-        $totalRecords     = 0;
-        $campaigns_array  = [];
+        $totalRecords = 0;
+        $campaigns_array = [];
         $campaigns_models = [];
 
         foreach ($campaign_ids as $uniq_campaign_id) {
@@ -261,9 +321,9 @@ class JobService
 
             // if short is exists $new_generate_short == null, if created new record $new_generate_short == new CampaignShortUrl
             $campaign_short_urls_new[] = $get_or_create_short['new'] ?? null;
-            $campaign_short_urls[]     = $get_or_create_short['exists'] ?? $get_or_create_short['new'];
+            $campaign_short_urls[] = $get_or_create_short['exists'] ?? $get_or_create_short['new'];
             $campaigns_models[$uniq_campaign_id] = Campaign::findOrFail($uniq_campaign_id);
-            $campaigns_array[$uniq_campaign_id]  = BroadcastLog::query()
+            $campaigns_array[$uniq_campaign_id] = BroadcastLog::query()
                 ->where('campaign_id', $uniq_campaign_id)
                 ->whereNull('batch')
                 ->count();
@@ -285,44 +345,46 @@ class JobService
 
         // total count of available records
         $availableCount = $totalRecords > $requestCount ? $requestCount : $totalRecords;
-        $batch_no       = str_replace('.', '', microtime(true));
+        $batch_no = str_replace('.', '', microtime(true));
 
         Log::info('GenerateService -> Request count: ' . $requestCount . ' ; Records available ' . $availableCount);
 
-        $filename   = "/csv/byterevenue-messages-$batch_no.csv";
+        $filename = "/csv/byterevenue-messages-$batch_no.csv";
         $batch_file = BatchFile::create([
-            'filename'          => $filename,
-            'path'              => $filename, // duplicate of filename field, mb remove this <---
-            'request_count'     => $requestCount, // total records requested
+            'filename' => $filename,
+            'path' => $filename, // duplicate of filename field, mb remove this <---
+            'request_count' => $requestCount, // total records requested
             'number_of_entries' => $availableCount, // total available records for this condition
-            'is_ready'          => 0,
-            'url_shortener_id'  => $urlShortener->id,
-            'campaign_ids'      => $campaign_ids,
-            'type'              => 'campaign',
+            'is_ready' => 0,
+            'url_shortener_id' => $urlShortener->id,
+            'campaign_ids' => $campaign_ids,
+            'type' => 'campaign',
         ]);
 
         arsort($campaigns_data);
-        $part   = ceil($availableCount / count($campaign_ids));
-        $part   = $part < $batchSize ? $part : $batchSize;
+        $part = ceil($availableCount / count($campaign_ids));
+        $part = $part < $batchSize ? $part : $batchSize;
         $bypass = 1000;
 
         while ($availableCount > 0) {
-            if ($bypass-- < 0) throw new \Exception('Infinite loop!');
+            if ($bypass-- < 0)
+                throw new \Exception('Infinite loop!');
 
             foreach ($campaigns_array as $campaign_id => $records_count) {
                 $chunk = $part > $campaigns_array[$campaign_id] ? $campaigns_array[$campaign_id] : $part;
 
-                if ($chunk <= 0 || $availableCount <= 0) continue;
+                if ($chunk <= 0 || $availableCount <= 0)
+                    continue;
 
                 $params = [
-                    'batchSize'           => $chunk,
-                    'url_shortener'       => $urlShortenerName,
-                    'batch_no'            => $batch_no,
-                    'batch_file'          => $batch_file,
+                    'batchSize' => $chunk,
+                    'url_shortener' => $urlShortenerName,
+                    'batch_no' => $batch_no,
+                    'batch_file' => $batch_file,
                     'campaign_short_urls' => collect($campaign_short_urls),
-                    'is_last'             => $availableCount - $chunk <= 0,
-                    'campaign_ids'        => [$campaign_id],
-                    'remainder'           => $availableCount,
+                    'is_last' => $availableCount - $chunk <= 0,
+                    'campaign_ids' => [$campaign_id],
+                    'remainder' => $availableCount,
                 ];
 
                 $campaigns_array[$campaign_id] -= $chunk;
@@ -332,13 +394,13 @@ class JobService
             }
         }
 
-        $one       = $batch_file->toArray();
+        $one = $batch_file->toArray();
         $_batch_no = $batch_file->getBatchFromFilename();
-        $specs     = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($_batch_no);
-        $one['total_entries']  = $specs['total'];
-        $one['total_sent']     = $specs['total_sent'];
-        $one['total_unsent']   = $specs['total'] - $specs['total_sent'];
-        $one['total_clicked']  = $specs['total_clicked'];
+        $specs = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($_batch_no);
+        $one['total_entries'] = $specs['total'];
+        $one['total_sent'] = $specs['total_sent'];
+        $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
+        $one['total_clicked'] = $specs['total_clicked'];
         $one['created_at_ago'] = $batch_file->created_at->diffForHumans();
 
         return ['success' => 'CSV is being generated.'];
@@ -517,5 +579,36 @@ class JobService
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $id . '.csv"');
         return $response;
+    }
+
+    public function getQueueStats(Request $request)
+    {
+        $filter = [
+            'account' => $request->input('account'),
+            'sort_by' => $request->input('sort_by', 'id'),
+            'sort_order' => $request->input('sort_order', 'desc'),
+            'per_page' => $request->input('per_page', 15),
+        ];
+
+        $accounts = User::withCount([
+            'campaigns',
+            'recipientLists',
+        ])
+            ->addSelect([
+                'sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')
+                    ->whereColumn('user_id', 'users.id'),
+                'clicked' => Campaign::selectRaw('SUM(total_recipients_click_thru)')
+                    ->whereColumn('user_id', 'users.id'),
+                'campaigns_average_ctr' => Campaign::selectRaw('AVG(total_ctr)')
+                    ->whereColumn('user_id', 'users.id'),
+            ]);
+
+        if (!empty($filter['account'])) {
+            $accounts->where('name', 'like', '%' . $filter['account'] . '%')->orWhere('email', 'like', '%' . $filter['account'] . '%');
+        }
+
+        $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
+
+        return $accounts;
     }
 }
