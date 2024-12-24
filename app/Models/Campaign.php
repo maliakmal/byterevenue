@@ -13,9 +13,10 @@ class Campaign extends Model
 
     protected $guarded = [];
 
-    const STATUS_DRAFT = 0;
-    const STATUS_PROCESSING = 1;
-    const STATUS_DONE = 2;
+    const STATUS_TEMPLATE = -1; // tmp status for save
+    const STATUS_DRAFT = 0; // created but not run process
+    const STATUS_PROCESSING = 1; // in process (generating logs)
+    const STATUS_DONE = 2; // completed sending (via csv)
 
     public function user(){
         return $this->belongsTo(User::class);
@@ -82,11 +83,13 @@ class Campaign extends Model
         return $this->status == self::STATUS_DRAFT;
     }
 
-    public function markAsProcessed(){
-        $this->status = self::STATUS_PROCESSING;
-        $this->total_recipients = $this->recipient_list?->recipientsGroup?->count ?? 0;
-        $this->submitted_at = now();
-        $this->save();
+    public function markAsProcessed()
+    {
+        return $this->update([
+            'status' => self::STATUS_PROCESSING,
+            'total_recipients' => $this->recipient_list?->recipientsGroup?->count ?? 0,
+            'submitted_at' => now()
+        ]);
     }
 
     /**

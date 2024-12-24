@@ -17,7 +17,11 @@ return new class extends Migration
         try {
             \DB::connection('storage_mysql')->getPdo();
         } catch (\Exception $e) {
-            Artisan::call('database:manage', ['name' => 'storage_database', '--create' => true]);
+            if (env('APP_ENV' !== 'production')) {
+                Artisan::call('database:manage', ['name' => 'storage_database', '--create' => true]);
+            } else {
+                echo "Could not connect to storage-database. Please make sure the storage-database is running and the configuration is correct.\n";
+            }
         }
 
         return true;
@@ -52,7 +56,9 @@ return new class extends Migration
     public function down(): void
     {
         try {
-            Schema::connection('storage_mysql')->dropIfExists('broadcast_storage_master');
+            if (env('APP_ENV' !== 'production')) {
+                Schema::connection('storage_mysql')->dropIfExists('broadcast_storage_master');
+            }
         } catch (\Exception $e) {
             // do nothing
         }
