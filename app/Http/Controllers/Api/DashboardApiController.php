@@ -40,39 +40,13 @@ class DashboardApiController extends ApiController
     {
         $dashboardData = $this->dashboardService->generateAdminDashboardData();
 
-        return $this->responseSuccess([
-            'dataFeed'           => $dashboardData['dataFeed'],
-            'campaigns'          => $dashboardData['campaigns'],
-            'accounts'           => $dashboardData['accounts'],
-            'params'             => $dashboardData['params'],
-            'has_campaign'       => $dashboardData['has_campaign'],
-            'has_reception_list' => $dashboardData['has_reception_list'],
-            'campaigns_graph'    => $dashboardData['campaigns_graph'],
-            'send_graph'         => $dashboardData['send_graph'],
-            'clicks_graph'       => $dashboardData['clicks_graph'],
-            'ctr'                => $dashboardData['ctr'],
-            'labels'             => $dashboardData['labels'],
-            'cache_updated_at'   => $dashboardData['cache_updated_at'],
-        ]);
+        return $this->responseSuccess($dashboardData);
     }
 
     private function userDashboard()
     {
         $dashboardData = $this->dashboardService->generateUserDashboardData();
 
-        return $this->responseSuccess([
-            'dataFeed'           => $dashboardData['dataFeed'],
-            'campaigns'          => $dashboardData['campaigns'],
-            'accounts'           => $dashboardData['accounts'],
-            'params'             => $dashboardData['params'],
-            'has_campaign'       => $dashboardData['has_campaign'],
-            'has_reception_list' => $dashboardData['has_reception_list'],
-            'campaigns_graph'    => $dashboardData['campaigns_graph'],
-            'send_graph'         => $dashboardData['send_graph'],
-            'clicks_graph'       => $dashboardData['clicks_graph'],
-            'ctr'                => $dashboardData['ctr'],
-            'labels'             => $dashboardData['labels'],
-            'cache_updated_at'   => $dashboardData['cache_updated_at'],
-        ]);
+        return $this->responseSuccess($dashboardData);
     }
 }
