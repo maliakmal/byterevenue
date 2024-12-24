@@ -90,6 +90,17 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
             }
             catch (\Exception $e) {
                 \Log::error('Error inserting broadcast_logs: ' . $e->getMessage());
+
+                foreach ($data as $key => $value) {
+                    unset($data[$key]['id']);
+                    unset($data[$key]['slug']);
+                    unset($data[$key]['is_downloaded_as_csv']);
+                    unset($data[$key]['created_at']);
+                    unset($data[$key]['updated_at']);
+                }
+
+                \DB::table('extra_broadcast_logs')->insert($data);
+                \Log::debug('Inserted ' . count($data) . ' records in extra_broadcast_logs');
             }
 
             \DB::enableQueryLog();

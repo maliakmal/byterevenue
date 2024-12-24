@@ -104,21 +104,21 @@ class RecipientListService
 
             try {
                 DB::statement("LOAD DATA LOCAL INFILE '$fullPath'
-                               INTO TABLE contacts
-                               FIELDS TERMINATED BY ','
-                               OPTIONALLY ENCLOSED BY '\"'
+                   INTO TABLE contacts
+                   FIELDS TERMINATED BY ','
+                   OPTIONALLY ENCLOSED BY '\"'
 
-                               LINES TERMINATED BY '\n'
-                               IGNORE 1 ROWS
-                                (" . implode(', ', $dummyVariables) . ")
-                               SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ",
-                                   email = " . ($emailVar != '@dummy' ? 'email' : "''") . ",
-                                   phone = CAST(REGEXP_REPLACE(TRIM(phone), '[^0-9]', '') AS UNSIGNED),
-                                   created_at = NOW(),
-                                   user_id='$user_id',
-                                   file_tag='$newFileName',
-                                   updated_at = NOW(),
-                                   recipients_list_id='$recipientsList->id'");
+                   LINES TERMINATED BY '\n'
+                   IGNORE 1 ROWS
+                    (" . implode(', ', $dummyVariables) . ")
+                   SET name = " . ($nameVar != '@dummy' ? 'name' : "''") . ",
+                       email = " . ($emailVar != '@dummy' ? 'email' : "''") . ",
+                       phone = CAST(REGEXP_REPLACE(TRIM(phone), '[^0-9]', '') AS UNSIGNED),
+                       created_at = NOW(),
+                       user_id='$user_id',
+                       file_tag='$newFileName',
+                       updated_at = NOW(),
+                       recipients_list_id='$recipientsList->id'");
 
                 $recipientsList->update([
                     'is_imported' => true,
