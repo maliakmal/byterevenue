@@ -143,6 +143,75 @@ class JobService
     }
 
     /**
+     * @return array
+     */
+    public function clientsFiles(Request $request)
+    {
+        $id = str_replace('File', '', $request->input('search'));
+        $shortDomain = $request->input('short_domain');
+        $status = $request->input('status');
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $perPage = $request->input('per_page', '15');
+        $account_ids = $request->input('account_ids') ? explode(',', $request->input('account_ids')) : null;
+
+        if (empty($account_ids)) {
+            return ['error' => 'Account IDs is required!'];
+        }
+
+        $urlShorteners = UrlShortener::onlyRegistered()
+            ->latest()
+            ->get();
+
+        $files = BatchFile::with('urlShortener')
+            ->when($account_ids, function ($query, $account_ids) {
+                return $query->where(function ($subQuery) use ($account_ids) {
+                    $campaignIds = Campaign::whereIn('user_id', $account_ids)->pluck('id')->toArray();
+
+                    foreach ($campaignIds as $campaignId) {
+                        $subQuery->orWhereJsonContains('campaign_ids', $campaignId);
+                    }
+                    return $subQuery;
+                });
+            })
+            ->when($id, function ($query, $id) {
+                return $query->whereId($id);
+            })
+            ->when($shortDomain, function ($query, $shortDomain) {
+                return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
+                });
+            })
+            ->when($status, function ($query, $status) {
+                switch ($status) {
+                    case BatchFile::STATUS_ERROR:
+                        return $query->where('has_errors', 1);
+                    case BatchFile::STATUS_COMPLETED:
+                        return $query->where('is_ready', 1)->where('number_of_entries', '>', 0);
+                    case BatchFile::STATUS_REGENERATED:
+                        return $query->where('has_errors', 0)
+                            ->where('number_of_entries', 0)
+                            ->where('generated_count', '>', 0);
+                    case BatchFile::STATUS_GENERATED:
+                        return $query->where('is_ready', 0)
+                            ->where('has_errors', 0);
+                }
+            })
+            ->orderby($sortBy, $sortOrder)
+            ->paginate(
+                $perPage
+            );
+
+        // get count of all messages in the queue
+        $params['total_in_queue'] = $this->globalCachingService->getTotalInQueue();
+        $params['files'] = $files;
+        $params['urlShorteners'] = $urlShorteners;
+        $params['total_not_downloaded_in_queue'] = $this->globalCachingService->getTotalNotDownloadedInQueue();
+
+        return $params;
+    }
+
+    /**
      * @param $uniq_campaign_ids
      * @param $urlShortenerName
      * @param $urlShortener
@@ -579,36 +648,5 @@ class JobService
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $id . '.csv"');
         return $response;
-    }
-
-    public function getQueueStats(Request $request)
-    {
-        $filter = [
-            'account' => $request->input('account'),
-            'sort_by' => $request->input('sort_by', 'id'),
-            'sort_order' => $request->input('sort_order', 'desc'),
-            'per_page' => $request->input('per_page', 15),
-        ];
-
-        $accounts = User::withCount([
-            'campaigns',
-            'recipientLists',
-        ])
-            ->addSelect([
-                'sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')
-                    ->whereColumn('user_id', 'users.id'),
-                'clicked' => Campaign::selectRaw('SUM(total_recipients_click_thru)')
-                    ->whereColumn('user_id', 'users.id'),
-                'campaigns_average_ctr' => Campaign::selectRaw('AVG(total_ctr)')
-                    ->whereColumn('user_id', 'users.id'),
-            ]);
-
-        if (!empty($filter['account'])) {
-            $accounts->where('name', 'like', '%' . $filter['account'] . '%')->orWhere('email', 'like', '%' . $filter['account'] . '%');
-        }
-
-        $accounts = $accounts->orderBy($filter['sort_by'], $filter['sort_order'])->paginate($filter['per_page']);
-
-        return $accounts;
     }
 }

@@ -17,10 +17,11 @@ class BatchFile extends Model
         'campaign_ids' => 'array',
     ];
 
-    public function getBatchFromFilename(){
+    public function getBatchFromFilename()
+    {
         preg_match('/byterevenue-[^\/]*-(.*?)\.csv/', $this->filename, $matches);
 
-        return  !$matches[1] ? null : $matches[1];
+        return !$matches[1] ? null : $matches[1];
     }
 
     public function campaigns()

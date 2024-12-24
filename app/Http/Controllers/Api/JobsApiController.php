@@ -56,6 +56,21 @@ class JobsApiController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
+    public function clientsFiles(Request $request): JsonResponse
+    {
+        $params = $this->jobService->clientsFiles($request);
+
+        if ($params['error'] ?? null) {
+            return $this->responseError(message: $params['error']);
+        }
+
+        return $this->responseSuccess($params);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function generateCsv(Request $request): JsonResponse
     {
         $params = $request->validate([
