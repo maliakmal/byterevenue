@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\CreateCampaignsOnKeitaro;
+use App\Jobs\FinishLoopCsvQueueBatch;
 use App\Jobs\ProcessCsvQueueBatch;
 use App\Jobs\ProcessCsvQueueBatchByCampaigns;
 use App\Jobs\ProcessCsvRegenQueueBatch;
@@ -578,6 +579,7 @@ class JobService
 
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $id . '.csv"');
+
         return $response;
     }
 

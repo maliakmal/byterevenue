@@ -69,9 +69,11 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
 
         // Insert any remaining records in the batch
         if (!empty($data)) {
-            \Log::debug('Processing campaign: ' . $this->campaign->id . ' create ' . count($data) . ' records in broadcast_logs');
+            \Log::debug('Processing campaign #: ' . $this->campaign->id . ' create ' . count($data) . ' records in broadcast_logs');
+
+            \DB::disableQueryLog();
+
             try {
-                \DB::statement('ALTER TABLE broadcast_logs DISABLE KEYS');
                 \DB::table('broadcast_logs')->insert($data);
 
                 cache()->put(
@@ -88,10 +90,21 @@ class ProcessCampaign extends BaseJob implements ShouldQueue
             }
             catch (\Exception $e) {
                 \Log::error('Error inserting broadcast_logs: ' . $e->getMessage());
+
+                foreach ($data as $key => $value) {
+                    unset($data[$key]['id']);
+                    unset($data[$key]['slug']);
+                    unset($data[$key]['is_downloaded_as_csv']);
+                    unset($data[$key]['created_at']);
+                    unset($data[$key]['updated_at']);
+                }
+
+                \DB::table('extra_broadcast_logs')->insert($data);
+                \Log::debug('Inserted ' . count($data) . ' records in extra_broadcast_logs');
             }
-            finally {
-                \DB::statement('ALTER TABLE broadcast_logs ENABLE KEYS');
-            }
+
+            \DB::enableQueryLog();
+            \Log::debug('Created ' . count($data) . ' records in broadcast_logs');
         } else {
             \Log::error('No contacts found for campaign: ' . $campaign->id);
         }

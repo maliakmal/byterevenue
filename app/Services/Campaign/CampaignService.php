@@ -2,6 +2,7 @@
 
 namespace App\Services\Campaign;
 
+use App\Jobs\FinishLoopCsvQueueBatch;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Message;
@@ -121,6 +122,7 @@ class CampaignService
     {
         try {
             DB::beginTransaction();
+
             $campaign = auth()->user()->campaigns()->create([
                 'title' => $data['title'],
                 'description' => $data['description'] ?? '',
@@ -131,20 +133,18 @@ class CampaignService
             if (auth()->user()->show_introductory_screen == true) {
                 User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
             }
-            //
-//                $create_group_request = new CreateGroupRequest($campaign->title, 'campaigns');
-//                $response = KeitaroCaller::call($create_group_request);
-//                $campaign->keitaro_group_id = $response['id'];
-//                $campaign->keitaro_create_group_response = @json_encode($response);
-//                $campaign->save();
+
             DB::commit();
+
         } catch (RequestException $exception) {
             DB::rollBack();
+            \Log::error($exception->getMessage());
 
             return [null, ['message' => $exception->getMessage()]];
+
         } catch (\Exception $exception) {
             DB::rollBack();
-            report($exception);
+            \Log::error($exception->getMessage());
 
             return [null, ['message' => 'Error Create Campaign']];
         }
@@ -156,6 +156,7 @@ class CampaignService
             "user_id" => auth()->id(),
             'campaign_id' => $campaign->id
         ];
+
         Message::create($message_data);
 
         return [$campaign, null];
@@ -242,7 +243,7 @@ class CampaignService
     public function markAsProcessed(int $id)
     {
         // create message logs against each contact and generate the message acordingly
-        $user = auth()->user();
+
         $campaign = Campaign::with(['user', 'message'])->withCount([
             'recipient_list as recipient_list_contacts_count' => function ($query) {
                 $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
@@ -250,10 +251,10 @@ class CampaignService
             }
         ])->findOrFail($id);
 
-        $account = $campaign->user;
-        $amount  = $campaign->recipient_list_contacts_count;
+        $user   = $campaign->user;
+        $amount = $campaign->recipient_list_contacts_count;
 
-        if ($account->tokens < $amount) {
+        if ($user->tokens < $amount) {
             return [false, 'You do not have enough tokens to process this campaign.'];
         }
 
@@ -272,8 +273,9 @@ class CampaignService
                 dispatch(new ProcessCampaign($params));
             }
 
-            // Update campaign status
-            $campaign->markAsProcessed();
+            dispatch(new FinishLoopCsvQueueBatch($campaign));
+
+            $campaign->markAsProcessed(); // need add and set status in process (generated)
 
             // Create a transaction record
             Transaction::create([
@@ -283,8 +285,7 @@ class CampaignService
             ]);
 
             // Deduct tokens from account
-            $account->deductTokens($amount);
-            $account->save();
+            $user->deductTokens($amount);
 
             DB::commit();
 
