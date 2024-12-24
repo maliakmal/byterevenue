@@ -26,6 +26,7 @@ class AccountsService
             'sort_order' => request('sort_order', 'desc'),
             'per_page' => request('per_page', 15),
         ];
+        $status = intval($request->input('status',-1));
 
         $accounts = User::withCount([
             'campaigns',
@@ -43,7 +44,16 @@ class AccountsService
                     ->whereColumn('user_id', 'users.id')
                     ->latest('created_at')
                     ->limit(1),
-            ]);
+                'sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')
+                    ->whereColumn('user_id', 'users.id'),
+                'clicked' => Campaign::selectRaw('SUM(total_recipients_click_thru)')
+                    ->whereColumn('user_id', 'users.id'),
+                'campaigns_average_ctr' => Campaign::selectRaw('AVG(total_ctr)')
+                    ->whereColumn('user_id', 'users.id'),
+            ])
+            ->when(in_array($status, [0, 1]), function ($query) use ($status) {
+                return $query->where('is_blocked', $status);
+            });
 
         if (!empty($filter['account'])) {
             $accounts->where('name', 'like', '%' . $filter['account'] . '%')->orWhere('email', 'like', '%' . $filter['account'] . '%');
