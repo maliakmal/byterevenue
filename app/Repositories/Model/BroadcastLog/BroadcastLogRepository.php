@@ -5,7 +5,6 @@ namespace App\Repositories\Model\BroadcastLog;
 use App\Models\BroadcastLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
-use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -28,6 +27,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return $this->model->whereIn('id', $ids)->update($fieldsToUpdate);
     }
+
     public function updateBySlug($slug, $fieldsToUpdate)
     {
         return $this->model->where('slug', '=', $slug)->update($fieldsToUpdate);
@@ -63,27 +63,29 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
      * @params array $inputs
      * @return mixed
      */
-    // abandoned?
-    public function getUnsent(array $inputs)
+    public function getUnsent()
     {
-        $query = $this->model->newQuery()->join('campaigns', 'broadcast_logs.campaign_id', '=', 'campaigns.id')
-                                                ->where('campaigns.is_ignored_on_queue', '=', 0);
-        $query = $query->where('is_sent', '0');
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->get();
+    }
 
-        if (!empty($inputs['campaign_id'])) {
-            $query = $query->where('campaign_id', $inputs['campaign_id']);
-        }
+    public function getUnsentCount()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->count();
+    }
 
-        if (!empty($inputs['batch'])) {
-            $query = $query->where('batch', $inputs['batch']);
-        }
-
-        if (!empty($inputs['count'])) {
-            $query = $query->limit($inputs['count']);
-        }
-
-        return $query->get();
-
+    public function getUnsentCountByUser($user)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->where('user_id', $user->id)
+            ->whereNull('batch')
+            ->count();
     }
 
     public function getUniqueCampaignsIDsFromExistingBatch($batch) {
@@ -170,109 +172,70 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return (array)$totals;
     }
 
-    /**
-     * @param $startDate
-     * @param $endDate
-     *
-     * @return mixed
-     */
-    public function getTotals($startDate, $endDate)
+    public function getTotalCount()
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->selectRaw("
-                            COUNT(CASE WHEN is_sent = 1 AND sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
-                            COUNT(CASE WHEN is_click = 1 AND clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
-                            ", [$startDate, $endDate, $startDate, $endDate])
-            ->first();
+            ->count();
     }
 
-    /**
-     * @param $startDate
-     * @param $endDate
-     *
-     * @return mixed
-     */
-    public function getArchivedTotals($startDate, $endDate)
+    public function getArchivedTotalCount()
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->selectRaw("
-                            COUNT(CASE WHEN sent_at BETWEEN ? AND ? THEN 1 END) as total_num_sent,
-                            COUNT(CASE WHEN clicked_at BETWEEN ? AND ? THEN 1 END) as total_num_clicks
-                            ", [$startDate, $endDate, $startDate, $endDate])
-            ->first();
+            ->count();
     }
 
-    /**
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     *
-     * @return mixed
-     */
-    public function getClicked(Carbon $startDate, Carbon $endDate)
+    public function getClickedCount()
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->select(DB::raw("DATE(clicked_at) AS date, COUNT(*) AS count"))
+            ->where('is_click', 1)
             ->whereNotNull('clicked_at')
-            ->where('clicked_at', '>=', $startDate->toDateTimeString())
-            ->where('clicked_at', '<=', $endDate->toDateTimeString())
-            ->groupBy(DB::raw('DATE(clicked_at)'))
-            ->get();
+            ->count();
     }
 
-    /**
-     * @param $startDate
-     * @param $endDate
-     *
-     * @return mixed
-     */
-    public function getArchivedClicked($startDate, $endDate)
-    {
-        return \DB::connection('storage_mysql')
-            ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(clicked_at) AS date, COUNT(*) AS count"))
-            ->whereNotNull('clicked_at')
-            ->where('clicked_at', '>=', $startDate->toDateTimeString())
-            ->where('clicked_at', '<=', $endDate->toDateTimeString())
-            ->groupBy(DB::raw('DATE(clicked_at)'))
-            ->get();
-    }
-
-    /**
-     * @param $startDate
-     * @param $endDate
-     *
-     * @return mixed
-     */
-    public function getSendData($startDate, $endDate)
+    public function getClickedCountByUser($user)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->select(DB::raw("DATE(sent_at) AS date, COUNT(*) AS count"))
-            ->whereNotNull('sent_at')
-            ->where('sent_at', '>=', $startDate->toDateTimeString())
-            ->where('sent_at', '<=', $endDate->toDateTimeString())
-            ->groupBy(DB::raw('DATE(sent_at)'))
-            ->get();
+            ->where('is_click', 1)
+            ->whereNotNull('clicked_at')
+            ->where('user_id', $user->id)
+            ->count();
     }
 
-    /**
-     * @param $startDate
-     * @param $endDate
-     *
-     * @return mixed
-     */
-    public function getArchivedSendData($startDate, $endDate)
+    public function getArchivedClickedCount()
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->select(DB::raw("DATE(sent_at) AS date, COUNT(*) AS count"))
+            ->whereNotNull('clicked_at')
+            ->count();
+    }
+
+    public function getSendCount()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
             ->whereNotNull('sent_at')
-            ->where('sent_at', '>=', $startDate->toDateTimeString())
-            ->where('sent_at', '<=', $endDate->toDateTimeString())
-            ->groupBy(DB::raw('DATE(sent_at)'))
-            ->get();
+            ->where('is_sent', 1)
+            ->count();
+    }
+
+    public function getSendCountByUser($user)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNotNull('sent_at')
+            ->where('user_id', $user->id)
+            ->count();
+    }
+
+    public function getArchivedSendCount()
+    {
+        return \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->whereNotNull('sent_at')
+            ->count();
     }
 }
