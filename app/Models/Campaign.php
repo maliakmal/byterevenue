@@ -17,6 +17,7 @@ class Campaign extends Model
     const STATUS_DRAFT = 0; // created but not run process
     const STATUS_PROCESSING = 1; // in process (generating logs)
     const STATUS_DONE = 2; // completed sending (via csv)
+    const STATUS_EXPIRED = 9; // expired
 
     public function user(){
         return $this->belongsTo(User::class);

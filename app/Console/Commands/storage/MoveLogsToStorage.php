@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\storage;
 
+use App\Models\Campaign;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +32,17 @@ class MoveLogsToStorage extends Command
             return self::SUCCESS;
         }
 
+        // set campaign status to expired if it's expired
+//        $expiredCampaignIds = \DB::table('campaigns')
+//            ->select('id')
+//            ->whereNotNull('expires_at')
+//            ->where('expires_at', '<', now()->toDateTimeString())
+//            ->where('status', Campaign::STATUS_PROCESSING)
+//            ->pluck('id');
+
+//        \DB::table('campaigns')->whereIn('id', $expiredCampaignIds)
+//            ->update(['status' => Campaign::STATUS_EXPIRED]);
+
         $logs = \DB::table('broadcast_logs')
             ->select('id', 'recipient_phone', 'contact_id', 'campaign_id', 'sent_at', 'clicked_at', 'created_at')
             ->where(function ($query) {
@@ -49,6 +61,10 @@ class MoveLogsToStorage extends Command
                     ->whereNull('sent_at')
                     ->where('created_at', '<', now()->subDays(config('settings.storage.archive_logs.not_send_period', 7)));
             })
+//            ->orWhere(function ($query) use ($expiredCampaignIds) {
+//                $query
+//                    ->whereIn('campaign_id', $expiredCampaignIds);
+//            })
             ->limit(config('settings.storage.archive_logs.count'))
             ->get();
 
