@@ -475,6 +475,128 @@ class JobService
         return ['success' => 'CSV is being generated.'];
     }
 
+    public function processGenerateByAccounts(array $params)
+    {
+        Log::alert('Request for CSV (Account) generation. Starting process...', $params);
+
+        $requestCount = intval($params['number_messages']); // count of records in CSV
+        $urlShortenerName = trim($params['url_shortener']);
+        $account_ids = $params['account_ids'] ?? [];
+        $campaigns_data = [];
+
+        $urlShortener = UrlShortener::where('name', $urlShortenerName)->first();
+        $domain_id = $urlShortener->asset_id;
+        $batchSize = 1000; // ids scope for each job
+        $campaign_short_urls = [];
+        $campaign_short_urls_new = [];
+
+        $campaign_ids = Campaign::whereIn('user_id',$account_ids)->pluck('id')->toArray();
+
+        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
+        // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
+
+        $allowedCompanyIds = array_values(array_diff($campaign_ids, $ignored_campaigns));
+        $campaign_ids = Campaign::whereIn('id', $allowedCompanyIds)->pluck('id')->toArray();
+
+        Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
+
+        if (empty($campaign_ids))
+            return ['error' => 'No campaigns ready for CSV generation.'];
+
+        $totalRecords = 0;
+        $campaigns_array = [];
+        $campaigns_models = [];
+
+        foreach ($campaign_ids as $uniq_campaign_id) {
+            $get_or_create_short = $this->createCampaignShortUrl($uniq_campaign_id, $urlShortenerName, $urlShortener);
+
+            // if short is exists $new_generate_short == null, if created new record $new_generate_short == new CampaignShortUrl
+            $campaign_short_urls_new[] = $get_or_create_short['new'] ?? null;
+            $campaign_short_urls[] = $get_or_create_short['exists'] ?? $get_or_create_short['new'];
+            $campaigns_models[$uniq_campaign_id] = Campaign::findOrFail($uniq_campaign_id);
+            $campaigns_array[$uniq_campaign_id] = BroadcastLog::query()
+                ->where('campaign_id', $uniq_campaign_id)
+                ->whereNull('batch')
+                ->count();
+            $totalRecords += $campaigns_array[$uniq_campaign_id];
+        }
+
+        if (!$totalRecords) {
+            return ['error' => 'No messages ready for CSV generation.'];
+        }
+
+        $campaign_short_urls_new = array_filter($campaign_short_urls_new);
+
+        // create new campaigns on Keitaro
+        if (!empty($campaign_short_urls_new)) {
+            $newCampaignsData = ['campaigns' => $campaign_short_urls_new, 'domain_id' => $domain_id];
+            Log::info('GenerateService -> New Keitaro Campaigns Generation starts with data: ', $newCampaignsData);
+            dispatch(new CreateCampaignsOnKeitaro($newCampaignsData));
+        }
+
+        // total count of available records
+        $availableCount = $totalRecords > $requestCount ? $requestCount : $totalRecords;
+        $batch_no = str_replace('.', '', microtime(true));
+
+        Log::info('GenerateService -> Request count: ' . $requestCount . ' ; Records available ' . $availableCount);
+
+        $filename = "/csv/byterevenue-messages-$batch_no.csv";
+        $batch_file = BatchFile::create([
+            'filename' => $filename,
+            'path' => $filename, // duplicate of filename field, mb remove this <---
+            'request_count' => $requestCount, // total records requested
+            'number_of_entries' => $availableCount, // total available records for this condition
+            'is_ready' => 0,
+            'url_shortener_id' => $urlShortener->id,
+            'campaign_ids' => $campaign_ids,
+            'type' => 'campaign',
+        ]);
+
+        arsort($campaigns_data);
+        $part = ceil($availableCount / count($campaign_ids));
+        $part = $part < $batchSize ? $part : $batchSize;
+        $bypass = 1000;
+
+        while ($availableCount > 0) {
+            if ($bypass-- < 0)
+                throw new \Exception('Infinite loop!');
+
+            foreach ($campaigns_array as $campaign_id => $records_count) {
+                $chunk = $part > $campaigns_array[$campaign_id] ? $campaigns_array[$campaign_id] : $part;
+
+                if ($chunk <= 0 || $availableCount <= 0)
+                    continue;
+
+                $params = [
+                    'batchSize' => $chunk,
+                    'url_shortener' => $urlShortenerName,
+                    'batch_no' => $batch_no,
+                    'batch_file' => $batch_file,
+                    'campaign_short_urls' => collect($campaign_short_urls),
+                    'is_last' => $availableCount - $chunk <= 0,
+                    'campaign_ids' => [$campaign_id],
+                    'remainder' => $availableCount,
+                ];
+
+                $campaigns_array[$campaign_id] -= $chunk;
+                $availableCount -= $chunk;
+
+                dispatch(new ProcessCsvQueueBatchByCampaigns($params));
+            }
+        }
+
+        $one = $batch_file->toArray();
+        $_batch_no = $batch_file->getBatchFromFilename();
+        $specs = $this->broadcastLogRepository->getTotalSentAndClicksByBatch($_batch_no);
+        $one['total_entries'] = $specs['total'];
+        $one['total_sent'] = $specs['total_sent'];
+        $one['total_unsent'] = $specs['total'] - $specs['total_sent'];
+        $one['total_clicked'] = $specs['total_clicked'];
+        $one['created_at_ago'] = $batch_file->created_at->diffForHumans();
+
+        return ['success' => 'CSV is being generated.'];
+    }
+
     /**
      * @param array $data
      *
