@@ -112,6 +112,29 @@ class JobsApiController extends ApiController
     }
 
     /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function generateCsvByAccounts(Request $request): JsonResponse
+    {
+        $params = $request->validate([
+            'number_messages' => ['required', 'integer', 'min:1', 'max:100000'],
+            'url_shortener' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:user'],
+            'account_ids' => ['required', 'array'],
+            'account_ids.*' => ['required', 'integer'],
+        ]);
+
+        $result = $this->jobService->processGenerateByAccounts(params: $params);
+
+        if ($result['error'] ?? null) {
+            return $this->responseError(message: $result['error']);
+        }
+
+        return $this->responseSuccess(message: $result['success']);
+    }
+
+    /**
      * @param JobRegenerateRequest $request
      * @return JsonResponse
      */
