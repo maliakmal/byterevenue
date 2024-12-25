@@ -2,7 +2,7 @@
 
 namespace App\Services\Campaign;
 
-use App\Jobs\FinishLoopCsvQueueBatch;
+use App\Jobs\FinishLoopContactGeneration;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Message;
@@ -273,7 +273,7 @@ class CampaignService
                 dispatch(new ProcessCampaign($params));
             }
 
-            dispatch(new FinishLoopCsvQueueBatch($campaign));
+            dispatch(new FinishLoopContactGeneration($campaign));
 
             $campaign->markAsProcessed(); // need add and set status in process (generated)
 

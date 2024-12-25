@@ -2,15 +2,12 @@
 
 namespace App\Jobs;
 
-use App\Services\GlobalCachingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Hidehalo\Nanoid\Client;
 
-class FinishLoopCsvQueueBatch extends BaseJob implements ShouldQueue
+class FinishLoopContactGeneration extends BaseJob implements ShouldQueue
 {
     public $timeout = 600; // 10 minutes
-
-    protected $cache_service = null;
 
     const QUEUE_KEY = 'campaign_contact_processing';
 
@@ -21,8 +18,6 @@ class FinishLoopCsvQueueBatch extends BaseJob implements ShouldQueue
         public $campaign,
         public $batch_size = 500,
     ) {
-        $this->cache_service = app()->make(GlobalCachingService::class);
-
         $this->onQueue(self::QUEUE_KEY);
     }
 
@@ -32,7 +27,7 @@ class FinishLoopCsvQueueBatch extends BaseJob implements ShouldQueue
     public function handle(): void
     {
         $extra  = \DB::table('extra_broadcast_logs')->get();
-        $chunks = $extra->chunk(500)->toArray();
+        $chunks = $extra->chunk($this->batch_size)->toArray();
 
         foreach ($chunks as $chunk) {
             $insert       = [];
