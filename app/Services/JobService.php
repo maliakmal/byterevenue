@@ -60,7 +60,7 @@ class JobService
                     case BatchFile::STATUS_COMPLETED:
                         return $query->where('is_ready', 1)->where('number_of_entries', '>', 0);
                     case BatchFile::STATUS_REGENERATED:
-                        return $query->where('has_errors', 0)
+                        return $query->where('is_ready', 1)
                             ->where('number_of_entries', 0)
                             ->where('generated_count', '>', 0);
                     case BatchFile::STATUS_GENERATED:
