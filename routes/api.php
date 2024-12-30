@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AuthApiController;
-use App\Http\Controllers\Api\BroadcastLogApiController;
+use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\JobsApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\AccountsApiController;
@@ -29,6 +29,7 @@ Route::get('user', function (Request $request) {
 
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('dashboard', [DashboardApiController::class, 'index']);
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
