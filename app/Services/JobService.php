@@ -50,7 +50,7 @@ class JobService
             })
             ->when($shortDomain, function ($query, $shortDomain) {
                 return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
-                    return $urlQuery->where('endpoint', 'like', "%$shortDomain%");
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
                 });
             })
             ->when($status, function ($query, $status) {
@@ -110,7 +110,7 @@ class JobService
             })
             ->when($shortDomain, function ($query, $shortDomain) {
                 return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
-                    return $urlQuery->where('endpoint', 'like', "%$shortDomain%");
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
                 });
             })
             ->when($status, function ($query, $status) {
@@ -179,7 +179,7 @@ class JobService
             })
             ->when($shortDomain, function ($query, $shortDomain) {
                 return $query->whereHas('urlShortener', function ($urlQuery) use ($shortDomain) {
-                    return $urlQuery->where('endpoint', 'like', "%$shortDomain%");
+                    return $urlQuery->where('name', 'like', "%$shortDomain%");
                 });
             })
             ->when($status, function ($query, $status) {
