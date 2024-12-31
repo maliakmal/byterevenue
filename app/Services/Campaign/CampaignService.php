@@ -185,9 +185,24 @@ class CampaignService
             Message::create($message_data);
         } else {
             if (isset($data['campaign_id'])) {
-
+                $message_data = [
+                    'subject' => $data['message_subject'] ?? '',
+                    'body' => $data['message_body'] ?? '',
+                    'target_url' => $data['message_target_url'] ?? '',
+                    "user_id" => auth()->id(),
+                    'campaign_id' => $campaign->id
+                ];
+                auth()->user()->campaigns()->whereId($data['campaign_id'])->message()->update($message_data);
             } else {
+                $message_data = [
+                    'subject' => $data['message_subject'],
+                    'body' => $data['message_body'],
+                    'target_url' => $data['message_target_url'],
+                    "user_id" => auth()->id(),
+                    'campaign_id' => $campaign->id
+                ];
 
+                Message::create($message_data);
             }
         }
 
