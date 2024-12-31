@@ -22,12 +22,14 @@ class CampaignStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
+            'is_template' => 'required|boolean',
+            'title' => 'required_if:is_template,false|nullable|string|max:255',
+            'campaign_id' => 'nullable|numeric|exists:campaigns,id',
             'description' => 'nullable|string',
-            'recipients_list_id' => 'required|integer',
-            'message_subject' => 'required|string|max:255',
-            'message_body' => 'required|string',
-            'message_target_url' => 'required|string|max:255',
+            'recipients_list_id' => 'required_if:is_template,false|nullable|integer|exists:recipients_lists,id',
+            'message_subject' => 'required_if:is_template,false|nullable|string|max:255',
+            'message_body' => 'required_if:is_template,false|nullable|string',
+            'message_target_url' => 'required_if:is_template,false|nullable|string|max:255',
         ];
     }
 }
