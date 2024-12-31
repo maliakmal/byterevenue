@@ -122,14 +122,38 @@ class CampaignService
     {
         try {
             DB::beginTransaction();
+            $campaign = null;
 
-            $campaign = auth()->user()->campaigns()->create([
-                'title' => $data['title'],
-                'description' => $data['description'] ?? '',
-                'recipients_list_id' => $data['recipients_list_id'],
-            ]);
-            $campaign->generateUniqueFolder();
-            $campaign->save();
+            if ($data['is_template']) {
+                $campaign = auth()->user()->campaigns()->create([
+                    'title' => $data['title'] ?? '',
+                    'description' => $data['description'] ?? '',
+                    'recipients_list_id' => $data['recipients_list_id'] ?? null,
+                    'status' => Campaign::STATUS_TEMPLATE,
+                ]);
+                $campaign->generateUniqueFolder();
+                $campaign->save();
+            } else {
+                if (isset($data['campaign_id'])) {
+                    auth()->user()->campaigns()->whereId($data['campaign_id'])->update([
+                        'title' => $data['title'],
+                        'description' => $data['description'] ?? '',
+                        'recipients_list_id' => $data['recipients_list_id'],
+                        'status' => Campaign::STATUS_DRAFT,
+                    ]);
+                    $campaign = Campaign::find($data['campaign_id']);
+                } else {
+                    $campaign = auth()->user()->campaigns()->create([
+                        'title' => $data['title'],
+                        'description' => $data['description'] ?? '',
+                        'recipients_list_id' => $data['recipients_list_id'],
+                        'status' => Campaign::STATUS_DRAFT,
+                    ]);
+                    $campaign->generateUniqueFolder();
+                    $campaign->save();
+                }
+            }
+
             if (auth()->user()->show_introductory_screen == true) {
                 User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
             }
@@ -149,15 +173,39 @@ class CampaignService
             return [null, ['message' => 'Error Create Campaign']];
         }
 
-        $message_data = [
-            'subject' => $data['message_subject'],
-            'body' => $data['message_body'],
-            'target_url' => $data['message_target_url'],
-            "user_id" => auth()->id(),
-            'campaign_id' => $campaign->id
-        ];
+        if ($data['is_template']) {
+            $message_data = [
+                'subject' => $data['message_subject'] ?? '',
+                'body' => $data['message_body'] ?? '',
+                'target_url' => $data['message_target_url'] ?? '',
+                "user_id" => auth()->id(),
+                'campaign_id' => $campaign->id
+            ];
 
-        Message::create($message_data);
+            Message::create($message_data);
+        } else {
+            if (isset($data['campaign_id'])) {
+                $message_data = [
+                    'subject' => $data['message_subject'] ?? '',
+                    'body' => $data['message_body'] ?? '',
+                    'target_url' => $data['message_target_url'] ?? '',
+                    "user_id" => auth()->id(),
+                    'campaign_id' => $campaign->id
+                ];
+                auth()->user()->campaigns()->whereId($data['campaign_id'])->message()->update($message_data);
+            } else {
+                $message_data = [
+                    'subject' => $data['message_subject'],
+                    'body' => $data['message_body'],
+                    'target_url' => $data['message_target_url'],
+                    "user_id" => auth()->id(),
+                    'campaign_id' => $campaign->id
+                ];
+
+                Message::create($message_data);
+            }
+        }
+
 
         return [$campaign, null];
     }
