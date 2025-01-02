@@ -99,7 +99,10 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
         }
 
         if (auth()->user()->hasRole('admin')) {
-            $campaigns->whereNot('status', Campaign::STATUS_TEMPLATE);
+            $campaigns->where(function ($query) {
+                $query->whereNot('status', Campaign::STATUS_TEMPLATE)
+                      ->orWhere('user_id', auth()->id());
+            });
             if (!empty($filter['user_id'])) {
                 $campaigns->where('user_id', $filter['user_id']);
             }
