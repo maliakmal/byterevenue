@@ -90,21 +90,16 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     {
         $campaigns = $this->model->newQuery()->with(['recipient_list', 'user', 'message']);
 
-        if (isset($filter['is_for_fifo'])) {
-            $campaigns->whereNotIn('status', [Campaign::STATUS_DRAFT,Campaign::STATUS_TEMPLATE]);
-        }
+        $campaigns->when($filter['is_for_fifo'], function ($query) {
+            $query->whereNotIn('status', [Campaign::STATUS_DRAFT,Campaign::STATUS_TEMPLATE]);
+        });
 
         if (!is_null($filter['status'])) {
-            if (isset($filter['is_for_fifo'])) {
-                $campaigns->whereNotIn('status', [Campaign::STATUS_DRAFT,Campaign::STATUS_TEMPLATE])->where('status', $filter['status']);
-            }
-            else {
-                $campaigns->where('status', $filter['status']);
-            }
+            $campaigns->where('status', $filter['status']);
         }
 
         if (auth()->user()->hasRole('admin')) {
-
+            $campaigns->whereNotIn('status', [Campaign::STATUS_TEMPLATE]);
             if (!empty($filter['user_id'])) {
                 $campaigns->where('user_id', $filter['user_id']);
             }
