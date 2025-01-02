@@ -23,7 +23,7 @@ class DashboardApiController extends ApiController
     }
 
     /**
-     * @return View
+     * @return JsonResponse
      */
     public function index(Request $request)
     {
