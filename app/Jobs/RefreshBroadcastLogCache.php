@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -93,9 +95,9 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             self::CACHE_TTL
         );
 
-        $topAccounts = \DB::table('transactions')
-            ->select('user_id', DB::raw('SUM(amount) as total_amount_sum'))
-            ->where('type', 'purchase')
+        $topAccounts = Transaction::with('user')
+            ->select('user_id', DB::raw('ABS(SUM(amount)) as total_amount_sum'))
+            ->where('type', 'usage')
             ->groupBy('user_id')
             ->orderByDesc('total_amount_sum')
             ->limit(5)
@@ -108,26 +110,39 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             self::CACHE_TTL
         );
 
-        $topMessagesSent = Campaign::with('user')
-            ->select('user_id', DB::raw('SUM(total_recipients) as total_recipients_sum'))
+        $topTokensSpent = Transaction::with('user')
+            ->select('user_id', DB::raw('ABS(SUM(amount)) as total_spent'))
+            ->addSelect([
+                'total_messages_sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')->whereColumn('user_id','transactions.user_id'),
+                'ctr' => Campaign::selectRaw('AVG(total_ctr)')->whereColumn('user_id','transactions.user_id'),
+            ])
+            ->where('type', 'usage')
             ->groupBy('user_id')
-            ->orderByDesc('total_recipients_sum')
+            ->orderByDesc('total_spent')
             ->limit(5)
             ->get()
             ->toArray();
 
         Cache::put(
-            'top_messages_sent_' . $this->startEndString,
-            $topMessagesSent,
+            'top_tokens_spent_' . $this->startEndString,
+            $topTokensSpent,
             self::CACHE_TTL
         );
 
-        $topUsers = Campaign::with('user')
-            ->select('user_id', DB::raw('COUNT(*) as total_campaigns'))
-            ->where('status', Campaign::STATUS_PROCESSING)
-            ->groupBy('user_id')
-            ->orderByDesc('total_campaigns')
-            ->limit(5)
+        $topUsers = User::withCount([
+            'campaigns',
+            'campaigns as processing_campaign_count' => function ($query) {
+                $query->where('status', Campaign::STATUS_PROCESSING);
+            },
+        ])
+            ->addSelect([
+                'latest_campaign_total_ctr' => Campaign::select('total_ctr')
+                    ->whereColumn('user_id', 'users.id')
+                    ->latest('id')
+                    ->limit(1),
+            ])
+            ->orderByDesc('processing_campaign_count')
+            ->latest()
             ->get()
             ->toArray();
 
