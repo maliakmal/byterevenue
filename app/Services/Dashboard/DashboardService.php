@@ -32,7 +32,7 @@ class DashboardService
             'unsentCount'            => (int)Cache::get('unsent_count_' . $startEndString, 0),
             'campaignCount'          => (int)Cache::get('campaign_count_' . $startEndString, 0),
             'topAccounts'            => Cache::get('top_accounts_' . $startEndString, []),
-            'topMessagesSent'        => Cache::get('top_messages_sent_' . $startEndString, []),
+            'topTokensSpent'        => Cache::get('top_tokens_spent_' . $startEndString, []),
             'topUsers'               => Cache::get('top_users_' . $startEndString, []),
             'cacheUpdatedAt'         => Cache::get('last_refreshed_at') ?: 'never',
             'responseIsCached'       => !!Cache::get('ready_'. $startEndString),
@@ -61,7 +61,7 @@ class DashboardService
             'totalCount'         => $cachedData['totalCount'], // total count records in broadcast_logs table
             'archiveCount'       => $cachedData['totalFromStorageCount'], // total count records in broadcast_storage_master (archive)
             'topAccounts'        => $cachedData['topAccounts'],
-            'topMessagesSent'    => $cachedData['topMessagesSent'],
+            'topTokensSpent'    => $cachedData['topTokensSpent'],
             'topUsers'           => $cachedData['topUsers'], // top 5 users by number of active campaigns
 
             // cache info
