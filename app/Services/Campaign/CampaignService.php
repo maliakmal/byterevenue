@@ -127,6 +127,7 @@ class CampaignService
                 'title' => $data['title'],
                 'description' => $data['description'] ?? '',
                 'recipients_list_id' => $data['recipients_list_id'],
+                'expires_at' => now()->addDays(5)->toDateTimeString(),
             ]);
             $campaign->generateUniqueFolder();
             $campaign->save();
