@@ -147,7 +147,7 @@ class CampaignApiController extends ApiController
      */
     public function update(CampaignUpdateRequest $request, Campaign $campaign): JsonResponse
     {
-        if ($campaign->status !== Campaign::STATUS_DRAFT ||  $campaign->status !== Campaign::STATUS_TEMPLATE) {
+        if ($campaign->status !== Campaign::STATUS_DRAFT && $campaign->status !== Campaign::STATUS_TEMPLATE) {
             return $this->responseError(message:'Campaign has been dispatched and cannot be updated.', status:400);
         }
 
