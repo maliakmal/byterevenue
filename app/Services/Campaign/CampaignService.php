@@ -122,7 +122,6 @@ class CampaignService
     {
         try {
             DB::beginTransaction();
-            $campaign = null;
             $isTemplate = $data['is_template'] ?? false;
             $status = $isTemplate ? Campaign::STATUS_TEMPLATE : Campaign::STATUS_DRAFT;
 
@@ -371,6 +370,7 @@ class CampaignService
             'description' => $data['description'] ?? '',
             'recipients_list_id' => $data['recipients_list_id'] ?? null,
             'status' => $status,
+            'expires_at' => $data['expires_at'] ?? now()->addDays(5)->toDateTimeString(),
         ]);
 
         $campaign->generateUniqueFolder();
