@@ -80,7 +80,7 @@
                   <div class="flex-1 truncate">
                     <div class="  ">
                       <h2 class="truncate  font-medium text-gray-900 text-3xl">
-                        {{ $params['campaigns_remaining_in_queue'] }}
+                        {{ $campaigns_remaining_in_queue }}
                       </h2>
                       <p>Campaigns inQueue</p>
                     </div>
@@ -92,7 +92,7 @@
                   <div class="flex-1 truncate">
                     <div class="  ">
                       <h2 class="truncate  font-medium text-gray-900 text-3xl">
-                        {{ $params['total_num_sent'] }}
+                        {{ $total_num_sent }}
                       </h2>
                       <p>Sent messages</p>
                     </div>
@@ -104,7 +104,7 @@
                   <div class="flex-1 truncate">
                     <div class="  ">
                       <h2 class="truncate  font-medium text-gray-900 text-3xl">
-                        {{ $params['total_num_clicks'] }}
+                        {{ $total_num_clicks }}
                       </h2>
                       <p>Clicks</p>
                     </div>
@@ -116,7 +116,7 @@
                   <div class="flex-1 truncate">
                     <div class="  ">
                       <h2 class="truncate  font-medium text-gray-900 text-3xl">
-                        {{ $params['ctr'] }}%
+                        {{ $ctr }}%
                       </h2>
                       <p>Click Through Rate</p>
                     </div>
@@ -241,8 +241,8 @@
 <script>
   $(function(){
     $('input[name="dates"]').daterangepicker({
-      "startDate": '{{ $params['start_date'] }}',
-      "endDate": '{{ $params['end_date'] }}'
+      "startDate": '{{ $params['start_date'] ?? '' }}',
+      "endDate": '{{ $params['end_date'] ?? '' }}'
     });
     $('input[name="dates"]').on('apply.daterangepicker', function(ev, picker) {
       $('#form-admin-dashboard').submit();

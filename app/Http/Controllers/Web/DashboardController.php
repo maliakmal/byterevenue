@@ -26,7 +26,23 @@ class DashboardController extends Controller
         $dashboardData = $this->dashboardService->generateAdminDashboardData();
 //        $dashboardData = $this->dashboardService->generateUserDashboardData();
 
-        return ($dashboardData);
+        if (request()->raw) dd($dashboardData);
+
+        return view(
+            'dashboard',
+            [
+                'cache_updated_at' => $dashboardData['cacheUpdatedAt'],
+                'campaigns_remaining_in_queue' => $dashboardData['campaignsInQueue'],
+                'total_num_sent' => $dashboardData['totalSendCount'],
+                'total_num_clicks' => $dashboardData['totalClicksCount'],
+                'accounts' => [],
+                'labels' => [],
+                'campaigns_graph' => [],
+                'send_graph' => [],
+                'clicks_graph' => [],
+                'ctr' => $dashboardData['totalSendCount'] / ($dashboardData['totalClicksCount'] > 0 ? $dashboardData['totalClicksCount'] : 1) * 100,
+            ]
+        );
     }
 
     /**

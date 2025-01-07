@@ -30,6 +30,7 @@ class CampaignStoreRequest extends FormRequest
             'message_subject' => 'required_if:is_template,false|nullable|string|max:255',
             'message_body' => 'required_if:is_template,false|nullable|string',
             'message_target_url' => 'required_if:is_template,false|nullable|string|max:255',
+            'expires_at' => 'nullable',
         ];
     }
 }
