@@ -50,10 +50,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('areas/get-all-cities', [AreasApiController::class, 'getAllCities']);
     Route::get('areas/cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 
-    Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
-
 //    Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
 });
+
+// out-side token check
+Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
 
 Route::post('batch_files', [BatchFileApiController::class, 'index']);
 Route::post('batch_files/check-status', [BatchFileApiController::class, 'checkStatus']);
