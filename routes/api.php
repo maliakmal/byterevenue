@@ -2,13 +2,14 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AuthApiController;
-use App\Http\Controllers\Api\BroadcastLogApiController;
+use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\JobsApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\AccountsApiController;
 use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\RecipientsListApiController;
 use App\Http\Controllers\Api\BroadcastBatchApiController;
+use App\Http\Controllers\Api\BroadcastLogApiController;
 use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
@@ -29,6 +30,7 @@ Route::get('user', function (Request $request) {
 
 // group routes that require auth:sanctum
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('dashboard', [DashboardApiController::class, 'index']);
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
@@ -48,10 +50,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('areas/get-all-cities', [AreasApiController::class, 'getAllCities']);
     Route::get('areas/cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 
-//    Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
-
 //    Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
 });
+
+// out-side token check
+Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
 
 Route::post('batch_files', [BatchFileApiController::class, 'index']);
 Route::post('batch_files/check-status', [BatchFileApiController::class, 'checkStatus']);

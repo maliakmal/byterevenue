@@ -122,15 +122,16 @@ class CampaignService
     {
         try {
             DB::beginTransaction();
+            $campaign = null;
+            $isTemplate = $data['is_template'] ?? false;
+            $status = $isTemplate ? Campaign::STATUS_TEMPLATE : Campaign::STATUS_DRAFT;
 
-            $campaign = auth()->user()->campaigns()->create([
-                'title' => $data['title'],
-                'description' => $data['description'] ?? '',
-                'recipients_list_id' => $data['recipients_list_id'],
-                'expires_at' => now()->addDays(5)->toDateTimeString(),
-            ]);
-            $campaign->generateUniqueFolder();
-            $campaign->save();
+            $campaign = isset($data['campaign_id'])
+                ? $this->updateCampaign($data['campaign_id'], $data, status: $status)
+                : $this->createCampaign($data, $status);
+
+            $this->handleMessage($campaign, $data);
+
             if (auth()->user()->show_introductory_screen == true) {
                 User::where('id', auth()->id())->update(['show_introductory_screen' => false]);
             }
@@ -149,16 +150,6 @@ class CampaignService
 
             return [null, ['message' => 'Error Create Campaign']];
         }
-
-        $message_data = [
-            'subject' => $data['message_subject'],
-            'body' => $data['message_body'],
-            'target_url' => $data['message_target_url'],
-            "user_id" => auth()->id(),
-            'campaign_id' => $campaign->id
-        ];
-
-        Message::create($message_data);
 
         return [$campaign, null];
     }
@@ -359,5 +350,51 @@ class CampaignService
     public function getUnsentByIds(array $uniqCampaignIds)
     {
         return $this->campaignRepository->getUnsentByIds($uniqCampaignIds);
+    }
+
+    private function updateCampaign($campaignId, array $data, $status)
+    {
+        auth()->user()->campaigns()->whereId($campaignId)->with(['recipient_list', 'user', 'message'])->update([
+            'title' => $data['title'] ?? '',
+            'description' => $data['description'] ?? '',
+            'recipients_list_id' => $data['recipients_list_id'] ?? null,
+            'status' => $status,
+        ]);
+
+        return Campaign::find($campaignId);
+    }
+
+    private function createCampaign(array $data, $status)
+    {
+        $campaign = auth()->user()->campaigns()->create([
+            'title' => $data['title'] ?? '',
+            'description' => $data['description'] ?? '',
+            'recipients_list_id' => $data['recipients_list_id'] ?? null,
+            'status' => $status,
+        ]);
+
+        $campaign->generateUniqueFolder();
+        $campaign->save();
+
+        return $campaign;
+    }
+
+    private function handleMessage(Campaign $campaign, array $data)
+    {
+        $messageData = [
+            'subject' => $data['message_subject'] ?? '',
+            'body' => $data['message_body'] ?? '',
+            'target_url' => $data['message_target_url'] ?? '',
+            'user_id' => auth()->id(),
+            'campaign_id' => $campaign->id,
+        ];
+
+        $existingMessage = $campaign->message;
+
+        if ($existingMessage) {
+            $existingMessage->update($messageData);
+        } else {
+            $campaign->message()->create($messageData);
+        }
     }
 }

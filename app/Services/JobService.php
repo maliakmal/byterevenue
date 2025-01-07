@@ -58,13 +58,17 @@ class JobService
                     case BatchFile::STATUS_ERROR:
                         return $query->where('has_errors', 1);
                     case BatchFile::STATUS_COMPLETED:
-                        return $query->where('is_ready', 1)->where('number_of_entries', '>', 0);
+                        return $query->where('is_ready', 1)
+                            ->where('number_of_entries', '>', 0)
+                            ->where('has_errors', 0);
                     case BatchFile::STATUS_REGENERATED:
-                        return $query->where('has_errors', 0)
+                        return $query->where('is_ready', 1)
                             ->where('number_of_entries', 0)
-                            ->where('generated_count', '>', 0);
+                            ->where('generated_count', '>', 0)
+                            ->where('has_errors', 0);
                     case BatchFile::STATUS_GENERATED:
                         return $query->where('is_ready', 0)
+                            ->where('number_of_entries','>', 0)
                             ->where('has_errors', 0);
                 }
             })
@@ -490,7 +494,7 @@ class JobService
         $campaign_short_urls = [];
         $campaign_short_urls_new = [];
 
-        $campaign_ids = Campaign::whereIn('user_id',$account_ids)->pluck('id')->toArray();
+        $campaign_ids = Campaign::whereIn('user_id', $account_ids)->pluck('id')->toArray();
 
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?

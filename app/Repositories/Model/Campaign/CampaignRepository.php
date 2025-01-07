@@ -90,24 +90,32 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
     {
         $campaigns = $this->model->newQuery()->with(['recipient_list', 'user', 'message']);
 
+        $campaigns->when(isset($filter['is_for_fifo']), function ($query) {
+            $query->whereNotIn('status', [Campaign::STATUS_DRAFT, Campaign::STATUS_TEMPLATE]);
+        });
+
         if (!is_null($filter['status'])) {
             $campaigns->where('status', $filter['status']);
         }
 
         if (auth()->user()->hasRole('admin')) {
-
+            $campaigns->where(function ($query) {
+                $query->whereNot('status', Campaign::STATUS_TEMPLATE)
+                      ->orWhere('user_id', auth()->id());
+            });
             if (!empty($filter['user_id'])) {
                 $campaigns->where('user_id', $filter['user_id']);
             }
-
         } else {
             $campaigns->where('user_id', auth()->id());
         }
 
-        if (!empty($filter['search'])) {
-            $campaigns->where('title', 'like', '%' . $filter['search'] . '%')
-                ->orWhere('id', $filter['search']);
-        }
+        $campaigns->when($filter['search'], function ($query, $search) {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('title', 'like', "%$search%")
+                         ->orWhere('id', $search);
+            });
+        });
 
         $campaigns->orderBy($filter['sort_by'], $filter['sort_order']);
 

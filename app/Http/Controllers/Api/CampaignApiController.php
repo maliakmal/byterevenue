@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Requests\CampaignSaveRequest;
 use App\Http\Requests\CampaignStoreRequest;
 use App\Http\Requests\CampaignUpdateRequest;
 use App\Models\Campaign;
@@ -68,13 +69,14 @@ class CampaignApiController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $filter = [
-            'search'     => $request->get('search'),
-            'status'     => $request->get('status'),
-            'user_id'    => $request->get('user_id'),
-            'sort_by'    => $request->get('sort_by', 'id'),
-            'sort_order' => $request->get('sort_order', 'desc'),
-            'per_page'   => $request->get('per_page', 5),
-            'page'       => $request->get('page', 1),
+            'is_for_fifo'   => $request->get('is_for_fifo', null),
+            'search'        => $request->get('search'),
+            'status'        => $request->get('status'),
+            'user_id'       => $request->get('user_id'),
+            'sort_by'       => $request->get('sort_by', 'id'),
+            'sort_order'    => $request->get('sort_order', 'desc'),
+            'per_page'      => $request->get('per_page', 5),
+            'page'          => $request->get('page', 1),
         ];
 
         $campaigns = $this->campaignService->getCampaignsFiltered($filter);
@@ -111,23 +113,23 @@ class CampaignApiController extends ApiController
     {
         $recipientsList = RecipientsList::find(intval($request->recipients_list_id));
 
-        if (!$recipientsList) {
+        if (!$recipientsList && !$request->is_template) {
             return $this->responseError(message: 'Recipient list not found.');
         }
 
-        $count_of_contacts = $recipientsList->recipientsGroup->count;
+        // $count_of_contacts = $recipientsList->recipientsGroup->count;
 
-        if ($count_of_contacts == 0) {
-            return $this->responseError(message: 'Recipient list is empty.');
-        }
+        // if ($count_of_contacts == 0) {
+        //     return $this->responseError(message: 'Recipient list is empty.');
+        // }
 
-        $user = auth()->user();
+        // $user = auth()->user();
 
-        if (!$user->hasEnoughTokens($count_of_contacts)) {
-            return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
-        }
+        // if (!$user->hasEnoughTokens($count_of_contacts)) {
+        //     return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
+        // }
 
-        $user->deductTokens($count_of_contacts);
+        // $user->deductTokens($count_of_contacts);
 
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 
@@ -145,7 +147,7 @@ class CampaignApiController extends ApiController
      */
     public function update(CampaignUpdateRequest $request, Campaign $campaign): JsonResponse
     {
-        if ($campaign->status !== Campaign::STATUS_DRAFT) {
+        if ($campaign->status !== Campaign::STATUS_DRAFT && $campaign->status !== Campaign::STATUS_TEMPLATE) {
             return $this->responseError(message:'Campaign has been dispatched and cannot be updated.', status:400);
         }
 
@@ -166,7 +168,7 @@ class CampaignApiController extends ApiController
     {
         $campaign = Campaign::findOrfail($campaign->id);
 
-        if ($campaign->status === Campaign::STATUS_DRAFT) {
+        if ($campaign->status === Campaign::STATUS_DRAFT || $campaign->status === Campaign::STATUS_TEMPLATE) {
             $campaign->delete();
 
             return $this->responseSuccess(message: 'Campaign deleted successfully.');
