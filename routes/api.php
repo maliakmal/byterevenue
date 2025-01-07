@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AccountsApiController;
 use App\Http\Controllers\Api\ContactApiController;
 use App\Http\Controllers\Api\RecipientsListApiController;
 use App\Http\Controllers\Api\BroadcastBatchApiController;
+use App\Http\Controllers\Api\BroadcastLogApiController;
 use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
@@ -49,7 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('areas/get-all-cities', [AreasApiController::class, 'getAllCities']);
     Route::get('areas/cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 
-//    Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
+    Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
 
 //    Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
 });
