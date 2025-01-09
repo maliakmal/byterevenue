@@ -553,7 +553,7 @@ class JobService
             'is_ready' => 0,
             'url_shortener_id' => $urlShortener->id,
             'campaign_ids' => $campaign_ids,
-            'type' => 'campaign',
+            'type' => 'account',
         ]);
 
         arsort($campaigns_data);

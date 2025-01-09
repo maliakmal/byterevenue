@@ -71,7 +71,7 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
             ->get();
 
         if ($this->logs->isEmpty()) {
-            Log::debug('No matching entries found - skipping...');
+            Log::error('No matching entries found - skipping...');
             $this->batch_file->update([
                 'is_ready'   => 1,
                 'has_errors' => 1
