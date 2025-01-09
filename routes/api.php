@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\BroadcastLogApiController;
 use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
+use App\Http\Controllers\Api\IndicatorsApiController;
 use App\Http\Middleware\CheckAdminRole;
 
 // group auth routes for auth api
@@ -33,6 +34,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('dashboard', [DashboardApiController::class, 'index']);
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
+
+    Route::get('totalQueueCountsIndicator', [IndicatorsApiController::class, 'totalQueue']);
+    Route::get('totalSentOnWeekIndicator', [IndicatorsApiController::class, 'totalSentOnWeek']);
+    Route::get('topFiveCampaignsIndicator', [IndicatorsApiController::class, 'topFiveCampaigns']);
+    Route::get('topFiveAccountsIndicator', [IndicatorsApiController::class, 'topFiveAccounts']);
 
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
 //    Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);

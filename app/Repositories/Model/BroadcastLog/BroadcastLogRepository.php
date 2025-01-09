@@ -79,11 +79,20 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             ->count();
     }
 
-    public function getUnsentCountByUser($user)
+    public function getUnsentCountByUserIds(array $userIds)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->where('user_id', $user->id)
+            ->whereIn('user_id', $userIds)
+            ->whereNull('batch')
+            ->count();
+    }
+
+    public function getUnsentCountByCampaignIds(array $campaignIds)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereIn('campaign_id', $campaignIds)
             ->whereNull('batch')
             ->count();
     }
@@ -195,13 +204,20 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             ->count();
     }
 
-    public function getClickedCountByUser($user)
+    public function getClickedCountByUserIds($userIds)
+    {
+        $userCampaignsIds = \DB::table('campaigns')->whereIn('user_id', $userIds)->pluck('id')->toArray();
+
+        return $this->getClickedCountByCampaignIds($userCampaignsIds);
+    }
+
+    public function getClickedCountByCampaignIds(array $campaignIds)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
             ->where('is_click', 1)
             ->whereNotNull('clicked_at')
-            ->where('user_id', $user->id)
+            ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
 
@@ -210,6 +226,22 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
             ->whereNotNull('clicked_at')
+            ->count();
+    }
+
+    public function getArchivedClickedCountByUserIds($userIds)
+    {
+        $userCampaignsIds = \DB::table('campaigns')->whereIn('user_id', $userIds)->pluck('id')->toArray();
+
+        return $this->getArchivedClickedCountByCampaignIds($userCampaignsIds);
+    }
+
+    public function getArchivedClickedCountByCampaignIds(array $campaignIds)
+    {
+        return \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->whereNotNull('clicked_at')
+            ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
 
@@ -222,12 +254,19 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             ->count();
     }
 
-    public function getSendCountByUser($user)
+    public function getSendCountByUserIds($userIds)
+    {
+        $userCampaignsIds = \DB::table('campaigns')->whereIn('user_id', $userIds)->pluck('id')->toArray();
+
+        return $this->getSendCountByCampaignIds($userCampaignsIds);
+    }
+
+    public function getSendCountByCampaignIds(array $campaignIds)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
             ->whereNotNull('sent_at')
-            ->where('user_id', $user->id)
+            ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
 
@@ -236,6 +275,22 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
             ->whereNotNull('sent_at')
+            ->count();
+    }
+
+    public function getArchivedSendCountByUserIds($userIds)
+    {
+        $userCampaignsIds = \DB::table('campaigns')->whereIn('user_id', $userIds)->pluck('id')->toArray();
+
+        return $this->getArchivedSendCountByCampaignIds($userCampaignsIds);
+    }
+
+    public function getArchivedSendCountByCampaignIds(array $campaignIds)
+    {
+        return \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->whereNotNull('sent_at')
+            ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
 }

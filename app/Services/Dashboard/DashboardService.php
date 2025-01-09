@@ -61,7 +61,7 @@ class DashboardService
             'totalCount'         => $cachedData['totalCount'], // total count records in broadcast_logs table
             'archiveCount'       => $cachedData['totalFromStorageCount'], // total count records in broadcast_storage_master (archive)
             'topAccounts'        => $cachedData['topAccounts'],
-            'topTokensSpent'    => $cachedData['topTokensSpent'],
+            'topTokensSpent'     => $cachedData['topTokensSpent'],
             'topUsers'           => $cachedData['topUsers'], // top 5 users by number of active campaigns
 
             // cache info
@@ -73,9 +73,11 @@ class DashboardService
     public function generateUserDashboardData()
     {
         $user             = auth()->user();
-        $totalSent        = $this->broadcastLogRepository->getSendCountByUser($user);
-        $messagesInQueue  = $this->broadcastLogRepository->getUnsentCountByUser($user);
-        $totalClicks      = $this->broadcastLogRepository->getClickedCountByUser($user);
+        $totalSent        = $this->broadcastLogRepository->getSendCountByUserIds([$user->id]);
+        $totalSent        += $this->broadcastLogRepository->getArchivedSendCountByUserIds([$user->id]);
+        $messagesInQueue  = $this->broadcastLogRepository->getUnsentCountByUserIds([$user->id]);
+        $totalClicks      = $this->broadcastLogRepository->getClickedCountByUserIds([$user->id]);
+        $totalClicks      += $this->broadcastLogRepository->getArchivedClickedCountByUserIds([$user->id]);
         $averageCTR       = $this->calculateCTR($totalClicks, $totalSent);
         $campaignsInQueue = $user->campaigns()->where('status', Campaign::STATUS_PROCESSING)->count();
         $recentCampaigns  = $user->campaigns()->latest()->limit(30)->get();

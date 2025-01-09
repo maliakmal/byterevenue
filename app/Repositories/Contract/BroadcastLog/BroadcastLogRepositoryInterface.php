@@ -16,7 +16,9 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
 
     public function getUnsentCount();
 
-    public function getUnsentCountByUser($user);
+    public function getUnsentCountByUserIds(array $userIds);
+
+    public function getUnsentCountByCampaignIds(array $campaignIds);
 
     public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null);
 
@@ -39,4 +41,16 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
     public function getTotalCount();
 
     public function getArchivedTotalCount();
+
+    public function getSendCountByUserIds(array $userIds);
+
+    public function getArchivedSendCountByUserIds(array $userIds);
+
+    public function getArchivedSendCountByCampaignIds(array $campaignIds);
+
+    public function getClickedCountByUserIds(array $userIds);
+
+    public function getArchivedClickedCountByUserIds(array $userIds);
+
+    public function getArchivedClickedCountByCampaignIds(array $campaignIds);
 }
