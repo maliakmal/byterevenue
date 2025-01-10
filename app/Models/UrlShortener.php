@@ -19,7 +19,7 @@ class UrlShortener extends Model
 
     public function campaignShortUrls()
     {
-        return $this->hasMany(CampaignShortUrl::class, 'url_shortener_id');
+        return $this->hasMany(CampaignShortUrl::class);
     }
 
     public function scopeOnlyRegistered($q)
