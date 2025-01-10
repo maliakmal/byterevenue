@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Indicators\QueueIndicatorsService;
 use Illuminate\Console\Command;
 
 class tmpTest extends Command
@@ -25,6 +26,11 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        //
+        $result = (new QueueIndicatorsService(
+            new \App\Repositories\Model\BroadcastLog\BroadcastLogRepository(
+                new \App\Models\BroadcastLog()
+            )
+        ))->getTopFiveDomains();
+        dd($result);
     }
 }

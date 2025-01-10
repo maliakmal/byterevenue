@@ -56,4 +56,16 @@ class IndicatorsApiController extends ApiController
 
         return $this->responseSuccess(data: $result);
     }
+
+    /**
+     * @param Request $request
+     * @param QueueIndicatorsService $indicatorsService
+     * @return JsonResponse
+     */
+    public function topFiveDomains(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    {
+        $result = $indicatorsService->getTopFiveDomains();
+
+        return $this->responseSuccess(data: $result);
+    }
 }

@@ -73,4 +73,18 @@ class QueueIndicatorsService
 
         return $topTransactionsUser;
     }
+
+    public function getTopFiveDomains()
+    {
+        $topUrlShortenerUsage = \DB::table('campaign_short_urls as csu')
+            ->join('url_shorteners as us', 'csu.url_shortener_id', '=', 'us.id')
+            ->select('us.name', \DB::raw('COUNT(csu.url_shortener_id) as usage_count'))
+            ->groupBy('us.name')
+            ->orderByDesc('usage_count')
+            ->limit(5)
+            ->pluck('usage_count', 'name')
+            ->toArray();
+
+        return $topUrlShortenerUsage;
+    }
 }
