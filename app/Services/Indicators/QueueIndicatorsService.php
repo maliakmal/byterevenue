@@ -43,7 +43,7 @@ class QueueIndicatorsService
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
 
-            $dataArray[$date->format('d-m-Y')] = (int)\DB::table('batch_files')
+            $dataArray[$date->format('m-d-Y')] = (int)\DB::table('batch_files')
                 ->whereDate('created_at', $date->format('Y-m-d'))
                 ->where('has_errors', 0)
                 ->where('is_ready', 1)
