@@ -23,6 +23,11 @@ class Campaign extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function campaignShortUrls()
+    {
+        return $this->hasMany(CampaignShortUrl::class);
+    }
+
     public function generateTrackableUrl($short_url = null, $params = null){
 
         $params = is_array($params)?$params:[];

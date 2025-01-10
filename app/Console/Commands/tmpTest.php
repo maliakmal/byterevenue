@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Campaign;
+use App\Services\Indicators\QueueIndicatorsService;
 use Illuminate\Console\Command;
 
 class tmpTest extends Command

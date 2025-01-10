@@ -165,7 +165,9 @@ class CampaignApiController extends ApiController
      */
     public function destroy(Campaign $campaign): JsonResponse
     {
-        $campaign = Campaign::findOrfail($campaign->id);
+        if ($campaign->campaignShortUrls()->count() > 0) {
+            return $this->responseError(message: 'Campaign has short urls and cannot be deleted.');
+        }
 
         if ($campaign->status === Campaign::STATUS_DRAFT || $campaign->status === Campaign::STATUS_TEMPLATE) {
             $campaign->delete();
