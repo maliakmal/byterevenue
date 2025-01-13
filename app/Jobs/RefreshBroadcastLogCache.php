@@ -79,7 +79,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
         );
 
         Cache::put(
-            'unsent_count_',
+            'unsent_count_' . $this->startEndString,
             $broadcastLogRepository->getUnsentCount(),
             self::CACHE_TTL
         );
