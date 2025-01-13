@@ -26,6 +26,8 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
 
     public function getTotalSentAndClicksByCampaign($campaign_id);
 
+    public function getSentAndClicksByCampaign($campaign_id);
+
     public function getTotalSentAndClicksByBatch($batch);
 
     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no);
