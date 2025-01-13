@@ -56,12 +56,6 @@ class FinishLoopContactGeneration extends BaseJob implements ShouldQueue
             }
         }
 
-        $totalRecipientsSentTo = \DB::table('broadcast_logs')
-            ->where('campaign_id', $this->campaign->id)
-            ->whereNotNull('batch')
-            ->count();
-
-        $this->campaign->update(['total_recipients_sent_to' => $totalRecipientsSentTo]);
         // $this->campaign->markAsProcessed(); // need change statuses in Campaign for this
     }
 }

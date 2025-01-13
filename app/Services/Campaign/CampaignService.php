@@ -163,7 +163,14 @@ class CampaignService
     {
         $per_page = 5;
         $campaign = $this->campaignRepository->find($id);
-        $message = $campaign->message;
+        $message  = $campaign->message;
+
+        $totalGenerated = cache()->remember('campaign_total_generated_' . $id, now()->addMinutes(3), function () use ($id) {
+            return \DB::table('broadcast_logs')
+                ->whereNotNull('batch')
+                ->where('campaign_id', $id)
+                ->count();
+        });
 
         $recipient_lists = $campaign->recipient_list;
 
@@ -196,7 +203,8 @@ class CampaignService
             'campaign' => $campaign,
             'message' => $message,
             'contacts' => $contacts,
-            'logs' => $logs
+            'logs' => $logs,
+            'total_sent' => $totalGenerated, // This count of generated in csv, but on board this value id Sent
         ];
     }
 
@@ -249,8 +257,6 @@ class CampaignService
             return [false, 'You do not have enough tokens to process this campaign.'];
         }
 
-        DB::beginTransaction();
-
         try {
             $recipientList  = $campaign->recipient_list;
             $recipientGroup = $recipientList->recipientsGroup;
@@ -278,11 +284,8 @@ class CampaignService
             // Deduct tokens from account
             $user->deductTokens($amount);
 
-            DB::commit();
-
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
-            DB::rollback();
             return [false, $e->getMessage()]; // TODO: remove after testing
         }
     }
