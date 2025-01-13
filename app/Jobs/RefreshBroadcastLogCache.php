@@ -143,6 +143,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ])
             ->orderByDesc('processing_campaign_count')
             ->latest()
+            ->limit(5)
             ->get()
             ->toArray();
 

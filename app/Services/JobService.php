@@ -278,6 +278,7 @@ class JobService
             ->count();
 
         if (0 == $totalRecords) {
+            \Log::info('GenerateService -> No messages ready for CSV generation. Exiting...');
             return ['error' => 'No messages ready for CSV generation.'];
         }
 
@@ -287,6 +288,7 @@ class JobService
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
         if (empty($campaign_ids)) {
+            \Log::info('GenerateService -> No campaigns ready for CSV generation. Exiting...');
             return ['error' => 'No campaigns ready for CSV generation.'];
         }
 
