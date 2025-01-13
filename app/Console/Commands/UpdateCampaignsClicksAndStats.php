@@ -49,7 +49,7 @@ class UpdateCampaignsClicksAndStats extends Command
                 $campaign->total_recipients_sent_to    = $totals['total_sent'];
                 $campaign->total_recipients_click_thru = $totals['total_clicked'];
                 $campaign->total_recipients_in_process = $totals['total_processed'];
-                $campaign->total_recipients            = $totals['total'];
+                $campaign->total_recipients            = $campaign->total_recipients > $totals['total'] ? $campaign->total_recipients : $totals['total'];
             } else {
                 continue;
             }

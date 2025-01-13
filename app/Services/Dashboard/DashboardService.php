@@ -14,7 +14,7 @@ class DashboardService
         protected BroadcastLogRepository $broadcastLogRepository
     ) {}
 
-    public function getCacheableAdminData(?Carbon $startDate = null, ?Carbon $endDate = null)
+    public function getCacheableAdminData()
     {
         // tmp disable days selection
         $startDate = now()->subDay();

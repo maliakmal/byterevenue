@@ -165,13 +165,6 @@ class CampaignService
         $campaign = $this->campaignRepository->find($id);
         $message  = $campaign->message;
 
-        $totalGenerated = cache()->remember('campaign_total_generated_' . $id, now()->addMinutes(3), function () use ($id) {
-            return \DB::table('broadcast_logs')
-                ->whereNotNull('batch')
-                ->where('campaign_id', $id)
-                ->count();
-        });
-
         $recipient_lists = $campaign->recipient_list;
 
         if ($campaign->isDraft()) {
@@ -204,9 +197,9 @@ class CampaignService
             'message' => $message,
             'contacts' => $contacts,
             'logs' => $logs,
-            'total_sent' => intval($totalGenerated), // This count of generated in csv, but on board this value id Sent
-            'total_blocked' => 0, // TODO: blocked
-            'total_clicked' => 0, // TODO: clicked
+            'total_sent' => $campaign->total_recipients_in_process,
+            'total_blocked' => 0, // TODO: where we getting this value?
+            'total_clicked' => $campaign->total_recipients_click_thru,
         ];
     }
 

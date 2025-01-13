@@ -130,7 +130,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     public function getTotalSentAndClicksByCampaign($campaign_id)
     {
-        $totals = \DB::connection('mysql')
+        $mainDb = \DB::connection('mysql')
             ->table('broadcast_logs')
             ->where('campaign_id', $campaign_id)
             ->select([
@@ -140,20 +140,51 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
                 DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
             ]);
 
-        return (array)$totals->first();
+        $sums = (array)$mainDb->first();
+
+        $slaveDb = \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->where('campaign_id', $campaign_id)
+            ->select([
+                DB::raw('COUNT(id) as total'),
+                DB::raw('COUNT(CASE WHEN sent_at IS NOT NULL THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN clicked_at IS NOT NULL THEN 1 END) as total_clicked')
+            ])
+            ->first();
+
+        $sums['total'] += $slaveDb->total;
+        $sums['total_sent'] += $slaveDb->total_sent;
+        $sums['total_clicked'] += $slaveDb->total_clicked;
+
+        return $sums;
     }
 
     public function getSentAndClicksByCampaign($campaign_id)
     {
-        $totals = \DB::connection('mysql')
+        $mainDb = \DB::connection('mysql')
             ->table('broadcast_logs')
             ->where('campaign_id', $campaign_id)
             ->select([
                 DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
                 DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
-            ]);
+            ])
+            ->first();
 
-        return (array)$totals->first();
+        $sums = (array)$mainDb;
+
+        $slaveDb = \DB::connection('storage_mysql')
+            ->table('broadcast_storage_master')
+            ->where('campaign_id', $campaign_id)
+            ->select([
+                DB::raw('COUNT(CASE WHEN sent_at IS NOT NULL THEN 1 END) as total_sent'),
+                DB::raw('COUNT(CASE WHEN clicked_at IS NOT NULL THEN 1 END) as total_clicked')
+            ])
+            ->first();
+
+        $sums['total_sent'] += $slaveDb->total_sent;
+        $sums['total_clicked'] += $slaveDb->total_clicked;
+
+        return $sums;
     }
 
     public function getTotalSentAndClicksByBatch($batch_no)
