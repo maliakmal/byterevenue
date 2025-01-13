@@ -290,8 +290,9 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNotNull('sent_at')
-            ->where('is_sent', 1)
+//            ->whereNotNull('sent_at')
+//            ->where('is_sent', 1)
+            ->whereNotNull('batch')
             ->count();
     }
 
@@ -306,7 +307,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNotNull('sent_at')
+//            ->whereNotNull('sent_at')
+            ->whereNotNull('batch')
             ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
@@ -315,7 +317,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->whereNotNull('sent_at')
+//            ->whereNotNull('sent_at')
+            ->whereNotNull('batch')
             ->count();
     }
 
@@ -330,7 +333,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-            ->whereNotNull('sent_at')
+//            ->whereNotNull('sent_at')
+            ->whereNotNull('batch')
             ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
