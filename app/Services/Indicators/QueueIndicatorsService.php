@@ -57,7 +57,10 @@ class QueueIndicatorsService
     public function getTopFiveCampaigns()
     {
         // Get top 5 campaigns by total recipients
-        return \DB::table('campaigns')->orderByDesc('total_recipients')->limit(5)->get();
+        return \DB::table('campaigns')->orderByDesc('total_recipients')
+            ->limit(5)
+            ->pluck('total_recipients','title')
+            ->toArray();
     }
 
     public function getTopFiveAccounts()
@@ -68,8 +71,7 @@ class QueueIndicatorsService
             ->groupBy('transactions.user_id')
             ->orderByDesc('total_amount')
             ->limit(5)
-            ->get()
-            ->toArray();
+            ->pluck('total_amount','name');
 
         return $topTransactionsUser;
     }
