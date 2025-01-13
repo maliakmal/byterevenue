@@ -209,7 +209,7 @@ class CampaignService
     {
         $total = BroadcastLog::where('campaign_id', $id)->count();
         $clicked = BroadcastLog::where('campaign_id', $id)->where('is_click', 1)->count();
-        $sent = BroadcastLog::where('campaign_id', $id)->where('is_sent', 1)->count();
+        $sent = BroadcastLog::where('campaign_id', $id)->whereNotNull('batch')->count();
         $campaign = Campaign::with('recipient_list')->find($id);
 
         return [
