@@ -204,7 +204,9 @@ class CampaignService
             'message' => $message,
             'contacts' => $contacts,
             'logs' => $logs,
-            'total_sent' => $totalGenerated, // This count of generated in csv, but on board this value id Sent
+            'total_sent' => intval($totalGenerated), // This count of generated in csv, but on board this value id Sent
+            'total_blocked' => 0, // TODO: blocked
+            'total_clicked' => 0, // TODO: clicked
         ];
     }
 
