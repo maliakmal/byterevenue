@@ -317,8 +317,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('storage_mysql')
             ->table('broadcast_storage_master')
-//            ->whereNotNull('sent_at')
-            ->whereNotNull('batch')
+            ->whereNotNull('sent_at')
             ->count();
     }
 
