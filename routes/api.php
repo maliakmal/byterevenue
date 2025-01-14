@@ -43,6 +43,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // recipients list indicators
     Route::get('importStatusRecipientListsIndicator', [IndicatorsApiController::class, 'importStatusRecipientLists']);
     Route::get('createdCampaignsChartDataIndicator', [IndicatorsApiController::class, 'createdCampaignsChartData']);
+    // data records indicators
+    Route::get('totalContactsIndicator', [IndicatorsApiController::class, 'totalContactsIndicator']);
+    Route::get('statusUserList', [IndicatorsApiController::class, 'statusUserList']);
 
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
 //    Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);

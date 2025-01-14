@@ -2,7 +2,6 @@
 
 namespace App\Services\Indicators;
 
-use App\Models\ImportRecipientsList;
 use App\Models\Transaction;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 
@@ -117,5 +116,36 @@ class QueueIndicatorsService
             ->toArray();
 
         return $campaigns;
+    }
+
+    public function getTotalContactsIndicator()
+    {
+        $total = \DB::table('contacts')->count();
+
+        $byWeek = \DB::table('contacts')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->get()
+            ->toArray();
+
+        return [
+            'total'  => $total,
+            'byWeek' => $byWeek,
+        ];
+    }
+
+    public function getStatusUserList()
+    {
+        $totalCount     = \DB::table('contacts')->count();
+        $blackListCount = \DB::table('black_list_numbers')->count();
+
+        $blocked   = round($blackListCount / $totalCount * 100, 1);
+        $available = round(100 - $blocked, 1);
+
+        return [
+            'available'     => $available,
+            'not_available' => $blocked,
+        ];
     }
 }
