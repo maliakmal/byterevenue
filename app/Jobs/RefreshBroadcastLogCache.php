@@ -112,16 +112,20 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
 
         $topTokensSpent = Transaction::with('user')
             ->select('user_id', DB::raw('ABS(SUM(amount)) as total_spent'))
-            ->addSelect([
-                'total_messages_sent' => Campaign::selectRaw('SUM(total_recipients_sent_to)')->whereColumn('user_id','transactions.user_id'),
-                'ctr' => Campaign::selectRaw('AVG(total_ctr)')->whereColumn('user_id','transactions.user_id'),
-            ])
             ->where('type', 'usage')
             ->groupBy('user_id')
             ->orderByDesc('total_spent')
             ->limit(5)
             ->get()
             ->toArray();
+
+        foreach ($topTokensSpent as $key => $value) {
+            $topTokensSpent[$key]['total_messages_sent'] = (int)Campaign::where('user_id', $value['user_id'])
+                ->sum('total_recipients');
+
+            $topTokensSpent[$key]['ctr'] = (int)Campaign::where('user_id', $value['user_id'])
+                ->sum('total_recipients_click_thru');
+        }
 
         Cache::put(
             'top_tokens_spent_' . $this->startEndString,
