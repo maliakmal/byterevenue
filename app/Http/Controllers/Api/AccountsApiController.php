@@ -47,6 +47,7 @@ class AccountsApiController extends ApiController
      */
     public function showTokens(int $id): JsonResponse
     {
+
         $response = $this->accountsService->getAccountTransactions($id);
 
         return $this->responseSuccess($response);

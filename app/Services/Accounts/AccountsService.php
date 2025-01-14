@@ -71,6 +71,8 @@ class AccountsService
      */
     public function getAccountTransactions($id)
     {
+        $id = auth()->user()->hasRole('admin') ? $id : auth()->id();
+
         $transactions = Transaction::where('user_id', $id);
 
         $filter = [
