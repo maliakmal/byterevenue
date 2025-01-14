@@ -35,6 +35,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('data-source/info', [ContactApiController::class, 'contactsInfo']);
     Route::resource('data-source', ContactApiController::class);
 
+    // ### INDICATORS BLOCK ###
+    // Global Queue page indicators
     Route::get('totalQueueCountsIndicator', [IndicatorsApiController::class, 'totalQueue']);
     Route::get('totalSentOnWeekIndicator', [IndicatorsApiController::class, 'totalSentOnWeek']);
     Route::get('topFiveCampaignsIndicator', [IndicatorsApiController::class, 'topFiveCampaigns']);
@@ -46,6 +48,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // data records indicators
     Route::get('totalContactsIndicator', [IndicatorsApiController::class, 'totalContactsIndicator']);
     Route::get('statusUserList', [IndicatorsApiController::class, 'statusUserList']);
+    // shorts domains indicators
+    Route::get('createdDomains', [IndicatorsApiController::class, 'createdDomains']);
+    // - top 5 domains indicators -> topFiveDomainsIndicator
+    // accounts (users) indicators
+    Route::get('totalAccountsIndicator', [IndicatorsApiController::class, 'totalAccountsIndicator']);
+    Route::get('suspendedAccountsIndicator', [IndicatorsApiController::class, 'suspendedAccountsIndicator']);
+    // ########################
 
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);
 //    Route::get('campaignStats/{id}/stats', [CampaignApiController::class, 'campaignStats']);
