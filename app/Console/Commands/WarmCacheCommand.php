@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\RefreshBroadcastLogCache;
+use App\Models\BroadcastLog;
 use App\Services\GlobalCachingService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class WarmCacheCommand extends Command
 {
@@ -43,5 +46,13 @@ class WarmCacheCommand extends Command
         }
 
         $cachingService->warmCacheProcessing();
+
+        // starting cache warming for broadcast logs (dashboard)
+        $timeMarkerForCache = now()->subDay()->format('Y-m-d') . '_' . now()->addDay()->format('Y-m-d');
+
+        if (!Cache::get('ready_'. $timeMarkerForCache) && !Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
+            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
+            RefreshBroadcastLogCache::dispatch();
+        }
     }
 }

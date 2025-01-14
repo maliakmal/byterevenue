@@ -5,7 +5,6 @@ namespace App\Services\Dashboard;
 use App\Models\Campaign;
 use App\Models\User;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardService
