@@ -65,6 +65,7 @@ class QueueIndicatorsService
     {
         // Get top 5 accounts by total amount of transactions
         $topTransactionsUser = Transaction::join('users', 'transactions.user_id', '=', 'users.id')
+            ->where('transactions.type', 'usage')
             ->select('users.*', \DB::raw('SUM(transactions.amount) as total_amount'))
             ->groupBy('transactions.user_id')
             ->orderByDesc('total_amount')
