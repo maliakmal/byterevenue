@@ -61,6 +61,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('areas/cities-by-province/{province}', [AreasApiController::class, 'citiesByProvince']);
 
 //    Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
+
+    Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
 });
 
 // out-side token check
@@ -75,7 +77,6 @@ Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
     Route::get('accounts/', [AccountsApiController::class, 'index']);
     Route::get('accounts/{id}', [AccountsApiController::class, 'show']);
     Route::delete('accounts/{id}', [AccountsApiController::class, 'delete']);
-    Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
     Route::post('tokens/change', [AccountsApiController::class, 'storeTokens']);
 
     Route::get('short-domains', [ShortDomainsApiController::class, 'index']);
