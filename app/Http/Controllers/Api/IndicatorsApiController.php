@@ -9,81 +9,103 @@ use Illuminate\Http\Request;
 
 class IndicatorsApiController extends ApiController
 {
+    protected $indicatorsService;
+
     /**
-     * @param Request $request
+     * IndicatorsApiController constructor.
      * @param QueueIndicatorsService $indicatorsService
+     */
+    public function __construct(QueueIndicatorsService $indicatorsService)
+    {
+        $this->indicatorsService = $indicatorsService;
+    }
+
+    /**
      * @return JsonResponse
      */
-    public function totalQueue(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function totalQueue(Request $request): JsonResponse
     {
-        $result = $indicatorsService->getTotalQueueCount($request->get('user_ids', []), $request->get('campaign_ids', []));
+        $result = $this->indicatorsService->getTotalQueueCount($request->get('user_ids', []), $request->get('campaign_ids', []));
 
         return $this->responseSuccess(data: $result);
     }
 
     /**
-     * @param Request $request
-     * @param QueueIndicatorsService $indicatorsService
      * @return JsonResponse
      */
-    public function totalSentOnWeek(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function totalSentOnWeek(): JsonResponse
     {
-        $result = $indicatorsService->getTotalSentOnWeekCount();
+        $result = $this->indicatorsService->getTotalSentOnWeekCount();
 
         return $this->responseSuccess(data: $result);
     }
 
     /**
-     * @param Request $request
-     * @param QueueIndicatorsService $indicatorsService
      * @return JsonResponse
      */
-    public function topFiveCampaigns(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function topFiveCampaigns(): JsonResponse
     {
-        $result = $indicatorsService->getTopFiveCampaigns();
+        $result = $this->indicatorsService->getTopFiveCampaigns();
 
         return $this->responseSuccess(data: $result);
     }
 
     /**
-     * @param Request $request
-     * @param QueueIndicatorsService $indicatorsService
      * @return JsonResponse
      */
-    public function topFiveAccounts(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function topFiveAccounts(): JsonResponse
     {
-        $result = $indicatorsService->getTopFiveAccounts();
+        $result = $this->indicatorsService->getTopFiveAccounts();
 
         return $this->responseSuccess(data: $result);
     }
 
     /**
-     * @param Request $request
-     * @param QueueIndicatorsService $indicatorsService
      * @return JsonResponse
      */
-    public function topFiveDomains(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function topFiveDomains(): JsonResponse
     {
-        $result = $indicatorsService->getTopFiveDomains();
+        $result = $this->indicatorsService->getTopFiveDomains();
 
         return $this->responseSuccess(data: $result);
     }
 
     /**
-     * @param Request $request
-     * @param QueueIndicatorsService $indicatorsService
      * @return JsonResponse
      */
-    public function importStatusRecipientLists(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    public function importStatusRecipientLists(): JsonResponse
     {
-        $result = $indicatorsService->getImportStatusRecipientLists();
+        $result = $this->indicatorsService->getImportStatusRecipientLists();
 
         return $this->responseSuccess(data: $result);
     }
 
-    public function createdCampaignsChartData(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    /**
+     * @return JsonResponse
+     */
+    public function createdCampaignsChartData(): JsonResponse
     {
-        $result = $indicatorsService->getCreatedCampaignsChartData();
+        $result = $this->indicatorsService->getCreatedCampaignsChartData();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function totalContactsIndicator(): JsonResponse
+    {
+        $result = $this->indicatorsService->getTotalContactsIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function statusUserList(): JsonResponse
+    {
+        $result = $this->indicatorsService->getStatusUserList();
 
         return $this->responseSuccess(data: $result);
     }
