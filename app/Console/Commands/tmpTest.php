@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Campaign;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\Indicators\QueueIndicatorsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
