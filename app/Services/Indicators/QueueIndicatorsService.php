@@ -150,4 +150,42 @@ class QueueIndicatorsService
             'not_available' => $blocked,
         ];
     }
+
+    public function getCreatedDomains()
+    {
+        $byWeek = \DB::table('url_shorteners')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->get()
+            ->toArray();
+
+        return $byWeek;
+    }
+
+    public function getTotalAccountsIndicator()
+    {
+        $total = \DB::table('users')->count();
+
+        $byWeek = \DB::table('users')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->get()
+            ->toArray();
+
+        return [
+            'total'  => $total,
+            'byWeek' => $byWeek,
+        ];
+    }
+
+    public function getSuspendedAccountsIndicator()
+    {
+        return [
+            'total'   => \DB::table('users')->count(),
+            'suspend' => 0,
+            'percent' => 0,
+        ];
+    }
 }

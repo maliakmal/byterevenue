@@ -7,15 +7,13 @@ use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
-use Validator;
 
 class UrlShortenerService
 {
     public function getAll(Request $request)
     {
-        $query = UrlShortener::withCount(['campaignShortUrls']);
-
-        $sortBy = $request->input('sort_by', 'id');
+        $query     = UrlShortener::withCount(['campaignShortUrls']);
+        $sortBy    = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
         if ($request->filled('is_propagated')) {
@@ -68,6 +66,7 @@ class UrlShortenerService
         }
 
         UrlShortener::create($data);
+
         return ['message' => 'URL Shortener created successfully.'];
     }
 
@@ -83,6 +82,7 @@ class UrlShortenerService
         }
 
         $data = $validator->validated();
+
         UrlShortener::whereId($id)->update($data);
 
         return ['message' => 'URL Shortener updated successfully.'];
@@ -91,6 +91,7 @@ class UrlShortenerService
     public function delete($id)
     {
         UrlShortener::whereId($id)->delete();
+
         return ['message' => 'URL Shortener deleted successfully.'];
     }
 }

@@ -109,4 +109,25 @@ class IndicatorsApiController extends ApiController
 
         return $this->responseSuccess(data: $result);
     }
+
+    public function createdDomains(): JsonResponse
+    {
+        $result = $this->indicatorsService->getCreatedDomains();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    public function totalAccountsIndicator(): JsonResponse
+    {
+        $result = $this->indicatorsService->getTotalAccountsIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    public function suspendedAccountsIndicator(): JsonResponse
+    {
+        $result = $this->indicatorsService->getSuspendedAccountsIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
 }
