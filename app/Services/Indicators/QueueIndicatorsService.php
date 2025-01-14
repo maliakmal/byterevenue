@@ -2,6 +2,7 @@
 
 namespace App\Services\Indicators;
 
+use App\Models\ImportRecipientsList;
 use App\Models\Transaction;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 
@@ -86,5 +87,34 @@ class QueueIndicatorsService
             ->toArray();
 
         return $topUrlShortenerUsage;
+    }
+
+    public function getImportStatusRecipientLists()
+    {
+        $imports = \DB::table('import_recipients_lists')
+            ->where('is_failed', 0)
+            ->count();
+
+        $failedImports = \DB::table('import_recipients_lists')
+            ->where('is_failed', 1)
+            ->count();
+
+        return [
+            'total' => $imports + $failedImports,
+            'success' => $imports,
+            'failed' => $failedImports,
+        ];
+    }
+
+    public function getCreatedCampaignsChartData()
+    {
+        $campaigns = \DB::table('campaigns')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->get()
+            ->toArray();
+
+        return $campaigns;
     }
 }

@@ -96,6 +96,12 @@ class User extends Authenticatable
 
     public function deductTokens($amount)
     {
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => $amount,
+            'type' => 'usage',
+        ]);
+
         return $this->decrement('tokens', $amount);
     }
 
@@ -103,10 +109,10 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => $amount,
-            'type' => $amount > 0 ? 'purchase' : 'usage',
+            'type' => 'purchase',
         ]);
-        $this->tokens += $amount;
-        $this->save();
+
+        return $this->increment('tokens', $amount);
     }
 
     public function getHasRolesAttribute()
