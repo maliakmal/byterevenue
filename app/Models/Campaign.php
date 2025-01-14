@@ -64,7 +64,8 @@ class Campaign extends Model
         return $this->hasMany(BroadcastBatch::class);
     }
 
-    public function recipient_list(){
+    public function recipient_list()
+    {
         return $this->belongsTo(RecipientsList::class, 'recipients_list_id');
     }
 

@@ -116,20 +116,6 @@ class CampaignApiController extends ApiController
             return $this->responseError(message: 'Recipient list not found.');
         }
 
-        // $count_of_contacts = $recipientsList->recipientsGroup->count;
-
-        // if ($count_of_contacts == 0) {
-        //     return $this->responseError(message: 'Recipient list is empty.');
-        // }
-
-        // $user = auth()->user();
-
-        // if (!$user->hasEnoughTokens($count_of_contacts)) {
-        //     return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
-        // }
-
-        // $user->deductTokens($count_of_contacts);
-
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 
         if (isset($errors['message'])) {
@@ -186,6 +172,26 @@ class CampaignApiController extends ApiController
      */
     public function markAsProcessed($id)
     {
+        $campaign = Campaign::with(['recipient_list.recipientsGroup'])->find($id);
+
+        if (!$campaign) {
+            return $this->responseError(message: 'Campaign not found.');
+        }
+
+        $count_of_contacts = intval($campaign->recipient_list?->recipientsGroup->count);
+
+        if ($count_of_contacts == 0) {
+            return $this->responseError(message: 'Recipient list is empty.');
+        }
+
+        $user = auth()->user();
+
+        if (!$user->hasEnoughTokens($count_of_contacts)) {
+            return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
+        }
+
+        $user->deductTokens($count_of_contacts);
+
         [$result, $message] = $this->campaignService->markAsProcessed(intval($id));
 
         if ($result) {
