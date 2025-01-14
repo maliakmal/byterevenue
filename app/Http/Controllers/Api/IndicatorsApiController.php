@@ -68,4 +68,23 @@ class IndicatorsApiController extends ApiController
 
         return $this->responseSuccess(data: $result);
     }
+
+    /**
+     * @param Request $request
+     * @param QueueIndicatorsService $indicatorsService
+     * @return JsonResponse
+     */
+    public function importStatusRecipientLists(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    {
+        $result = $indicatorsService->getImportStatusRecipientLists();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    public function createdCampaignsChartData(Request $request, QueueIndicatorsService $indicatorsService): JsonResponse
+    {
+        $result = $indicatorsService->getCreatedCampaignsChartData();
+
+        return $this->responseSuccess(data: $result);
+    }
 }
