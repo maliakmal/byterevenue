@@ -28,6 +28,12 @@ class DashboardController extends Controller
 
         if (request()->raw) dd($dashboardData);
 
+        if ($dashboardData['totalClicksCount'] > 0 && $dashboardData['totalSendCount'] > 0) {
+            $ctr = $dashboardData['totalClicksCount'] / $dashboardData['totalSendCount'];
+        } else {
+            $ctr = 0;
+        }
+
         return view(
             'dashboard',
             [
@@ -40,7 +46,7 @@ class DashboardController extends Controller
                 'campaigns_graph' => [],
                 'send_graph' => [],
                 'clicks_graph' => [],
-                'ctr' => $dashboardData['totalSendCount'] / ($dashboardData['totalClicksCount'] > 0 ? $dashboardData['totalClicksCount'] : 1) * 100,
+                'ctr' => round($ctr, 2),
             ]
         );
     }
