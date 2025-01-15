@@ -44,11 +44,9 @@ class CampaignRepository extends BaseRepository implements CampaignRepositoryInt
 
     }
 
-
     public function getPendingCampaigns(array $params)
     {
-        $fiveDaysAgo = Carbon::now()->subDays(35);
-        return $this->model->whereIn('status', [Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE])->where('submitted_at', '>=', $fiveDaysAgo)->get();
+        return $this->model->whereIn('status', [Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE])->get();
     }
 
     /**

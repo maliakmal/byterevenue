@@ -57,11 +57,13 @@ class UpdateClicksFromKeitaro extends Command
                     'limit' => $limit,
                     'offset' => $offset,
                 ]);
+
                 report($exception);
                 $this->error('error read from keitaro');
 
                 exit();
             }
+
             $uid_param = config('app.keitaro.uid_param', 'sub_id_1');
 
             foreach ($response['rows'] ?? [] as $row){
@@ -102,11 +104,7 @@ class UpdateClicksFromKeitaro extends Command
                     $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
                 }
 
-                if ($this->broadcastLogRepository->updateBySlug($log_id, $updateData) === false) { // FIX THIS HERE <---
-                    Log::error('update click failed', ['id' => $log_id, 'clicked_at' => $date_time]);
-                } else {
-                    $this->hasChanges = true;
-                }
+                $this->broadcastLogRepository->updateBySlug($log_id, $updateData);
             }
 
             $offset += $limit;

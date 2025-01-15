@@ -38,21 +38,11 @@ class UpdateCampaignsClicksAndStats extends Command
         \Log::info('Scan from db on clicks ' . count($pending_campaigns) . ' campaigns ', ['pending_campaigns_ids' => $pending_campaigns->pluck('id')->toArray()]);
 
         foreach($pending_campaigns as $campaign) {
-            if (Campaign::STATUS_DONE === $campaign->status) {
-                $totals = $this->broadcastLogRepository->getSentAndClicksByCampaign($campaign->id);
-                $campaign->total_recipients_sent_to    = $totals['total_sent'];
-                $campaign->total_recipients_click_thru = $totals['total_clicked'];
-            } elseif (Campaign::STATUS_PROCESSING === $campaign->status) {
-                $totals = $this->broadcastLogRepository->getTotalSentAndClicksByCampaign($campaign->id);
-                $campaign->total_recipients_sent_to    = $totals['total_sent'];
-                $campaign->total_recipients_click_thru = $totals['total_clicked'];
-                $campaign->total_recipients_in_process = $totals['total_processed'];
-                $campaign->total_recipients            = $campaign->total_recipients > $totals['total'] ? $campaign->total_recipients : $totals['total'];
-            } else {
-                continue;
-            }
+            $totals = $this->broadcastLogRepository->getSentAndClicksByCampaign($campaign->id);
+            $campaign->total_recipients_sent_to    = $totals['total_sent'];
+            $campaign->total_recipients_click_thru = $totals['total_clicked'];
 
-            if ($totals['total_clicked'] == 0) {
+            if ($totals['total_clicked'] == 0 || $campaign->total_recipients == 0) {
                 $campaign->total_ctr = 0;
             } else {
                 $campaign->total_ctr = ($totals['total_clicked'] / $campaign->total_recipients) * 100;

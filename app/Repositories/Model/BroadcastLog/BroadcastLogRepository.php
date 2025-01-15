@@ -130,7 +130,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     public function getTotalSentAndClicksByCampaign($campaign_id)
     {
-        $mainDb = \DB::connection('mysql')
+        $campaigns = \DB::connection('mysql')
             ->table('broadcast_logs')
             ->where('campaign_id', $campaign_id)
             ->select([
@@ -138,30 +138,15 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
                 DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
                 DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
                 DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
-            ]);
-
-        $sums = (array)$mainDb->first();
-
-        $slaveDb = \DB::connection('storage_mysql')
-            ->table('broadcast_storage_master')
-            ->where('campaign_id', $campaign_id)
-            ->select([
-                DB::raw('COUNT(id) as total'),
-                DB::raw('COUNT(CASE WHEN sent_at IS NOT NULL THEN 1 END) as total_sent'),
-                DB::raw('COUNT(CASE WHEN clicked_at IS NOT NULL THEN 1 END) as total_clicked')
             ])
             ->first();
 
-        $sums['total'] += $slaveDb->total;
-        $sums['total_sent'] += $slaveDb->total_sent;
-        $sums['total_clicked'] += $slaveDb->total_clicked;
-
-        return $sums;
+        return (array) $campaigns;
     }
 
     public function getSentAndClicksByCampaign($campaign_id)
     {
-        $mainDb = \DB::connection('mysql')
+        $campaigns = \DB::connection('mysql')
             ->table('broadcast_logs')
             ->where('campaign_id', $campaign_id)
             ->select([
@@ -170,21 +155,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             ])
             ->first();
 
-        $sums = (array)$mainDb;
-
-        $slaveDb = \DB::connection('storage_mysql')
-            ->table('broadcast_storage_master')
-            ->where('campaign_id', $campaign_id)
-            ->select([
-                DB::raw('COUNT(CASE WHEN sent_at IS NOT NULL THEN 1 END) as total_sent'),
-                DB::raw('COUNT(CASE WHEN clicked_at IS NOT NULL THEN 1 END) as total_clicked')
-            ])
-            ->first();
-
-        $sums['total_sent'] += $slaveDb->total_sent;
-        $sums['total_clicked'] += $slaveDb->total_clicked;
-
-        return $sums;
+        return (array) $campaigns;
     }
 
     public function getTotalSentAndClicksByBatch($batch_no)
@@ -202,7 +173,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
         // TODO:: add archived campaigns for campaign mode
 
-        return (array)$totals;
+        return (array) $totals;
     }
 
     public function getTotalSentAndClicksByCampaignAndBatch($campaign_id, $batch_no)

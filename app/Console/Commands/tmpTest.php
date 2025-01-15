@@ -5,7 +5,10 @@ namespace App\Console\Commands;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
+use App\Services\Clicks\ClickService;
 use App\Services\Indicators\QueueIndicatorsService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -30,9 +33,9 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $result = (new QueueIndicatorsService(
-            broadcastLogRepository: app()->make(\App\Repositories\Model\BroadcastLog\BroadcastLogRepository::class)
-        ))->getTotalSentOnWeekCount();
+        $broadcastLogRepository = app()->make(BroadcastLogRepositoryInterface::class);
+        $result = $broadcastLogRepository->getSentAndClicksByCampaign(10);
+
         dd($result);
     }
 }
