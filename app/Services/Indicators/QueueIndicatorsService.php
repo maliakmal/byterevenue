@@ -38,17 +38,6 @@ class QueueIndicatorsService
     public function getTotalSentOnWeekCount()
     {
         // Get total sent messages on the last week
-        $dataArray = [];
-
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-
-            $dataArray[$date->format('m-d-Y')] = (int)\DB::table('batch_files')
-                ->whereDate('created_at', $date->format('Y-m-d'))
-                ->where('has_errors', 0)
-                ->where('is_ready', 1)
-                ->where('type', '!=', 'regen')
-                ->sum('generated_count');
         $totalSentRaw = \DB::table('batch_files')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('SUM(generated_count) as count'))
             ->where('created_at', '>=', now()->subDays(6))
@@ -59,7 +48,7 @@ class QueueIndicatorsService
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $dataArray[$date->format('Y-m-d')] = (int)$totalSentRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+            $dataArray[$date->format('d-m-Y')] = (int)$totalSentRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return $dataArray;
@@ -128,7 +117,7 @@ class QueueIndicatorsService
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $campaignsByWeek[$date->format('Y-m-d')] = (int)$campaignsByWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+            $campaignsByWeek[$date->format('d-m-Y')] = (int)$campaignsByWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return $campaignsByWeek;
@@ -145,7 +134,7 @@ class QueueIndicatorsService
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return [
@@ -160,6 +149,7 @@ class QueueIndicatorsService
         $blackListCount = \DB::table('black_list_numbers')->count();
 
         return [
+            'total'         => $totalCount,
             'available'     => $totalCount - $blackListCount,
             'not_available' => $blackListCount,
         ];
@@ -174,7 +164,7 @@ class QueueIndicatorsService
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return $byWeek;
@@ -191,7 +181,7 @@ class QueueIndicatorsService
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return [
