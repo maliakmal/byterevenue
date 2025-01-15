@@ -25,6 +25,7 @@ class RecipientListService
     {
         $nameFilter = $request->get('name');
         $isImportedFilter = $request->get('is_imported', '');
+        $user_id = $request->get('user_id');
         $perPage = intval($request->get('per_page', 5));
         $sortBy = $request->input('sort_by', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
@@ -35,6 +36,10 @@ class RecipientListService
 
         if (isset($nameFilter)) {
             $recipient_lists = $recipient_lists->whereLike('name', "%$nameFilter%");
+        }
+
+        if (isset($user_id)) {
+            $recipient_lists = $recipient_lists->where('user_id', $user_id);
         }
 
         if (is_numeric($isImportedFilter)) {
