@@ -149,6 +149,7 @@ class AccountsService
     public function delete($id)
     {
         User::whereId($id)->delete();
+
         return ['message' => 'Account deleted successfully.'];
     }
 }

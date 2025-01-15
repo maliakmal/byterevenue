@@ -36,7 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::resource('data-source', ContactApiController::class);
 
     // ### INDICATORS BLOCK ###
-    // Global Queue page indicators
+    // Global Queue page indicators (3 tabs)
     Route::get('totalQueueCountsIndicator', [IndicatorsApiController::class, 'totalQueue']);
     Route::get('totalSentOnWeekIndicator', [IndicatorsApiController::class, 'totalSentOnWeek']);
     Route::get('topFiveCampaignsIndicator', [IndicatorsApiController::class, 'topFiveCampaigns']);

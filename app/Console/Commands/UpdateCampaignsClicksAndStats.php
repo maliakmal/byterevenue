@@ -35,11 +35,9 @@ class UpdateCampaignsClicksAndStats extends Command
         $this->broadcastLogRepository = app()->make(BroadcastLogRepositoryInterface::class);
         $this->campaignRepository = app()->make(CampaignRepositoryInterface::class);
         $pending_campaigns = $this->campaignRepository->getPendingCampaigns([]);
-        \Log::info('Grabbed ' . count($pending_campaigns) . ' campaigns ');
+        \Log::info('Scan from db on clicks ' . count($pending_campaigns) . ' campaigns ', ['pending_campaigns_ids' => $pending_campaigns->pluck('id')->toArray()]);
 
         foreach($pending_campaigns as $campaign) {
-            \Log::info('Processing status campaign: #' . $campaign->id);
-
             if (Campaign::STATUS_DONE === $campaign->status) {
                 $totals = $this->broadcastLogRepository->getSentAndClicksByCampaign($campaign->id);
                 $campaign->total_recipients_sent_to    = $totals['total_sent'];
@@ -54,10 +52,10 @@ class UpdateCampaignsClicksAndStats extends Command
                 continue;
             }
 
-            if ($totals['total_clicked'] == 0 || $totals['total_sent'] == 0) {
+            if ($totals['total_clicked'] == 0) {
                 $campaign->total_ctr = 0;
             } else {
-                $campaign->total_ctr = ($totals['total_clicked'] / $totals['total_sent']) * 100;
+                $campaign->total_ctr = ($totals['total_clicked'] / $campaign->total_recipients) * 100;
             }
 
             $campaign->save();
