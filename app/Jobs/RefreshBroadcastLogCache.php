@@ -120,11 +120,19 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ->toArray();
 
         foreach ($topTokensSpent as $key => $value) {
-            $topTokensSpent[$key]['total_messages_sent'] = (int)Campaign::where('user_id', $value['user_id'])
+            $total = (int)Campaign::where('user_id', $value['user_id'])
                 ->sum('total_recipients');
 
-            $topTokensSpent[$key]['ctr'] = (int)Campaign::where('user_id', $value['user_id'])
+            $ctr = (int)Campaign::where('user_id', $value['user_id'])
                 ->sum('total_recipients_click_thru');
+
+            if (0 == $total || 0 == $ctr) {
+                $topTokensSpent[$key]['ctr'] = 0;
+            } else {
+                $topTokensSpent[$key]['ctr'] = round(($ctr / $total) * 100, 2);
+            }
+
+            $topTokensSpent[$key]['total_messages_sent'] = $total;
         }
 
         Cache::put(
