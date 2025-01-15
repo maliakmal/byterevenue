@@ -73,10 +73,10 @@ class AccountsApiController extends ApiController
      */
     public function delete($id): JsonResponse
     {
-        $response = $this->accountsService->delete($id);
-
-        if (isset($response['errors'])) {
-            return $this->responseError($response['errors']);
+        try {
+            $response = $this->accountsService->delete($id);
+        } catch (\Exception $exception) {
+            return $this->responseError(message: 'This account has some actions and cannot be deleted');
         }
 
         return $this->responseSuccess($response);

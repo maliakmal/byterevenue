@@ -113,15 +113,12 @@ class UpdateClicksFromKeitaro extends Command
             $total = $response['total'] ?? 0;
         }
 
-        //if ($this->hasChanges) {
-
-            if (!Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
-                Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
-                RefreshBroadcastLogCache::dispatch();
-            } else {
-                $this->info('Broadcast log cache is already running.');
-            }
-        //}
+        if (!Cache::get(BroadcastLog::CACHE_STATUS_KEY)) {
+            Cache::put(BroadcastLog::CACHE_STATUS_KEY, true, now()->addHour());
+            RefreshBroadcastLogCache::dispatch();
+        } else {
+            $this->info('Broadcast log cache is already running.');
+        }
     }
 
     /**

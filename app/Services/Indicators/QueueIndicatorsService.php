@@ -37,18 +37,17 @@ class QueueIndicatorsService
 
     public function getTotalSentOnWeekCount()
     {
-        // Get total sent messages on the last week
-        $dataArray = [];
+        $totalSentRaw = \DB::table('batch_files')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('SUM(generated_count) as count'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->where('has_errors', 0)
+            ->where('is_ready', 1)
+            ->where('type', '!=', 'regen')
+            ->groupBy('date')
+            ->get();
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-
-            $dataArray[$date->format('d-m-Y')] = (int)\DB::table('batch_files')
-                ->whereDate('created_at', $date->format('Y-m-d'))
-                ->where('has_errors', 0)
-                ->where('is_ready', 1)
-                ->where('type', '!=', 'regen')
-                ->sum('generated_count');
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $dataArray[$date->format('Y-m-d')] = (int)$totalSentRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
         }
 
         return $dataArray;
@@ -108,26 +107,32 @@ class QueueIndicatorsService
 
     public function getCreatedCampaignsChartData()
     {
-        $campaigns = \DB::table('campaigns')
+        $campaignsByWeekRaw = \DB::table('campaigns')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
-            ->get()
-            ->toArray();
+            ->get();
 
-        return $campaigns;
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $campaignsByWeek[$date->format('Y-m-d')] = (int)$campaignsByWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+        }
+
+        return $campaignsByWeek;
     }
 
     public function getTotalContactsIndicator()
     {
         $total = \DB::table('contacts')->count();
 
-        $byWeek = \DB::table('contacts')
+        $byWeekRaw = \DB::table('contacts')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
-            ->get()
-            ->toArray();
+            ->get();
+
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+        }
 
         return [
             'total'  => $total,
@@ -140,37 +145,40 @@ class QueueIndicatorsService
         $totalCount     = \DB::table('contacts')->count();
         $blackListCount = \DB::table('black_list_numbers')->count();
 
-        $blocked   = round($blackListCount / $totalCount * 100, 1);
-        $available = round(100 - $blocked, 1);
-
         return [
-            'available'     => $available,
-            'not_available' => $blocked,
+            'available'     => $totalCount - $blackListCount,
+            'not_available' => $blackListCount,
         ];
     }
 
     public function getCreatedDomains()
     {
-        $byWeek = \DB::table('url_shorteners')
+        $byWeekRaw = \DB::table('url_shorteners')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
-            ->get()
-            ->toArray();
+            ->get();
+
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+        }
 
         return $byWeek;
     }
 
-    public function getTotalAccountsIndicator()
+    public function getTotalAccountsIndicator() //ok
     {
         $total = \DB::table('users')->count();
 
-        $byWeek = \DB::table('users')
+        $byWeekRaw = \DB::table('users')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
-            ->get()
-            ->toArray();
+            ->get();
+
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('Y-m-d')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
+        }
 
         return [
             'total'  => $total,

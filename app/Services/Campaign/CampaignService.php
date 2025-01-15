@@ -269,16 +269,6 @@ class CampaignService
 
             $campaign->markAsProcessed(); // need add and set status in process (generated)
 
-            // Create a transaction record
-            Transaction::create([
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'type' => 'usage',
-            ]);
-
-            // Deduct tokens from account
-            $user->deductTokens($amount);
-
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
             return [false, $e->getMessage()]; // TODO: remove after testing

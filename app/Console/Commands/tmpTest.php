@@ -30,6 +30,9 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        //
+        $result = (new QueueIndicatorsService(
+            broadcastLogRepository: app()->make(\App\Repositories\Model\BroadcastLog\BroadcastLogRepository::class)
+        ))->getTotalSentOnWeekCount();
+        dd($result);
     }
 }
