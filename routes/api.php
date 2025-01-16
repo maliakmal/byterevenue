@@ -57,7 +57,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // token management
     Route::get('tokensGlobalSpentIndicator', [IndicatorsApiController::class, 'tokensGlobalSpentIndicator']);
     Route::get('topFiveAccountsBudget', [IndicatorsApiController::class, 'topFiveAccountsBudget']);
-    // history tokens (account show)
+    // history tokens (user transactions page)
     Route::get('tokensPersonalBalance/{id}', [IndicatorsApiController::class, 'tokensPersonalBalance']);
     Route::get('tokensPersonalSpent/{id}', [IndicatorsApiController::class, 'tokensPersonalSpent']);
     // ########################

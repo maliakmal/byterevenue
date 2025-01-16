@@ -243,20 +243,24 @@ class QueueIndicatorsService
         $total = intval(User::find($id)?->tokens);
 
         $byWeekRaw = \DB::table('transactions')
-            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as balance'))
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
             ->groupBy('date')
             ->get();
 
-        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
-            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->sum_amount ?? 0;
+        $date = now()->addDay();
+
+        foreach (range(0,7) as $item) {
+            $delta = $byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->balance ?? 0;
+            $total -= $delta;
+            $byWeek[$date->subDay()->format('d-m-Y')] = $total;
         }
 
-        return [
-            'total'  => $total,
-            'byWeek' => $byWeek,
-        ];
+        $byWeek = array_reverse($byWeek);
+        array_shift($byWeek);
+
+        return $byWeek;
     }
 
     public function getTokensPersonalSpentIndicator($id)
