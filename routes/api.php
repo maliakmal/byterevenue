@@ -47,13 +47,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('createdCampaignsChartDataIndicator', [IndicatorsApiController::class, 'createdCampaignsChartData']);
     // data records indicators
     Route::get('totalContactsIndicator', [IndicatorsApiController::class, 'totalContactsIndicator']);
-    Route::get('statusUserList', [IndicatorsApiController::class, 'statusUserList']);
+    Route::get('statusUserListIndicator', [IndicatorsApiController::class, 'statusUserListIndicator']);
     // shorts domains indicators
-    Route::get('createdDomains', [IndicatorsApiController::class, 'createdDomains']);
+    Route::get('createdDomainsIndicator', [IndicatorsApiController::class, 'createdDomainsIndicator']);
     // - top 5 domains indicators -> topFiveDomainsIndicator
     // accounts (users) indicators
     Route::get('totalAccountsIndicator', [IndicatorsApiController::class, 'totalAccountsIndicator']);
     Route::get('suspendedAccountsIndicator', [IndicatorsApiController::class, 'suspendedAccountsIndicator']);
+    // token management
+    Route::get('tokensGlobalSpentIndicator', [IndicatorsApiController::class, 'tokensGlobalSpentIndicator']);
+    Route::get('topFiveAccountsBudget', [IndicatorsApiController::class, 'topFiveAccountsBudget']);
+    // history tokens (account show)
+    Route::get('tokensPersonalBalance', [IndicatorsApiController::class, 'tokensPersonalBalance']);
+    Route::get('tokensPersonalSpent', [IndicatorsApiController::class, 'tokensPersonalSpent']);
     // ########################
 
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);

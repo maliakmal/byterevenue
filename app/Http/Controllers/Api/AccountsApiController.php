@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Models\User;
 use App\Services\Accounts\AccountsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,11 +59,13 @@ class AccountsApiController extends ApiController
      */
     public function storeTokens(Request $request): JsonResponse
     {
-        $response = $this->accountsService->addTokensToAccount($request);
+        $account = User::find(intval($request->user_id));
 
-        if (isset($response['errors'])) {
-            return $this->responseError($response['errors']);
+        if (!$account) {
+            return $this->responseError(message: 'Account not found');
         }
+
+        $response = $this->accountsService->cahngeTokensInAccount($account, intval($request->amount));
 
         return $this->responseSuccess($response);
     }

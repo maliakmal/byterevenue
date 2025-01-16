@@ -143,7 +143,7 @@ class QueueIndicatorsService
         ];
     }
 
-    public function getStatusUserList()
+    public function getStatusUserListIndicator()
     {
         $totalCount     = \DB::table('contacts')->count();
         $blackListCount = \DB::table('black_list_numbers')->count();
@@ -155,7 +155,7 @@ class QueueIndicatorsService
         ];
     }
 
-    public function getCreatedDomains()
+    public function getCreatedDomainsIndicator()
     {
         $byWeekRaw = \DB::table('url_shorteners')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
@@ -170,7 +170,7 @@ class QueueIndicatorsService
         return $byWeek;
     }
 
-    public function getTotalAccountsIndicator() //ok
+    public function getTotalAccountsIndicator()
     {
         $total = \DB::table('users')->count();
 
@@ -196,6 +196,64 @@ class QueueIndicatorsService
             'total'   => \DB::table('users')->count(),
             'suspend' => 0,
             'percent' => 0,
+        ];
+    }
+
+    public function getTokensGlobalSpentIndicator()
+    {
+        return [
+            'total' => 135000000,
+            'byWeek' => [
+                '01-01-2025' => 100000,
+                '02-01-2025' => 10000,
+                '03-01-2025' => 0,
+                '04-01-2025' => 15000,
+                '05-01-2025' => 225000,
+                '06-01-2025' => 7,
+                '07-01-2025' => 35000
+            ]
+        ];
+    }
+
+    public function getTopFiveAccountsBudgetIndicator()
+    {
+        return [
+            'account1Name' => 100000,
+            'account2Name' => 50000,
+            'account3Name' => 25000,
+            'account4Name' => 15000,
+            'account5Name' => 10000,
+            'account6Name' => 5000,
+            'account7Name' => 522500,
+        ];
+    }
+
+    public function gettokensPersonalBalanceIndicator()
+    {
+        return [
+            'total' => 100000,
+            'byWeek' => [
+                '01-01-2025' => 100000,
+                '02-01-2025' => 10000,
+                '03-01-2025' => 0,
+                '04-01-2025' => 15000,
+                '05-01-2025' => 225000,
+                '06-01-2025' => 7,
+                '07-01-2025' => 35000
+            ]
+        ];
+    }
+
+    public function gettokensPersonalSpentIndicator()
+    {
+        return [
+            '01-01-2025' => 100000,
+            '02-01-2025' => 10000,
+            '03-01-2025' => 10000,
+            '04-01-2025' => 15000,
+            '05-01-2025' => 225000,
+            '06-01-2025' => 7000,
+            '07-01-2025' => 35000
         ];
     }
 }
