@@ -150,6 +150,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
             ->table('broadcast_logs')
             ->where('campaign_id', $campaign_id)
             ->select([
+                DB::raw('COUNT(CASE WHEN batch IS NOT NULL THEN 1 END) as total_processed'),
                 DB::raw('COUNT(CASE WHEN is_sent = true THEN 1 END) as total_sent'),
                 DB::raw('COUNT(CASE WHEN is_click = true THEN 1 END) as total_clicked')
             ])
