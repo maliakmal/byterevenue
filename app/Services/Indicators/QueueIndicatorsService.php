@@ -262,7 +262,7 @@ class QueueIndicatorsService
     public function getTokensPersonalSpentIndicator($id)
     {
         $total = \DB::table('transactions')
-            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(abs(amount)) as total'))
+            ->selectRaw('SUM(ABS(amount)) as total')
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
             ->where('type', 'usage')
