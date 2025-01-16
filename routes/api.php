@@ -58,8 +58,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('tokensGlobalSpentIndicator', [IndicatorsApiController::class, 'tokensGlobalSpentIndicator']);
     Route::get('topFiveAccountsBudget', [IndicatorsApiController::class, 'topFiveAccountsBudget']);
     // history tokens (account show)
-    Route::get('tokensPersonalBalance', [IndicatorsApiController::class, 'tokensPersonalBalance']);
-    Route::get('tokensPersonalSpent', [IndicatorsApiController::class, 'tokensPersonalSpent']);
+    Route::get('tokensPersonalBalance/{id}', [IndicatorsApiController::class, 'tokensPersonalBalance']);
+    Route::get('tokensPersonalSpent/{id}', [IndicatorsApiController::class, 'tokensPersonalSpent']);
     // ########################
 
     Route::get('mark-processed/{id}', [CampaignApiController::class, 'markAsProcessed']);

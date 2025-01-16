@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Models\User;
 use App\Services\Indicators\QueueIndicatorsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -160,9 +161,17 @@ class IndicatorsApiController extends ApiController
     /**
      * @return JsonResponse
      */
-    public function tokensPersonalBalance(): JsonResponse
+    public function tokensPersonalBalance($id): JsonResponse
     {
-        $result = $this->indicatorsService->gettokensPersonalBalanceIndicator();
+        $id = auth()->user()->hasRole('admin') ?
+            User::find($id)?->id :
+            auth()->user()->id;
+
+        if (!$id) {
+            return $this->responseError(message: 'User not found', status: 404);
+        }
+
+        $result = $this->indicatorsService->getTokensPersonalBalanceIndicator($id);
 
         return $this->responseSuccess(data: $result);
     }
@@ -170,9 +179,17 @@ class IndicatorsApiController extends ApiController
     /**
      * @return JsonResponse
      */
-    public function tokensPersonalSpent(): JsonResponse
+    public function tokensPersonalSpent($id): JsonResponse
     {
-        $result = $this->indicatorsService->gettokensPersonalSpentIndicator();
+        $id = auth()->user()->hasRole('admin') ?
+            User::find($id)?->id :
+            auth()->user()->id;
+
+        if (!$id) {
+            return $this->responseError(message: 'User not found', status: 404);
+        }
+
+        $result = $this->indicatorsService->getTokensPersonalSpentIndicator($id);
 
         return $this->responseSuccess(data: $result);
     }
