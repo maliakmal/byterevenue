@@ -281,7 +281,7 @@ class QueueIndicatorsService
         }
 
         return [
-            'total'  => $total ?? 0,
+            'total'  => (int)$total ?? 0,
             'byWeek' => $byWeek,
         ];
     }
