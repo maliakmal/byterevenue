@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Api\IndicatorsApiController;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Transaction;
@@ -35,12 +36,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $result = (new QueueIndicatorsService(
-            new BroadcastLogRepository(
-                new BroadcastLog()
-            )
-        ))->getTopFiveDomains();
-
-        dd($result);
+        //
     }
 }

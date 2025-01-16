@@ -176,13 +176,15 @@ class CampaignService
             $logs = BroadcastLog::where('campaign_id', $campaign->id);
 
             if (isset($filters['is_blocked'])) {
-                $logs = $logs->withIsBlocked()->having('is_blocked',$filters['is_blocked']);
+                $logs = $logs->withIsBlocked()->having('is_blocked', $filters['is_blocked']);
             }
-            if (isset($filters['status'])) {
-                $logs = $logs->where('status',$filters['status']);
+            if (isset($filters['status']) && $filters['status'] === 'Sent') {
+                $logs = $logs->whereNotNull('batch');
+            } elseif (isset($filters['status']) && $filters['status'] === 'Unsent') {
+                $logs = $logs->whereNull('batch');
             }
             if (isset($filters['is_clicked'])) {
-                $logs = $logs->where('is_click',$filters['is_clicked']);
+                $logs = $logs->where('is_click', $filters['is_clicked']);
             }
 
             if (isset($filters['search'])) {

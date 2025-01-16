@@ -98,7 +98,7 @@ class User extends Authenticatable
     {
         $this->transactions()->create([
             'user_id' => $this->id,
-            'amount' => $amount,
+            'amount' => abs($amount) * -1,
             'type' => 'usage',
         ]);
 
@@ -108,7 +108,7 @@ class User extends Authenticatable
     public function addTokens($amount){
         $this->transactions()->create([
             'user_id' => $this->id,
-            'amount' => $amount,
+            'amount' => abs($amount),
             'type' => 'purchase',
         ]);
 

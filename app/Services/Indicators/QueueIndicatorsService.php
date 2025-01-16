@@ -3,6 +3,7 @@
 namespace App\Services\Indicators;
 
 use App\Models\Transaction;
+use App\Models\User;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 
 class QueueIndicatorsService
@@ -201,59 +202,76 @@ class QueueIndicatorsService
 
     public function getTokensGlobalSpentIndicator()
     {
+        $total = (int)\DB::table('transactions')
+            ->selectRaw('SUM(ABS(amount)) as total')
+            ->where('created_at', '>=', now()->subDays(6))
+            ->where('type', 'usage')
+            ->value('total');
+
+        $byWeekRaw = \DB::table('transactions')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->get();
+
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->sum_amount ?? 0;
+        }
+
         return [
-            'total' => 135000000,
-            'byWeek' => [
-                '01-01-2025' => 100000,
-                '02-01-2025' => 10000,
-                '03-01-2025' => 0,
-                '04-01-2025' => 15000,
-                '05-01-2025' => 225000,
-                '06-01-2025' => 7,
-                '07-01-2025' => 35000
-            ]
+            'total'  => $total,
+            'byWeek' => $byWeek,
         ];
     }
 
     public function getTopFiveAccountsBudgetIndicator()
     {
+        // get 5 accounts with the highest balance
+        $topFiveAccounts = \DB::table('users')
+            ->select('name', 'tokens')
+            ->orderByDesc('tokens')
+            ->limit(5)
+            ->pluck('tokens', 'name')
+            ->toArray();
+
+        return $topFiveAccounts;
+    }
+
+    public function getTokensPersonalBalanceIndicator($id)
+    {
+        $total = intval(User::find($id)?->tokens);
+
+        $byWeekRaw = \DB::table('transactions')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->where('user_id', $id)
+            ->where('type', 'usage')
+            ->groupBy('date')
+            ->get();
+
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->sum_amount ?? 0;
+        }
+
         return [
-            'account1Name' => 100000,
-            'account2Name' => 50000,
-            'account3Name' => 25000,
-            'account4Name' => 15000,
-            'account5Name' => 10000,
-            'account6Name' => 5000,
-            'account7Name' => 522500,
+            'total'  => $total,
+            'byWeek' => $byWeek,
         ];
     }
 
-    public function gettokensPersonalBalanceIndicator()
+    public function getTokensPersonalSpentIndicator($id)
     {
-        return [
-            'total' => 100000,
-            'byWeek' => [
-                '01-01-2025' => 100000,
-                '02-01-2025' => 10000,
-                '03-01-2025' => 0,
-                '04-01-2025' => 15000,
-                '05-01-2025' => 225000,
-                '06-01-2025' => 7,
-                '07-01-2025' => 35000
-            ]
-        ];
-    }
+        $byWeekRaw = \DB::table('transactions')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->where('user_id', $id)
+            ->groupBy('date')
+            ->get();
 
-    public function gettokensPersonalSpentIndicator()
-    {
-        return [
-            '01-01-2025' => 100000,
-            '02-01-2025' => 10000,
-            '03-01-2025' => 10000,
-            '04-01-2025' => 15000,
-            '05-01-2025' => 225000,
-            '06-01-2025' => 7000,
-            '07-01-2025' => 35000
-        ];
+        foreach (now()->subDays(6)->daysUntil(now()) as $date) {
+            $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->sum_amount ?? 0;
+        }
+
+        return $byWeek;
     }
 }
