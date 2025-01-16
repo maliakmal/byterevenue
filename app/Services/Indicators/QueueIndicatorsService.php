@@ -209,9 +209,10 @@ class QueueIndicatorsService
             ->value('total');
 
         $byWeekRaw = \DB::table('transactions')
-            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('SUM(ABS(amount)) as sum_amount'))
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
+            ->where('type', 'usage')
             ->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
@@ -245,7 +246,6 @@ class QueueIndicatorsService
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
-            ->where('type', 'usage')
             ->groupBy('date')
             ->get();
 
@@ -261,10 +261,18 @@ class QueueIndicatorsService
 
     public function getTokensPersonalSpentIndicator($id)
     {
-        $byWeekRaw = \DB::table('transactions')
-            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as sum_amount'))
+        $total = \DB::table('transactions')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(abs(amount)) as total'))
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
+            ->where('type', 'usage')
+            ->value('total');
+
+        $byWeekRaw = \DB::table('transactions')
+            ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(abs(amount)) as sum_amount'))
+            ->where('created_at', '>=', now()->subDays(6))
+            ->where('user_id', $id)
+            ->where('type', 'usage')
             ->groupBy('date')
             ->get();
 
@@ -272,6 +280,9 @@ class QueueIndicatorsService
             $byWeek[$date->format('d-m-Y')] = (int)$byWeekRaw->where('date', $date->format('Y-m-d'))->first()?->sum_amount ?? 0;
         }
 
-        return $byWeek;
+        return [
+            'total'  => $total,
+            'byWeek' => $byWeek,
+        ];
     }
 }
