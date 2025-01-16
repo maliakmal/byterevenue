@@ -53,7 +53,7 @@ class UpdateCampaignsClicksAndStats extends Command
 
             $this->info('Campaign '.$campaign->id.' updated total='.$campaign->total_recipients.' sent = '.$campaign->total_recipients_sent_to.' clicked = '.$campaign->total_recipients_click_thru);
 
-            if ($campaign->total_recipients_sent_to >= $campaign->total_recipients) {
+            if ($campaign->total_recipients_in_process >= $campaign->total_recipients) {
                 $campaign->update(['status' => Campaign::STATUS_DONE]);
                 \Log::info('Campaign '.$campaign->id.' marked as DONE ');
             }
