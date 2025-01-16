@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
+use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 use App\Services\Clicks\ClickService;
 use App\Services\Indicators\QueueIndicatorsService;
 use Carbon\Carbon;
@@ -33,8 +35,11 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $broadcastLogRepository = app()->make(BroadcastLogRepositoryInterface::class);
-        $result = $broadcastLogRepository->getSentAndClicksByCampaign(10);
+        $result = (new QueueIndicatorsService(
+            new BroadcastLogRepository(
+                new BroadcastLog()
+            )
+        ))->getTopFiveDomains();
 
         dd($result);
     }

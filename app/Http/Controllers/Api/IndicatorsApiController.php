@@ -103,20 +103,23 @@ class IndicatorsApiController extends ApiController
     /**
      * @return JsonResponse
      */
-    public function statusUserList(): JsonResponse
+    public function statusUserListIndicator(): JsonResponse
     {
-        $result = $this->indicatorsService->getStatusUserList();
+        $result = $this->indicatorsService->getStatusUserListIndicator();
 
         return $this->responseSuccess(data: $result);
     }
 
-    public function createdDomains(): JsonResponse
+    public function createdDomainsIndicator(): JsonResponse
     {
-        $result = $this->indicatorsService->getCreatedDomains();
+        $result = $this->indicatorsService->getCreatedDomainsIndicator();
 
         return $this->responseSuccess(data: $result);
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function totalAccountsIndicator(): JsonResponse
     {
         $result = $this->indicatorsService->getTotalAccountsIndicator();
@@ -124,9 +127,52 @@ class IndicatorsApiController extends ApiController
         return $this->responseSuccess(data: $result);
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function suspendedAccountsIndicator(): JsonResponse
     {
         $result = $this->indicatorsService->getSuspendedAccountsIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function tokensGlobalSpentIndicator(): JsonResponse
+    {
+        $result = $this->indicatorsService->getTokensGlobalSpentIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function topFiveAccountsBudget(): JsonResponse
+    {
+        $result = $this->indicatorsService->getTopFiveAccountsBudgetIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function tokensPersonalBalance(): JsonResponse
+    {
+        $result = $this->indicatorsService->gettokensPersonalBalanceIndicator();
+
+        return $this->responseSuccess(data: $result);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function tokensPersonalSpent(): JsonResponse
+    {
+        $result = $this->indicatorsService->gettokensPersonalSpentIndicator();
 
         return $this->responseSuccess(data: $result);
     }

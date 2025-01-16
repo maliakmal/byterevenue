@@ -99,17 +99,14 @@ class AccountsService
      *
      * @return array
      */
-    public function addTokensToAccount(Request $request)
+    public function cahngeTokensInAccount(User $user, int $amount)
     {
-        $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'amount' => ['required', 'numeric'],
-        ]);
+        if ($amount < 0) {
+            $user->deductTokens(abs($amount));
+        } elseif ($amount > 0) {
+            $user->addTokens(abs($amount));
+        }
 
-        $data = $request->all();
-
-        $account = User::find($data['user_id']);
-        $account->addTokens($data['amount']);
         return ['message' => 'Tokens updated successfully.'];
     }
 
