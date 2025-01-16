@@ -41,7 +41,7 @@ class UpdateCampaignsClicksAndStats extends Command
             $totals = $this->broadcastLogRepository->getSentAndClicksByCampaign($campaign->id);
             $campaign->total_recipients_sent_to    = $totals['total_sent'];
             $campaign->total_recipients_click_thru = $totals['total_clicked'];
-            $campaign->total_recipints_in_process  = $totals['total_processed'];
+            $campaign->total_recipients_in_process  = $totals['total_processed'];
 
             if ($totals['total_clicked'] == 0 || $campaign->total_recipients == 0) {
                 $campaign->total_ctr = 0;
