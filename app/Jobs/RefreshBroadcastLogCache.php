@@ -141,6 +141,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             self::CACHE_TTL
         );
 
+        // Top 5 users by number of active campaigns
         $topUsers = User::withCount([
             'campaigns',
             'campaigns as processing_campaign_count' => function ($query) {
@@ -154,7 +155,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
                     ->limit(1),
             ])
             ->orderByDesc('processing_campaign_count')
-            ->latest()
+            ->orderByDesc('campaigns_count')
             ->limit(5)
             ->get()
             ->toArray();
