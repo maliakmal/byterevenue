@@ -3,13 +3,14 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use App\Jobs\CheckDomainPropagationJob;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
 $check_propagation_schedule = config('app.domain.schedule_check_propagation');
-Schedule::job(new \App\Jobs\CheckDomainPropagationJob())->$check_propagation_schedule();
+Schedule::job(new CheckDomainPropagationJob())->$check_propagation_schedule();
 
 $check_update_click_schedule = config('setting.schedule_update_click', 'everyTenMinutes');
 Schedule::command('keitaro:update-clicks')->$check_update_click_schedule()->withoutOverlapping();
@@ -24,3 +25,5 @@ Schedule::command('app:create-missing-keitaro-campaigns')->everyTenMinutes()->wi
 Schedule::command('app:warm-cache')->everyMinute()->withoutOverlapping();
 
 Schedule::command('app:update-campaigns-clicks-and-stats')->everyFiveMinutes()->withoutOverlapping();
+
+Schedule::command('sync:recipients-lists')->everyTwoMinutes()->withoutOverlapping();
