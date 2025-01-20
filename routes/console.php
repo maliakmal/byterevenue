@@ -24,5 +24,3 @@ Schedule::command('app:create-missing-keitaro-campaigns')->everyTenMinutes()->wi
 Schedule::command('app:warm-cache')->everyMinute()->withoutOverlapping();
 
 Schedule::command('app:update-campaigns-clicks-and-stats')->everyFiveMinutes()->withoutOverlapping();
-
-// Schedule::command('sync:recipients-group')->everyHour()->withoutOverlapping();

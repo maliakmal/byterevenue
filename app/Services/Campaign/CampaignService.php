@@ -5,8 +5,6 @@ namespace App\Services\Campaign;
 use App\Jobs\FinishLoopContactGeneration;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
-use App\Models\Message;
-use App\Models\Transaction;
 use App\Models\User;
 use App\Repositories\Model\Campaign\CampaignRepository;
 use App\Services\Keitaro\KeitaroCaller;
@@ -20,9 +18,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
-use Hidehalo\Nanoid\GeneratorInterface;
 use App\Jobs\ProcessCampaign;
-
 
 class CampaignService
 {
