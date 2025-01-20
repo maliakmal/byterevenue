@@ -70,13 +70,21 @@ class ContactService
     {
         $sent = BroadcastLog::whereIn('contact_id', $ids)
             ->where('is_sent', true)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
-        $contact = Contact::with('recipientLists')->whereIn('id', $ids)->first();
+        $contact = Contact::with('recipientLists')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->whereIn('id', $ids)
+            ->first();
 
         $campaigns = intval($contact->recipientLists?->sum('campaigns_count'));
 
-        $recipientsLists = $contact->recipientLists->count();
+        $recipientsLists = intval($contact->recipientLists?->count());
 
         return [
             'sent' => $sent,

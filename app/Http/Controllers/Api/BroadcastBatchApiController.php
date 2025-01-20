@@ -21,6 +21,7 @@ class BroadcastBatchApiController extends ApiController
      */
     public function store(BroadcastBatchStoreRequest $request): JsonResponse
     {
+        // TODO:: which users (or hook) can do this?
         [$campaign, $broadcast_batch] = $this->broadcastBatchService->store($request->validated());
 
         return $this->responseSuccess(
@@ -40,6 +41,9 @@ class BroadcastBatchApiController extends ApiController
     {
         $broadcastBatch = BroadcastBatch::where('id', $id)
             ->with(['campaign', 'recipient_list', 'message'])
+            ->when(!auth()->user()->isAdmin(), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->firstOrFail();
 
         $recipient_lists = $broadcastBatch->recipient_list;

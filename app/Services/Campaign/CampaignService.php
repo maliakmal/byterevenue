@@ -171,6 +171,10 @@ class CampaignService
             $contacts = [];
             $logs = BroadcastLog::where('campaign_id', $campaign->id);
 
+            if (!auth()->user()->isAdmin()) {
+                $logs = $logs->where('user_id', auth()->id());
+            }
+
             if (isset($filters['is_blocked'])) {
                 $logs = $logs->withIsBlocked()->having('is_blocked', $filters['is_blocked']);
             }

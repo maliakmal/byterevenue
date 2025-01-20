@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\DB;
 
 class RecipientsListApiController extends ApiController
 {
-    // TODO::CONTROL OF OWNER OF THE LIST!
-
     /**
      * @param RecipientListService $recipientListService
      */

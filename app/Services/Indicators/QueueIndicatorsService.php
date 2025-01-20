@@ -96,10 +96,16 @@ class QueueIndicatorsService
     {
         $imports = \DB::table('import_recipients_lists')
             ->where('is_failed', 0)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
         $failedImports = \DB::table('import_recipients_lists')
             ->where('is_failed', 1)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
         return [
@@ -113,6 +119,9 @@ class QueueIndicatorsService
     {
         $campaignsByWeekRaw = \DB::table('campaigns')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -126,10 +135,17 @@ class QueueIndicatorsService
 
     public function getTotalContactsIndicator()
     {
-        $total = \DB::table('contacts')->count();
+        $total = \DB::table('contacts')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
 
         $byWeekRaw = \DB::table('contacts')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -146,8 +162,17 @@ class QueueIndicatorsService
 
     public function getStatusUserListIndicator()
     {
-        $totalCount     = \DB::table('contacts')->count();
-        $blackListCount = \DB::table('black_list_numbers')->count();
+        $totalCount = \DB::table('contacts')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
+
+        $blackListCount = \DB::table('black_list_numbers')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
 
         return [
             'total'         => $totalCount,
@@ -204,12 +229,18 @@ class QueueIndicatorsService
     {
         $total = (int)\DB::table('transactions')
             ->selectRaw('SUM(ABS(amount)) as total')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->where('type', 'usage')
             ->value('total');
 
         $byWeekRaw = \DB::table('transactions')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('SUM(ABS(amount)) as sum_amount'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->where('type', 'usage')

@@ -12,8 +12,6 @@ use Illuminate\Http\Request;
 
 class ContactApiController extends ApiController
 {
-    // TODO:: Admin privileges for some methods in this controller (e.g. destroy method), or edit other models
-
     /**
      * @param ContactService $contactService
      */
@@ -56,7 +54,14 @@ class ContactApiController extends ApiController
      */
     public function show(int $id): JsonResponse
     {
-        $contact = Contact::find($id);
+        $contact = Contact::when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->find($id);
+
+        if (!$contact) {
+            return $this->responseError([], 'Contact not found.', 404);
+        }
 
         return $this->responseSuccess($contact);
     }
@@ -67,7 +72,14 @@ class ContactApiController extends ApiController
      */
     public function edit(int $id): JsonResponse
     {
-        $contact = Contact::find($id);
+        $contact = Contact::when(!auth()->user()->hasRole('admin'), function ($query) {
+            return $query->where('user_id', auth()->id());
+        })
+            ->find($id);
+
+        if (!$contact) {
+            return $this->responseError([], 'Contact not found.', 404);
+        }
 
         return $this->responseSuccess($contact);
     }
@@ -79,6 +91,7 @@ class ContactApiController extends ApiController
      */
     public function update(int $id, ContactUpdateRequest $request): JsonResponse
     {
+        // $$$ зачем список черных номеров?
         $contact = Contact::withCount(['blackListNumber'])->find($id);
 
         if (!$contact) {
@@ -93,7 +106,7 @@ class ContactApiController extends ApiController
             'email' => $request->email,
             'phone' => $intPhone,
         ]);
-
+        // $$$ зачем это возвращать?
         $info = $this->contactService->getInfo([$id]);
         $contact['sent_count'] = $info['sent'];
         $contact['campaigns_count'] = $info['campaigns'];
@@ -107,7 +120,12 @@ class ContactApiController extends ApiController
      */
     public function destroy(int $id): JsonResponse
     {
-        if (Contact::find($id)->delete()) {
+        $contact = Contact::when(!auth()->user()->hasRole('admin'), function ($query) {
+            return $query->where('user_id', auth()->id());
+        })
+            ->find($id);
+
+        if ($contact && $contact->delete()) {
             return $this->responseSuccess([], 'Contact deleted successfully.');
         }
 

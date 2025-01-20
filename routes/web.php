@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome');
 Route::view('api-docs', 'repidoc_api');
 
-// routes for livewire
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     Route::any('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('introductory/disable', [DashboardController::class, 'disableIntroductory'])->name('block_numbers_user');

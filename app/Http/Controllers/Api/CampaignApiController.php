@@ -33,6 +33,10 @@ class CampaignApiController extends ApiController
      */
     public function markAsIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin')) {
+            return $this->responseError(message: 'You do not have permission to ignore campaigns.');
+        }
+
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = true;
         $campaign->save();
@@ -50,6 +54,10 @@ class CampaignApiController extends ApiController
      */
     public function markAsNotIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin')) {
+            return $this->responseError(message: 'You do not have permission to ignore campaigns.');
+        }
+
         $campaign = $this->campaignRepository->find($request->campaign_id);
         $campaign->is_ignored_on_queue = false;
         $campaign->save();
@@ -110,6 +118,7 @@ class CampaignApiController extends ApiController
      */
     public function store(CampaignStoreRequest $request): JsonResponse
     {
+        // TODO:: user can create campaign
         $recipientsList = RecipientsList::find(intval($request->recipients_list_id));
 
         if (!$recipientsList && !$request->is_template) {
@@ -132,6 +141,10 @@ class CampaignApiController extends ApiController
      */
     public function update(CampaignUpdateRequest $request, Campaign $campaign): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin') && $campaign->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to update this campaign.');
+        }
+
         if ($campaign->status !== Campaign::STATUS_DRAFT && $campaign->status !== Campaign::STATUS_TEMPLATE) {
             return $this->responseError(message:'Campaign has been dispatched and cannot be updated.', status:400);
         }
@@ -151,6 +164,10 @@ class CampaignApiController extends ApiController
      */
     public function destroy(Campaign $campaign): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin') && $campaign->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to update this campaign.');
+        }
+
         if ($campaign->campaignShortUrls()->count() > 0) {
             return $this->responseError(message: 'Campaign has short urls and cannot be deleted.');
         }
@@ -172,7 +189,11 @@ class CampaignApiController extends ApiController
      */
     public function markAsProcessed($id)
     {
-        $campaign = Campaign::with(['recipient_list.recipientsGroup'])->find($id);
+        $campaign = Campaign::with(['recipient_list.recipientsGroup'])
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->find($id);
 
         if (!$campaign) {
             return $this->responseError(message: 'Campaign not found.');
