@@ -98,9 +98,10 @@ class CampaignApiController extends ApiController
      */
     public function show(int $id, Request $request): JsonResponse
     {
+        // TODO:: VALIDATORS!
         $filters = [
             'is_blocked' => $request->input('is_blocked'),
-            'status' => $request->input('status'),
+            'status' => 'Sent' === $request->input('status') ? 'sent' : 'unsent',
             'is_clicked' => $request->input('is_clicked'),
             'per_page' => $request->get('per_page', 5),
             'page' => $request->get('page', 1),
