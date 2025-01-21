@@ -73,4 +73,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
         Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
     });
+
+    // Socket test route
+    Route::get('socket-test', function () {
+        broadcast(new \App\Events\PublicEvent('test_message'));
+        broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
+        return view('socket-test');
+    });
 });

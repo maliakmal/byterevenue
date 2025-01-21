@@ -36,6 +36,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        broadcast(new \App\Events\PublicEvent());
+        //
     }
 }
