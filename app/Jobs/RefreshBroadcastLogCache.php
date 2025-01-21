@@ -39,45 +39,45 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
     public function handle(BroadcastLogRepository $broadcastLogRepository): void
     {
         $start = microtime(true);
-
+\Log::debug('step 1');
         Cache::put('ready_'. $this->startEndString, true, self::CACHE_TTL);
-
+\Log::debug('step 2');
         Cache::put(
             'click_count_' . $this->startEndString,
             $broadcastLogRepository->getClickedCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 3');
         Cache::put(
             'archived_click_count_' . $this->startEndString,
             $broadcastLogRepository->getArchivedClickedCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 4');
         Cache::put(
             'send_count_' . $this->startEndString,
             $broadcastLogRepository->getSendCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 5');
         Cache::put(
             'archived_send_count_' . $this->startEndString,
             $broadcastLogRepository->getArchivedSendCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 6');
         Cache::put(
             'total_count_' . $this->startEndString,
             $broadcastLogRepository->getTotalCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 7');
         Cache::put(
             'total_from_storage_count_' . $this->startEndString,
             $broadcastLogRepository->getArchivedTotalCount(),
             self::CACHE_TTL
         );
-
+\Log::debug('step 8');
         Cache::put(
             'unsent_count_' . $this->startEndString,
             $broadcastLogRepository->getUnsentCount(),
@@ -88,7 +88,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ->where('created_at', '>=', $this->startDate)
             ->where('created_at', '<=', $this->endDate)
             ->count();
-
+\Log::debug('step 9');
         Cache::put(
             'campaign_count_' . $this->startEndString,
             $campaign,
@@ -103,7 +103,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ->limit(5)
             ->get()
             ->toArray();
-
+\Log::debug('step 10');
         Cache::put(
             'top_accounts_' . $this->startEndString,
             $topAccounts,
@@ -118,7 +118,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ->limit(5)
             ->get()
             ->toArray();
-
+\Log::debug('step 11');
         foreach ($topTokensSpent as $key => $value) {
             $total = (int)Campaign::where('user_id', $value['user_id'])
                 ->sum('total_recipients');
@@ -134,7 +134,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
 
             $topTokensSpent[$key]['total_messages_sent'] = $total;
         }
-
+\Log::debug('step 12');
         Cache::put(
             'top_tokens_spent_' . $this->startEndString,
             $topTokensSpent,
@@ -159,7 +159,7 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
             ->limit(5)
             ->get()
             ->toArray();
-
+\Log::debug('step 13');
         Cache::put(
             'top_users_' . $this->startEndString,
             $topUsers,
