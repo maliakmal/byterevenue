@@ -101,12 +101,17 @@ class CampaignApiController extends ApiController
         // TODO:: VALIDATORS!
         $filters = [
             'is_blocked' => $request->input('is_blocked'),
-            'status' => 'Sent' === $request->input('status') ? 'sent' : 'unsent',
             'is_clicked' => $request->input('is_clicked'),
             'per_page' => $request->get('per_page', 5),
             'page' => $request->get('page', 1),
             'search' => $request->get('search'),
         ];
+
+        if ('Sent' === $request->input('status')) {
+            $filters['status'] = 'send';
+        } elseif ('Unsent' === $request->input('status')) {
+            $filters['status'] = 'unsend';
+        }
 
         $campaignData = $this->campaignService->show($id, $filters);
 
