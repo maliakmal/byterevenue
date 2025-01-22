@@ -43,10 +43,12 @@ class UpdateCampaignsClicksAndStats extends Command
             $campaign->total_recipients_click_thru = $totals['total_clicked'];
             $campaign->total_recipients_in_process  = $totals['total_processed'];
 
-            if ($totals['total_clicked'] == 0 || $campaign->total_recipients == 0) {
+            if ($totals['total_clicked'] == 0 || $totals['total_sent'] == 0) {
+                $campaign->total_ctr = 0;
+            } elseif ($totals['total_clicked'] > $totals['total_sent']) {
                 $campaign->total_ctr = 0;
             } else {
-                $campaign->total_ctr = ($totals['total_clicked'] / $campaign->total_recipients) * 100;
+                $campaign->total_ctr = ($totals['total_clicked'] / $totals['total_sent']) * 100;
             }
 
             $campaign->save();

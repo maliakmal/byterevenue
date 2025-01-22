@@ -39,7 +39,6 @@ class BroadcastLogApiController extends ApiController
         $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [
             'sent_at' => Carbon::now(),
             'is_sent' => true,
-            'status'  => BroadcastLogStatus::SENT,
         ]);
 
         $this->responseSuccess(options: [

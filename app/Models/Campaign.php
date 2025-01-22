@@ -16,8 +16,10 @@ class Campaign extends Model
     const STATUS_TEMPLATE = -1; // tmp status for save
     const STATUS_DRAFT = 0; // created but not run process
     const STATUS_PROCESSING = 1; // in process (generating logs)
-    const STATUS_DONE = 2; // completed sending (via csv)
+    const STATUS_DONE = 2; // completed generated (via csv)
+    const STATUS_COMPLETED = 5; // completed (getting all reports for messages)
     const STATUS_EXPIRED = 9; // expired
+    const STATUS_ARCHIVED = 10; // all messages moved to archive
 
     public function user(){
         return $this->belongsTo(User::class);
