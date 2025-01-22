@@ -67,10 +67,10 @@ class UpdateClicksFromKeitaro extends Command
             $uid_param = config('app.keitaro.uid_param', 'sub_id_1');
 
             foreach ($response['rows'] ?? [] as $row){
-                $log_id = $row[$uid_param];
+                $log_slug = $row[$uid_param];
 
-                if (trim($log_id) == '') { // (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
-                    \Log::error('log id is not valid', ['log_Id'=>$log_id, 'log' => $row]);
+                if (trim($log_slug) == '') { // (!preg_match('/^[a-zA-Z0-9_-]+$/', $log_id)) {
+                    \Log::error('log id is not valid', ['log_Id' => $log_slug, 'log' => $row]);
                     continue;
                 }
 
@@ -92,19 +92,19 @@ class UpdateClicksFromKeitaro extends Command
                     'keitaro_click_log' => $log_data,
                 ];
 
-                if (isset($row['is_bot'])){
+                if (isset($row['is_bot'])) {
                     $updateData['is_bot'] = $row['is_bot'];
                 }
 
-                if (isset($row['is_unique_global'])){
+                if (isset($row['is_unique_global'])) {
                     $updateData['is_unique_global'] = $row['is_unique_global'];
                 }
 
-                if (isset($row['is_unique_campaign'])){
+                if (isset($row['is_unique_campaign'])) {
                     $updateData['is_unique_campaign'] = $row['is_unique_campaign'];
                 }
 
-                $this->broadcastLogRepository->updateBySlug($log_id, $updateData);
+                $this->broadcastLogRepository->updateBySlug($updateData, $log_slug);
             }
 
             $offset += $limit;

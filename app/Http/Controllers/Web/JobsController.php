@@ -143,7 +143,6 @@ class JobsController extends Controller
             !$this->broadcastLogRepository->updateByModel([
                 'sent_at' => Carbon::now(),
                 'is_sent' => true,
-                'status' => BroadcastLogStatus::SENT,
             ], $model)
         ) {
             return response()->error('update failed');

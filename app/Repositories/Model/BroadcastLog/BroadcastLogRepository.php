@@ -3,6 +3,7 @@
 namespace App\Repositories\Model\BroadcastLog;
 
 use App\Models\BroadcastLog;
+use App\Models\KeitaroClickLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -28,9 +29,23 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $this->model->whereIn('id', $ids)->update($fieldsToUpdate);
     }
 
-    public function updateBySlug($slug, $fieldsToUpdate)
+    public function updateBySlug($fieldsToUpdate, $slug)
     {
-        return $this->model->where('slug', '=', $slug)->update($fieldsToUpdate);
+        $model = $this->model->where('slug', '=', $slug)->first();
+
+        if ($model) {
+            if (array_key_exists('keitaro_click_log', $fieldsToUpdate)) {
+                KeitaroClickLog::create([
+                    'campaign_id' => $model->campaign_id,
+                    'details' => $fieldsToUpdate['keitaro_click_log']
+                ]);
+                unset($fieldsToUpdate['keitaro_click_log']);
+            }
+
+            return $model->update($fieldsToUpdate);
+        }
+
+        return false;
     }
 
     /**
@@ -263,8 +278,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('mysql')
             ->table('broadcast_logs')
 //            ->whereNotNull('sent_at')
-//            ->where('is_sent', 1)
-            ->whereNotNull('batch')
+            ->where('is_sent', 1)
+//            ->whereNotNull('batch')
             ->count();
     }
 

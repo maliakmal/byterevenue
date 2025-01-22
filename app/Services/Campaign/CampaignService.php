@@ -180,7 +180,7 @@ class CampaignService
             }
 
             if (isset($filters['status'])) {
-                $logs = $logs->where('status', $filters['status']);
+                $logs = $logs->where('is_sent', $filters['status']);
             }
 
             if (isset($filters['is_clicked'])) {

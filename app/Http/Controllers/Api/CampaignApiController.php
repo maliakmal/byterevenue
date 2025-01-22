@@ -108,9 +108,9 @@ class CampaignApiController extends ApiController
         ];
 
         if ('Sent' === $request->input('status')) {
-            $filters['status'] = 'send';
+            $filters['status'] = 1;
         } elseif ('Unsent' === $request->input('status')) {
-            $filters['status'] = 'unsend';
+            $filters['status'] = 0;
         }
 
         $campaignData = $this->campaignService->show($id, $filters);
