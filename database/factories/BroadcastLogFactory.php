@@ -25,7 +25,6 @@ class BroadcastLogFactory extends Factory
             'message_id' => 1,
             'sent_at' => Carbon::now()->format('Y-m-d H:i:s'),
             'clicked_at' => Carbon::now()->format('Y-m-d H:i:s'),
-            'total_recipients_click_thru' => 1,
             'status' => 1,
             'message_body' => $this->faker->text,
             'recipient_phone' => $this->faker->phoneNumber,

@@ -82,7 +82,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->get();
     }
 
@@ -90,7 +90,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->count();
     }
 
@@ -99,11 +99,46 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('mysql')
             ->table('broadcast_logs')
             ->whereIn('user_id', $userIds)
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->count();
     }
 
     public function getUnsentCountByCampaignIds(array $campaignIds)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('is_sent', 0)
+            ->count();
+    }
+
+    //
+    public function getUngen()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->get();
+    }
+
+    public function getUngenCount()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->count();
+    }
+
+    public function getUngenCountByUserIds(array $userIds)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereIn('user_id', $userIds)
+            ->whereNull('batch')
+            ->count();
+    }
+
+    public function getUngenCountByCampaignIds(array $campaignIds)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
@@ -294,8 +329,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-//            ->whereNotNull('sent_at')
-            ->whereNotNull('batch')
+            ->where('is_sent', 1)
             ->whereIn('campaign_id', $campaignIds)
             ->count();
     }
