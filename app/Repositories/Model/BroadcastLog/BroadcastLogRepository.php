@@ -31,7 +31,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
 
     public function updateBySlug($fieldsToUpdate, $slug)
     {
-        $model = $this->model->where('slug', '=', $slug)->first();
+        $model = $this->model->where('slug', $slug)->first();
 
         if ($model) {
             if (array_key_exists('keitaro_click_log', $fieldsToUpdate)) {

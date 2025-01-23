@@ -77,6 +77,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 /// GROUP ROUTES FOR EXTERNAL API (WEBHOOKS)
 Route::middleware([CheckExternalApiToken::class])->group(function () {
+    Route::post('test', function () {
+        return response()->json(['message' => 'Hello World!']);
+    });
     Route::post('messages/update-by-file/sent', [BroadcastLogApiController::class, 'updateSentMessage']);
 });
 

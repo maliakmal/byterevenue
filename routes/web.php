@@ -16,6 +16,7 @@ use App\Http\Controllers\Web\BlackListNumberController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\BlackListWordController;
 use App\Http\Controllers\Web\AreasController;
+use App\Http\Controllers\Web\UpdateSentMessagesController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
 
@@ -72,5 +73,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('reports/messages', [ReportController::class, 'messages'])->name('reports.messages');
         Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
         Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
+        Route::get('update-sent-messages', [UpdateSentMessagesController::class, 'index']);
+        Route::get('download_updates_file/{id}', [UpdateSentMessagesController::class, 'download'])->name('download_updates_file');
     });
 });
