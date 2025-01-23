@@ -136,7 +136,7 @@ return [
     ],
     'csv' => [
         'disk' => env('CSV_DISK', 'space'),
-        'upload_max_size_allowed' => env('UPLOAD_MAX_SIZE_ALLOWED', 100000),
+        'upload_max_size_allowed' => env('UPLOAD_MAX_SIZE_ALLOWED', 1024 * 1024 * 100), // 100MB
     ],
     'one_plus_e' => [
         'host' => env('ONE_PLUS_E', 'http://172.16.0.101:8000'),

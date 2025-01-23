@@ -186,7 +186,8 @@ return [
                 'default',
                 'CSV_generate_processing',
                 'campaign_contact_processing',
-                'import_recipient_list_processing'
+                'import_recipient_list_processing',
+                'update_sent_messages_processing',
             ],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',

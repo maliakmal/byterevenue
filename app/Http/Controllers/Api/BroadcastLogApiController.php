@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\ApiController;
+use App\Jobs\UpdateSentMessagesJob;
+use App\Models\UpdateSentMessage;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
 use Carbon\Carbon;
@@ -31,20 +33,20 @@ class BroadcastLogApiController extends ApiController
             'messages_csv_file' => "required|max:" . config('app.csv.upload_max_size_allowed'),
         ]);
 
-        $file        = $request->file('messages_csv_file');
-        $content     = file_get_contents($file->getRealPath());
-        $csv         = $this->csvToCollection($content);
-        $message_ids = $csv->pluck('UID')->toArray();
+        $file = $request->file('messages_csv_file');
+        $newFilename = 'update-'. str_replace('.', '', microtime(true)) . '.' . $file->getClientOriginalExtension();
+        $file->storeAs('update_sent_messages', $newFilename);
 
-        $number_of_updated_rows = $this->broadcastLogRepository->updateWithIDs($message_ids, [
-            'sent_at' => Carbon::now(),
-            'is_sent' => true,
+        $updateLog = UpdateSentMessage::create([
+            'file_name'  => $newFilename,
+            'status'     => UpdateSentMessage::STATUS_CREATED,
+            'ip_address' => $request->ip(),
         ]);
 
-        $this->responseSuccess(options: [
-            'updated_rows' => $number_of_updated_rows
-        ]);
+        dispatch(new UpdateSentMessagesJob($updateLog->id));
 
-        return $this->responseSuccess();
+        return $this->responseSuccess(options: [
+            'update_log_id' => $updateLog->id
+        ]);
     }
 }
