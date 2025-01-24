@@ -81,4 +81,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('aliases', [AliasesController::class, 'index'])->name('aliases.index');
         Route::get('aliases/{id}/refresh', [AliasesController::class, 'refresh']);
     });
+
+    // Socket test route
+    Route::get('socket-test', function () {
+        broadcast(new \App\Events\PublicEvent('test_message'));
+        broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
+        return view('socket-test');
+    });
 });
