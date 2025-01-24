@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\BroadcastLog;
+use App\Models\Campaign;
 use App\Models\UpdateSentMessage;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Trait\CSVReader;
@@ -55,10 +57,13 @@ class UpdateSentMessagesJob extends BaseJob implements ShouldQueue
 
         $file->update(['total_rows' => count($message_slugs)]);
 
-        $number_of_updated_rows = \DB::table('broadcast_logs')
+        $number_of_updated_rows = BroadcastLog::query()
             ->whereIn('slug', $message_slugs)
             ->where('is_sent', 0)
             ->where('sent_at', null)
+            ->whereHas('campaign', function ($query) {
+                $query->whereIn('status', Campaign::STATUS_PROCESSING, Campaign::STATUS_DONE);
+            })
             ->update([
                 'sent_at' => now()->toDateTimeString(),
                 'is_sent' => 1,

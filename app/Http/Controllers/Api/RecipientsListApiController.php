@@ -74,9 +74,19 @@ class RecipientsListApiController extends ApiController
      */
     public function show(int $id): JsonResponse
     {
-        $recipientsList = RecipientsList::findOrFail($id);
+        $recipientsList = RecipientsList::find($id);
+
+        if (!$recipientsList) {
+            return $this->responseError(message: 'List not found.');
+        }
+
+        if (!auth()->user()->hasRole('admin') && $recipientsList->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to view this list.');
+        }
+
         $recipientsGroup = $recipientsList->recipientsGroup;
         $contacts = [];
+
         if (isset($recipientsGroup))
             $contacts = $recipientsGroup->getAllContactsPaginated(10);
 
@@ -101,7 +111,15 @@ class RecipientsListApiController extends ApiController
 
         $recipientsList = RecipientsList::with($relations)
             ->withCount(['campaigns'])
-            ->findOrFail($id);
+            ->find($id);
+
+        if (!$recipientsList) {
+            return $this->responseError(message: 'List not found.');
+        }
+
+        if (!auth()->user()->hasRole('admin') && $recipientsList->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to update this list.');
+        }
 
         $recipientsList->update($request->validated());
 
@@ -114,7 +132,16 @@ class RecipientsListApiController extends ApiController
      */
     public function destroy(int $id): JsonResponse
     {
-        $item = RecipientsList::withCount('campaigns')->findOrFail($id);
+        $item = RecipientsList::withCount('campaigns')->find($id);
+
+        if (!$item) {
+            return $this->responseError(message: 'List not found.');
+        }
+
+        if (!auth()->user()->hasRole('admin') && $item->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to delete this list.');
+        }
+
         if ($item->campaigns_count > 0) {
             return $this->responseError(message: 'List is associated with a campaign - this cannot be deleted.');
         }
@@ -125,11 +152,16 @@ class RecipientsListApiController extends ApiController
     }
 
     /**
+     * ??? what is this method for?
      * @param $userID
      * @return JsonResponse
      */
     private function getSourceForUser($userID): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin')) {
+            return $this->responseError(message: 'You do not have this permission.');
+        }
+
         $recipientList = RecipientsList::select(DB::raw("DISTINCT('source') AS source"))
             ->where('user_id', $userID)
             ->whereNotNull('source')

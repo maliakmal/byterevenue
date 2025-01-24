@@ -40,10 +40,10 @@ class BatchFileApiController extends ApiController
      */
     public function checkStatus(Request $request): JsonResponse
     {
-        $file_ids = isset($_POST['files']) ? $_POST['files'] : [];
-        $file_ids = is_array($file_ids) ? $file_ids : [];
+        $file_ids   = isset($_POST['files']) ? $_POST['files'] : [];
+        $file_ids   = is_array($file_ids) ? $file_ids : [];
         $file_ids[] = 0;
-        $files = [];
+        $files      = [];
 
         foreach (BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file) {
             $one = $file->toArray();

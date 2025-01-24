@@ -8,6 +8,7 @@ use App\Http\Requests\ClientUpdateRequest;
 use App\Models\Client;
 use Illuminate\Http\JsonResponse;
 
+// This controller is not use anywhere
 class ClientApiController extends ApiController
 {
     /**

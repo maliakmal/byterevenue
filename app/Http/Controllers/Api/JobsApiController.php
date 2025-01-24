@@ -28,7 +28,9 @@ class JobsApiController extends ApiController
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected JobService $jobService,
         protected BatchFileDownloadService $batchFileDownloadService,
-    ) {}
+    ) {
+        $this->middleware(['auth:sanctum', 'role:admin']);
+    }
 
     /**
      * @param Request $request

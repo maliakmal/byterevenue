@@ -5,11 +5,9 @@ namespace App\Services\Accounts;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Validator;
 use function PHPUnit\Framework\isNull;
 
 
@@ -26,6 +24,7 @@ class AccountsService
             'sort_order' => request('sort_order', 'desc'),
             'per_page' => request('per_page', 15),
         ];
+
         $status = intval($request->input('status',-1));
 
         $accounts = User::withCount([

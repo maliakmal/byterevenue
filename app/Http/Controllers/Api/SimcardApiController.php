@@ -16,7 +16,9 @@ class SimcardApiController extends ApiController
      */
     public function __construct(
         public SimcardService $simcardService
-    ) {}
+    ) {
+        $this->middleware(['auth:sanctum', 'role:admin']);
+    }
 
     /**
      * @return JsonResponse

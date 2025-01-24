@@ -14,16 +14,16 @@ class ContactService
      * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function getContacts(Request $request)
+    public function getContacts(array $data)
     {
-        $user       = auth()->user();
-        $perPage    = $request->input('per_page', 15);
-        $name       = $request->input('name');
-        $area_code  = $request->input('area_code', '');
-        $status     = intval($request->input('status',-1));
-        $phone      = $request->input('phone', '');
-        $sortBy     = $request->input('sort_by', 'id');
-        $sortOrder  = $request->input('sort_order', 'desc');
+        $user       = $data['user'];
+        $perPage    = $data['perPage'];
+        $name       = $data['name'];
+        $area_code  = $data['area_code'];
+        $status     = $data['status'];
+        $phone      = $data['phone'];
+        $sortBy     = $data['sortBy'];
+        $sortOrder  = $data['sortOrder'];
 
         $filter_phone = $area_code ?: '%';
         $filter_phone .= ($phone ?: '') . '%';
