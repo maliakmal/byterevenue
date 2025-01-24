@@ -17,6 +17,7 @@ use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\BlackListWordController;
 use App\Http\Controllers\Web\AreasController;
 use App\Http\Controllers\Web\UpdateSentMessagesController;
+use App\Http\Controllers\Web\AliasesController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
 
@@ -73,7 +74,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('reports/messages', [ReportController::class, 'messages'])->name('reports.messages');
         Route::get('reports/campaigns', [ReportController::class, 'campaigns'])->name('reports.campaigns');
         Route::get('user/campaigns', [CampaignController::class, 'getCampaignForUser']);
-        Route::get('update-sent-messages', [UpdateSentMessagesController::class, 'index']);
+
+        // additional info
+        Route::get('update-sent-messages', [UpdateSentMessagesController::class, 'index'])->name('update_sent_messages.index');
         Route::get('download_updates_file/{id}', [UpdateSentMessagesController::class, 'download'])->name('download_updates_file');
+        Route::get('aliases', [AliasesController::class, 'index'])->name('aliases.index');
+        Route::get('aliases/{id}/refresh', [AliasesController::class, 'refresh']);
     });
 });

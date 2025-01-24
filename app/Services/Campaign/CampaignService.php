@@ -238,8 +238,6 @@ class CampaignService
      */
     public function markAsProcessed(int $id)
     {
-        // create message logs against each contact and generate the message acordingly
-
         $campaign = Campaign::with(['user', 'message'])->withCount([
             'recipient_list as recipient_list_contacts_count' => function ($query) {
                 $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
