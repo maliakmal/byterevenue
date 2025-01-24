@@ -97,6 +97,14 @@
         .error((error) => {
             console.error('Error channel:', error);
         });
+
+    window.Echo.channel('admin-event-channel')
+        .listen('.admin.dashboard.event', (e) => {
+            console.log('Event catched:', e);
+        })
+        .error((error) => {
+            console.error('Error channel:', error);
+        });
 </script>
 
 </body>

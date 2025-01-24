@@ -9,3 +9,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('public-event-channel', function () {
     return true;
 });
+
+Broadcast::channel('admin-event-channel', function () {
+    return auth()->check() && auth()->user()->isAdmin();
+});
