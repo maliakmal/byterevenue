@@ -33,6 +33,10 @@ class CampaignApiController extends ApiController
      */
     public function markAsIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
+        $request->validate([
+            'campaign_id' => 'required|integer',
+        ]);
+
         if (!auth()->user()->hasRole('admin')) {
             return $this->responseError(message: 'You do not have permission to ignore campaigns.');
         }
@@ -54,6 +58,10 @@ class CampaignApiController extends ApiController
      */
     public function markAsNotIgnoreFromQueue(Request $request, GlobalCachingService $cachingService): JsonResponse
     {
+        $request->validate([
+            'campaign_id' => 'required|integer',
+        ]);
+
         if (!auth()->user()->hasRole('admin')) {
             return $this->responseError(message: 'You do not have permission to ignore campaigns.');
         }
@@ -75,6 +83,17 @@ class CampaignApiController extends ApiController
      */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'is_for_fifo' => 'sometimes|nullable|boolean',
+            'search'      => 'sometimes|nullable|string',
+            'status'      => 'sometimes|nullable|string',
+            'user_id'     => 'sometimes|nullable|integer',
+            'sort_by'     => 'sometimes|nullable|string',
+            'sort_order'  => 'sometimes|nullable|string',
+            'per_page'    => 'sometimes|nullable|integer',
+            'page'        => 'sometimes|nullable|integer',
+        ]);
+
         $filter = [
             'is_for_fifo'   => $request->get('is_for_fifo', null),
             'search'        => $request->get('search'),
@@ -98,7 +117,23 @@ class CampaignApiController extends ApiController
      */
     public function show(int $id, Request $request): JsonResponse
     {
-        // TODO:: VALIDATORS!
+        if (!auth()->user()->hasRole('admin')) {
+            $campaign = $this->campaignRepository->find($id);
+
+            if ($campaign->user_id !== auth()->id()) {
+                return $this->responseError(message: 'You do not have permission to view this campaign.');
+            }
+        }
+
+        $request->validate([
+            'is_blocked' => 'sometimes|nullable|boolean',
+            'is_clicked' => 'sometimes|nullable|boolean',
+            'per_page'   => 'sometimes|nullable|integer',
+            'page'       => 'sometimes|nullable|integer',
+            'search'     => 'sometimes|nullable|string',
+            'status'     => 'sometimes|nullable|integer',
+        ]);
+
         $filters = [
             'is_blocked' => $request->input('is_blocked'),
             'is_clicked' => $request->input('is_clicked'),
@@ -124,11 +159,14 @@ class CampaignApiController extends ApiController
      */
     public function store(CampaignStoreRequest $request): JsonResponse
     {
-        // TODO:: user can create campaign
         $recipientsList = RecipientsList::find(intval($request->recipients_list_id));
 
         if (!$recipientsList && !$request->is_template) {
             return $this->responseError(message: 'Recipient list not found.');
+        }
+
+        if (!auth()->user()->hasRole('admin') && $recipientsList->user_id !== auth()->id()) {
+            return $this->responseError(message: 'You do not have permission to create a campaign for this recipient list.');
         }
 
         [$campaign, $errors] = $this->campaignService->store($request->validated());

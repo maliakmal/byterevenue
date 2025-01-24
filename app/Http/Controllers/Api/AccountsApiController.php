@@ -26,6 +26,14 @@ class AccountsApiController extends ApiController
      */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'account'    => 'sometimes|nullable|string',
+            'sort_by'    => 'sometimes|nullable|string',
+            'sort_order' => 'sometimes|nullable|in:asc,desc',
+            'per_page'   => 'sometimes|nullable|integer',
+            'status'     => 'sometimes|nullable|integer',
+        ]);
+
         $response = $this->accountsService->getAccounts($request);
 
         return $this->responseSuccess($response);
@@ -43,11 +51,16 @@ class AccountsApiController extends ApiController
     }
 
     /**
+     * Customer method
      * @param int $id
      * @return JsonResponse
      */
     public function showTokens(int $id): JsonResponse
     {
+        if (!auth()->user()->isAdmin() && auth()->id() !== $id) {
+            return $this->responseError(message: 'You do not have permission to view this account');
+        }
+
         $response = $this->accountsService->getAccountTransactions($id);
 
         return $this->responseSuccess($response);
@@ -59,6 +72,11 @@ class AccountsApiController extends ApiController
      */
     public function storeTokens(Request $request): JsonResponse
     {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'amount'  => 'required|integer',
+        ]);
+
         $account = User::find(intval($request->user_id));
 
         if (!$account) {

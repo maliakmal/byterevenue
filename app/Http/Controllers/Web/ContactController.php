@@ -24,7 +24,27 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        $contacts = $this->contactService->getContacts($request);
+        $request->validate([
+            'per_page'   => 'sometimes|nullable|integer|min:1|max:100',
+            'name'       => 'sometimes|nullable|string',
+            'area_code'  => 'sometimes|nullable|string',
+            'status'     => 'sometimes|nullable|integer',
+            'phone'      => 'sometimes|nullable|string',
+            'sort_by'    => 'sometimes|nullable|string|in:id,name,email,phone',
+            'sort_order' => 'sometimes|nullable|string|in:asc,desc',
+        ]);
+
+        $data = [];
+        $data['user']       = auth()->user();
+        $data['perPage']    = $request->input('per_page', 15);
+        $data['name']       = $request->input('name');
+        $data['area_code']  = $request->input('area_code', '');
+        $data['status']     = intval($request->input('status',-1));
+        $data['phone']      = $request->input('phone', '');
+        $data['sortBy']     = $request->input('sort_by', 'id');
+        $data['sortOrder']  = $request->input('sort_order', 'desc');
+
+        $contacts = $this->contactService->getContacts($data);
 
         if ('json' === $request->input('output')) {
             return response()->success(null, $contacts);

@@ -26,7 +26,12 @@ class IndicatorsApiController extends ApiController
      */
     public function totalQueue(Request $request): JsonResponse
     {
-        $result = $this->indicatorsService->getTotalQueueCount($request->get('user_ids', []), $request->get('campaign_ids', []));
+        $validated = $request->validate([
+            'user_ids' => ['sometimes', 'nullable', 'array'],
+            'campaign_ids' => ['sometimes', 'nullable', 'array'],
+        ]);
+
+        $result = $this->indicatorsService->getTotalQueueCount($validated['user_ids'] ?? [], $validated['campaign_ids'] ?? []);
 
         return $this->responseSuccess(data: $result);
     }
@@ -153,6 +158,10 @@ class IndicatorsApiController extends ApiController
      */
     public function topFiveAccountsBudget(): JsonResponse
     {
+        if (!auth()->user()->hasRole('admin')) {
+            return $this->responseSuccess(data: []);
+        }
+
         $result = $this->indicatorsService->getTopFiveAccountsBudgetIndicator();
 
         return $this->responseSuccess(data: $result);

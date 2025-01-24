@@ -15,7 +15,9 @@ class ShortDomainsApiController extends ApiController
      */
     public function __construct(
         private UrlShortenerService $urlShortenerService,
-    ) {}
+    ) {
+        $this->middleware(['auth:sanctum', 'role:admin']);
+    }
 
     /**
      * @param Request $request

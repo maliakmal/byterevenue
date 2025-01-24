@@ -21,6 +21,16 @@ class Campaign extends Model
     const STATUS_EXPIRED = 9; // expired
     const STATUS_ARCHIVED = 10; // all messages moved to archive
 
+    const STATUSES = [
+        self::STATUS_TEMPLATE,
+        self::STATUS_DRAFT,
+        self::STATUS_PROCESSING,
+        self::STATUS_DONE,
+        self::STATUS_COMPLETED,
+        self::STATUS_EXPIRED,
+        self::STATUS_ARCHIVED
+    ];
+
     public function user(){
         return $this->belongsTo(User::class);
     }
