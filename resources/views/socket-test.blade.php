@@ -78,7 +78,7 @@
         cluster: '',
         forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
         disableStats: false,
-        enabledTransports: ['ws', 'wss'],
+        enabledTransports: ['ws'],
     });
 
     console.log('Start Echo...');
