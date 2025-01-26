@@ -74,12 +74,11 @@
         key: '{{ config('vite.key') }}',
         wsHost: '{{ config('vite.wsHost') }}',
         wsPort: '{{ config('vite.wsPort') }}',
-        {{--wssPort: '{{ config('vite.wssPort') }}',--}}
+        wssPort: '{{ config('vite.wssPort') }}',
         cluster: '',
-        {{--forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},--}}
-        forceTLS: false,
+        forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
         disableStats: false,
-        enabledTransports: ['ws'],
+        enabledTransports: ['wss'],
     });
 
     console.log('Start Echo...');
