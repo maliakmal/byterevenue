@@ -74,7 +74,7 @@
         key: '{{ config('vite.key') }}',
         wsHost: '{{ config('vite.wsHost') }}',
         wsPort: '{{ config('vite.wsPort') }}',
-        wssPort: '{{ config('vite.wssPort') }}',
+        {{--wssPort: '{{ config('vite.wssPort') }}',--}}
         cluster: '',
         {{--forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},--}}
         forceTLS: false,
