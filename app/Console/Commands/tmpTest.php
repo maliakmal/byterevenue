@@ -40,6 +40,5 @@ class tmpTest extends Command
         Artisan::call('optimize:clear');
         broadcast(new \App\Events\PublicEvent('test_message'));
         broadcast(new \App\Events\PrivateEvent('private_test_message', User::find(2)));
-        // for testing
     }
 }
