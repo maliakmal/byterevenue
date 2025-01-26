@@ -76,7 +76,8 @@
         wsPort: '{{ config('vite.wsPort') }}',
         wssPort: '{{ config('vite.wssPort') }}',
         cluster: '',
-        forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
+        {{--forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},--}}
+        forceTLS: false,
         disableStats: false,
         enabledTransports: ['ws'],
     });
