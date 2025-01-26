@@ -13,6 +13,7 @@ use App\Services\Clicks\ClickService;
 use App\Services\Indicators\QueueIndicatorsService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 class tmpTest extends Command
@@ -36,6 +37,8 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        //
+        Artisan::call('optimize:clear');
+        broadcast(new \App\Events\PublicEvent('test_message'));
+        broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
     }
 }
