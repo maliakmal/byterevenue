@@ -72,13 +72,13 @@
     window.Echo = new Echo({
         broadcaster: 'pusher',
         key: '{{ config('vite.key') }}',
-        wsHost: '{{ config('vite.wsHost') }}',
+        wsHost: window.location.hostname,
         wsPort: '{{ config('vite.wsPort') }}',
         wssPort: '{{ config('vite.wssPort') }}',
         cluster: '',
         forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
         disableStats: false,
-        enabledTransports: ['wss'],
+        enabledTransports: ['ws', 'wss'],
     });
 
     console.log('Start Echo...');
