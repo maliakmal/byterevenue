@@ -72,11 +72,11 @@
     window.Echo = new Echo({
         broadcaster: 'pusher',
         key: '{{ config('vite.key') }}',
-        wsHost: window.location.hostname,
-        wsPort: '{{ config('vite.wsPort') }}',
-        wssPort: '{{ config('vite.wssPort') }}',
-        cluster: '',
-        forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
+        wsHost: '{{ config('vite.wsHost') }}',
+        wsPort: 6001,
+        wssPort: 443,
+        cluster: 'eu',
+        {{--forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},--}}
         disableStats: false,
         enabledTransports: ['ws', 'wss'],
     });
