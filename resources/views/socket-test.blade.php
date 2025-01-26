@@ -73,10 +73,10 @@
         broadcaster: 'pusher',
         key: '{{ config('vite.key') }}',
         wsHost: '{{ config('vite.wsHost') }}',
-        wsPort: 6001,
-        wssPort: 443,
+        wsPort: '{{ config('vite.wsPort') }}',
+        wssPort: '{{ config('vite.wssPort') }}',
         cluster: 'eu',
-        {{--forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},--}}
+        forceTLS: {{ (config('vite.forceTLS') ?? 'https') === 'https' ? 'true' : 'false' }},
         disableStats: false,
         enabledTransports: ['ws', 'wss'],
     });
