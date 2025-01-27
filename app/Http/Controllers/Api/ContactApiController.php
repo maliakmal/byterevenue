@@ -31,7 +31,7 @@ class ContactApiController extends ApiController
             'area_code'  => 'sometimes|nullable|string',
             'status'     => 'sometimes|nullable|integer',
             'phone'      => 'sometimes|nullable|string',
-            'sort_by'    => 'sometimes|nullable|string|in:id,name,email,phone',
+            'sort_by'    => 'sometimes|nullable|string|in:id,name,email,phone,created_at',
             'sort_order' => 'sometimes|nullable|string|in:asc,desc',
         ]);
 

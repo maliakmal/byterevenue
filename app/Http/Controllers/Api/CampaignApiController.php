@@ -84,7 +84,7 @@ class CampaignApiController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'is_for_fifo' => 'sometimes|nullable|boolean',
+            'is_for_fifo' => 'sometimes|nullable|string|in:true,false',
             'search'      => 'sometimes|nullable|string',
             'status'      => 'sometimes|nullable|string',
             'user_id'     => 'sometimes|nullable|integer',
@@ -95,7 +95,7 @@ class CampaignApiController extends ApiController
         ]);
 
         $filter = [
-            'is_for_fifo'   => $request->get('is_for_fifo', null),
+            'is_for_fifo'   => 'true' === $request->get('is_for_fifo', null),
             'search'        => $request->get('search'),
             'status'        => $request->get('status'),
             'user_id'       => $request->get('user_id'),

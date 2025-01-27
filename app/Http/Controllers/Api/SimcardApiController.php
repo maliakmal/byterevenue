@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Middleware\CheckAdminRole;
 use App\Http\Requests\SimcardStoreRequest;
 use App\Http\Requests\SimcardUpdateRequest;
 use App\Models\SimCard;
@@ -17,7 +18,7 @@ class SimcardApiController extends ApiController
     public function __construct(
         public SimcardService $simcardService
     ) {
-        $this->middleware(['auth:sanctum', 'role:admin']);
+        $this->middleware(['auth:sanctum', CheckAdminRole::class]);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Middleware\CheckAdminRole;
 use App\Http\Requests\JobRegenerateRequest;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
@@ -29,7 +30,7 @@ class JobsApiController extends ApiController
         protected JobService $jobService,
         protected BatchFileDownloadService $batchFileDownloadService,
     ) {
-        $this->middleware(['auth:sanctum', 'role:admin']);
+        $this->middleware(['auth:sanctum', CheckAdminRole::class]);
     }
 
     /**

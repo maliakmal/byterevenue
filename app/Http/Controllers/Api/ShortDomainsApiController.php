@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Middleware\CheckAdminRole;
 use App\Models\UrlShortener;
 use App\Services\UrlShortener\UrlShortenerService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ class ShortDomainsApiController extends ApiController
     public function __construct(
         private UrlShortenerService $urlShortenerService,
     ) {
-        $this->middleware(['auth:sanctum', 'role:admin']);
+        $this->middleware(['auth:sanctum', CheckAdminRole::class]);
     }
 
     /**
