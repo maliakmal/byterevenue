@@ -245,12 +245,8 @@ class CampaignService
             }
         ])->findOrFail($id);
 
-        $user   = $campaign->user;
-        $amount = $campaign->recipient_list_contacts_count;
-
-        if ($user->tokens < $amount) {
-            return [false, 'You do not have enough tokens to process this campaign.'];
-        }
+        $campaign->markAsProcessed();
+        $user = $campaign->user;
 
         try {
             $recipientList  = $campaign->recipient_list;
@@ -266,8 +262,6 @@ class CampaignService
             }
 
             dispatch(new FinishLoopContactGeneration($campaign));
-
-            $campaign->markAsProcessed(); // need add and set status in process (generated)
 
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
