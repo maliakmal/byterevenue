@@ -402,30 +402,6 @@ class JobService
             return ['error' => 'No campaigns ready for CSV generation.'];
         }
 
-        // check if campaign ids are already in the stack
-        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
-            ->whereIn('campaign_id', $campaign_ids)
-            ->pluck('campaign_id')
-            ->toArray();
-
-        if (count($existing_campaign_ids) > 0) {
-            return ['error' => 'Campaigns: ' .
-                implode(', ', $existing_campaign_ids) .
-                ' are already in the queue.'];
-        }
-
-        // create stack for processing campaign ids
-        $stack = [];
-        foreach ($campaign_ids as $cmp_id) {
-            $stack[] = [
-                'campaign_id' => $cmp_id,
-                'created_at' => now()->toDateTimeString(),
-            ];
-        }
-
-        \DB::table('export_campaigns_stacks')->insert($stack);
-        // ###
-
         $totalRecords = 0;
         $campaigns_array = [];
         $campaigns_models = [];
@@ -474,6 +450,30 @@ class JobService
             'campaign_ids' => $campaign_ids,
             'type' => 'campaign',
         ]);
+
+        // check if campaign ids are already in the stack
+        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($existing_campaign_ids) > 0) {
+            return ['error' => 'Campaigns: ' .
+                implode(', ', $existing_campaign_ids) .
+                ' are already in the queue.'];
+        }
+
+        // create stack for processing campaign ids
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         arsort($campaigns_data);
         $part = ceil($availableCount / count($campaign_ids));
