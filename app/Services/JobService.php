@@ -443,14 +443,14 @@ class JobService
         }
 
         // check if campaign ids are already in the stack
-        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
+        $busy_campaign_ids = \DB::table('export_campaigns_stacks')
             ->whereIn('campaign_id', $campaign_ids)
             ->pluck('campaign_id')
             ->toArray();
 
-        if (count($existing_campaign_ids) > 0) {
+        if (count($busy_campaign_ids) > 0) {
             return ['error' => 'Campaigns: ' .
-                implode(', ', $existing_campaign_ids) .
+                implode(', ', $busy_campaign_ids) .
                 ' are already in the queue.'];
         }
 
@@ -472,7 +472,7 @@ class JobService
             'type' => 'campaign',
         ]);
 
-        // create stack for processing campaign ids
+        // create stack for processing campaign ids (observer?)
         $stack = [];
         foreach ($campaign_ids as $cmp_id) {
             $stack[] = [
@@ -544,18 +544,26 @@ class JobService
         $campaign_short_urls = [];
         $campaign_short_urls_new = [];
 
-        $campaign_ids = Campaign::whereIn('user_id', $account_ids)->pluck('id')->toArray();
-
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
-        // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
-
-        $allowedCompanyIds = array_values(array_diff($campaign_ids, $ignored_campaigns));
-        $campaign_ids = Campaign::whereIn('id', $allowedCompanyIds)->pluck('id')->toArray();
+        $campaign_ids = Campaign::whereIn('user_id', $account_ids)
+            ->where('is_ignored_on_queue', false)
+            ->pluck('id')
+            ->toArray();
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
         if (empty($campaign_ids))
             return ['error' => 'No campaigns ready for CSV generation.'];
+
+        // check if campaign ids are already in the stack
+        $busy_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($busy_campaign_ids) > 0) {
+            return ['error' => 'Some campaigns of this user are already in the queue.'];
+        }
+        // ###
 
         $totalRecords = 0;
         $campaigns_array = [];
@@ -605,6 +613,18 @@ class JobService
             'campaign_ids' => $campaign_ids,
             'type' => 'account',
         ]);
+
+        // create stack for processing campaign ids (observer?)
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         arsort($campaigns_data);
         $part = ceil($availableCount / count($campaign_ids));

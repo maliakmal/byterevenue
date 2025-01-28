@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\GlobalQueueWarmCacheJob;
 use App\Jobs\UniqueCampaignsIdsWarmCacheJob;
+use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 
 class GlobalCachingService
 {
@@ -31,9 +32,13 @@ class GlobalCachingService
         return $value ?: 0;
     }
 
-    public function getUniqueCampaignsIds(): array
+    public function getUniqueCampaignsIds($cacheable = true): array
     {
-        $value = cache()->get(self::CACHE_PREFIX . 'unique_campaigns_ids');
+        if ($cacheable) {
+            $value = cache()->get(self::CACHE_PREFIX . 'unique_campaigns_ids');
+        } else {
+            $value = app(BroadcastLogRepository::class)->getUniqueCampaignsIds();
+        }
 
         return $value ?: [];
     }
