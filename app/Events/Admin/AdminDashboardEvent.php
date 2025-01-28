@@ -33,9 +33,11 @@ class AdminDashboardEvent implements ShouldBroadcast
         ];
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
-        return $this->data;
+        return array(
+            'is_cache_updated' => $this->data,
+        );
     }
 
     public function broadcastAs(): string
