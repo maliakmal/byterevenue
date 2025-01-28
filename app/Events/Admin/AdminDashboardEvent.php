@@ -33,11 +33,9 @@ class AdminDashboardEvent implements ShouldBroadcast
         ];
     }
 
-    public function broadcastWith(): array
+    public function broadcastWith()
     {
-        return array(
-            'data' => $this->data,
-        );
+        return $this->data;
     }
 
     public function broadcastAs(): string
