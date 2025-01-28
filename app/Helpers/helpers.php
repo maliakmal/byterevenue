@@ -18,3 +18,15 @@ if (! function_exists('extendedNanoId')) {
         return $client->formattedId($alphabet, $length);
     }
 }
+
+/**
+ * custom dump and die in json format
+ *
+ * @param mixed $data
+ */
+if (! function_exists('_dd')) {
+    function _dd($data)
+    {
+        throw new \Exception(json_encode($data, JSON_PRETTY_PRINT));
+    }
+}
