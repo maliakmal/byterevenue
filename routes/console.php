@@ -27,3 +27,5 @@ Schedule::command('app:warm-cache')->everyMinute()->withoutOverlapping();
 Schedule::command('app:update-campaigns-clicks-and-stats')->everyFiveMinutes()->withoutOverlapping();
 
 Schedule::command('sync:recipients-lists')->everyTwoMinutes()->withoutOverlapping();
+
+Schedule::command('app:processing-planned-campaigns-command')->everyMinute()->withoutOverlapping();

@@ -29,7 +29,7 @@ class AdminDashboardEvent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel("public-event-channel"),
+            new Channel("admin-event-channel"),
         ];
     }
 

@@ -272,10 +272,22 @@ class JobService
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
 
-        $totalRecords = BroadcastLog::query()
+        $stackedCampaigns = \DB::table('export_campaigns_stacks')->pluck('campaign_id')->toArray();
+
+        $countInStack = count($stackedCampaigns);
+
+        $totalRecords = \DB::table('broadcast_logs')
             ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereNotIn('campaign_id', $stackedCampaigns)
             ->whereNull('batch')
             ->count();
+
+        if ($totalRecords < $requestCount && $countInStack > 0) {
+            \Log::info('Returned not yet ready full scope of records with stacks count: ' . $countInStack, [
+                'stackedCampaigns' => $stackedCampaigns
+            ]);
+            return ['error' => 'Some campaigns are already is busy, please try again later.'];
+        }
 
         if (0 == $totalRecords) {
             \Log::info('GenerateService -> No messages ready for CSV generation. Exiting...');
@@ -284,6 +296,8 @@ class JobService
 
         // $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
         $campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
+
+        $campaign_ids = array_diff($campaign_ids, $stackedCampaigns);
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
@@ -384,8 +398,33 @@ class JobService
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
-        if (empty($campaign_ids))
+        if (empty($campaign_ids)) {
             return ['error' => 'No campaigns ready for CSV generation.'];
+        }
+
+        // check if campaign ids are already in the stack
+        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($existing_campaign_ids) > 0) {
+            return ['error' => 'Campaigns: ' .
+                implode(', ', $existing_campaign_ids) .
+                ' are already in the queue.'];
+        }
+
+        // create stack for processing campaign ids
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         $totalRecords = 0;
         $campaigns_array = [];

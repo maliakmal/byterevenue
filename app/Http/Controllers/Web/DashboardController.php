@@ -28,7 +28,9 @@ class DashboardController extends Controller
 
         if (request()->raw) dd($dashboardData);
 
-        if ($dashboardData['totalClicksCount'] > 0 && $dashboardData['totalSendCount'] > 0) {
+        if ($dashboardData['totalClicksCount'] > $dashboardData['totalSendCount']) {
+            $ctr = 0.00;
+        } elseif ($dashboardData['totalClicksCount'] > 0 && $dashboardData['totalSendCount'] > 0) {
             $ctr = $dashboardData['totalClicksCount'] / $dashboardData['totalSendCount'] * 100;
         } else {
             $ctr = 0;

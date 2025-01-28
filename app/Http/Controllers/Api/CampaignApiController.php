@@ -11,6 +11,7 @@ use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\Campaign\CampaignRepositoryInterface;
 use App\Services\Campaign\CampaignService;
 use App\Services\GlobalCachingService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -175,6 +176,16 @@ class CampaignApiController extends ApiController
             return $this->responseError(message: 'Failed to create campaign.');
         }
 
+        if ($request->planned_at && $campaign->status === Campaign::STATUS_DRAFT) {
+            try {
+                $plannedDate = Carbon::parse($request->planned_at);
+            } catch (\Exception $e) {
+                return $this->responseError(message: 'Invalid date format.');
+            }
+
+            return $this->markAsPlanned($campaign->id, $plannedDate);
+        }
+
         return $this->responseSuccess(['campaign' => $campaign], 'Campaign created successfully.');
     }
 
@@ -208,7 +219,7 @@ class CampaignApiController extends ApiController
      */
     public function destroy(Campaign $campaign): JsonResponse
     {
-        if (!auth()->user()->hasRole('admin') && $campaign->user_id !== auth()->id()) {
+        if (!auth()->user()->isAdmin() && $campaign->user_id !== auth()->id()) {
             return $this->responseError(message: 'You do not have permission to update this campaign.');
         }
 
@@ -245,6 +256,34 @@ class CampaignApiController extends ApiController
 
         $count_of_contacts = intval($campaign->recipient_list?->recipientsGroup->count);
 
+        if (0 == $count_of_contacts) {
+            return $this->responseError(message: 'Recipient list is empty.');
+        }
+
+        $user = auth()->user();
+
+        if (!$user->hasEnoughTokens($count_of_contacts)) {
+            return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
+        }
+
+        $user->deductTokens($count_of_contacts);
+        $campaign->update([
+            'is_paid' => true,
+        ]);
+
+        [$result, $message] = $this->campaignService->markAsProcessed(intval($id));
+
+        if ($result) {
+            return $this->responseSuccess(message: $message);
+        }
+
+        return $this->responseError(message: $message);
+    }
+
+    public function markAsPlanned($campaign, Carbon $plannedDate)
+    {
+        $count_of_contacts = intval($campaign->recipient_list?->recipientsGroup->count);
+
         if ($count_of_contacts == 0) {
             return $this->responseError(message: 'Recipient list is empty.');
         }
@@ -257,12 +296,12 @@ class CampaignApiController extends ApiController
 
         $user->deductTokens($count_of_contacts);
 
-        [$result, $message] = $this->campaignService->markAsProcessed(intval($id));
+        $campaign->update([
+            'status' => Campaign::STATUS_PLANNED,
+            'planned_at' => $plannedDate->toDateTimeString(),
+            'is_paid' => true,
+        ]);
 
-        if ($result) {
-            return $this->responseSuccess(message: $message);
-        }
-
-        return $this->responseError(message: $message);
+        return $this->responseSuccess(message: 'Campaign planned successfully.');
     }
 }
