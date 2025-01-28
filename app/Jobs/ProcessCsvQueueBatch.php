@@ -61,12 +61,11 @@ class ProcessCsvQueueBatch extends BaseJob implements ShouldQueue
     {
         $batch_no = $this->batch_no;
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->get()->pluck('id');
-        $stackedCampaigns = \DB::table('export_campaigns_stacks')->pluck('campaign_id')->toArray();
 
         $this->logs = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
-            ->whereNotIn('campaign_id', $stackedCampaigns)
+            ->whereIn('campaign_id', $this->campaign_ids)
             ->whereNull('batch')
             ->where('is_downloaded_as_csv', 0)
             ->limit($this->batchSize)

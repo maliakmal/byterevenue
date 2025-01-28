@@ -65,15 +65,12 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereIn('campaign_id', $this->campaign_ids)
             ->whereNull('batch')
             ->where('is_downloaded_as_csv', 0)
             ->limit($this->batchSize);
 
         \Log::debug('campaign_ids: ', $this->campaign_ids);
-
-//        if (!empty($this->campaign_ids)) {
-            $query->whereIn('campaign_id', $this->campaign_ids);
-//        }
 
         $this->logs = $query->get();
 

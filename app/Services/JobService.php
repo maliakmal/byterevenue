@@ -343,8 +343,17 @@ class JobService
             'type' => 'fifo',
         ]);
 
-        // original foreign link to campaigns (remove after change to campaign_ids method for all)
-        // $batch_file->campaigns()->attach($campaign_ids);
+        // create stack for processing campaign ids
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         // start generating sequence of jobs
         for ($batch = 0; $batch < $numBatches; $batch++) {
@@ -433,6 +442,18 @@ class JobService
             dispatch(new CreateCampaignsOnKeitaro($newCampaignsData));
         }
 
+        // check if campaign ids are already in the stack
+        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($existing_campaign_ids) > 0) {
+            return ['error' => 'Campaigns: ' .
+                implode(', ', $existing_campaign_ids) .
+                ' are already in the queue.'];
+        }
+
         // total count of available records
         $availableCount = $totalRecords > $requestCount ? $requestCount : $totalRecords;
         $batch_no = str_replace('.', '', microtime(true));
@@ -450,18 +471,6 @@ class JobService
             'campaign_ids' => $campaign_ids,
             'type' => 'campaign',
         ]);
-
-        // check if campaign ids are already in the stack
-        $existing_campaign_ids = \DB::table('export_campaigns_stacks')
-            ->whereIn('campaign_id', $campaign_ids)
-            ->pluck('campaign_id')
-            ->toArray();
-
-        if (count($existing_campaign_ids) > 0) {
-            return ['error' => 'Campaigns: ' .
-                implode(', ', $existing_campaign_ids) .
-                ' are already in the queue.'];
-        }
 
         // create stack for processing campaign ids
         $stack = [];
