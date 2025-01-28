@@ -18,7 +18,7 @@ class AdminDashboardEvent implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public array $data
+        public bool $data = false
     ) {}
 
     /**
