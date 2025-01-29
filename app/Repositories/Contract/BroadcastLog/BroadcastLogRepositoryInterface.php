@@ -28,7 +28,7 @@ interface BroadcastLogRepositoryInterface extends BaseRepositoryInterface
 
     public function getUngenCountByCampaignIds(array $campaignIds);
 
-    public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null);
+    public function getUniqueCampaignsIDs();
 
     public function getUniqueCampaignsIDsFromExistingBatch($batch);
 

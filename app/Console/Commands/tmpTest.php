@@ -40,6 +40,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        UpdateSentMessagesJob::dispatch(4);
+        //
     }
 }

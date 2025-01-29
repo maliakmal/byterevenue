@@ -158,24 +158,11 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $query->pluck('campaign_id')->toArray();
     }
 
-    public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null): array
+    public function getUniqueCampaignsIDs(): array
     {
-        $subquery = \DB::table('broadcast_logs')
-            ->select('campaign_id')
-            ->whereNull('batch')
-            ->when(!!$limit, function ($query) use ($limit) {
-                return $query->take($limit);
-            })
-            ->when(!!$ignored_campaigns, function ($query) use ($ignored_campaigns) {
-                return $query->whereNotIn('campaign_id', $ignored_campaigns);
-            });
-
-        $ids = \DB::table(\DB::raw("({$subquery->toSql()}) as limited"))
-            ->select('campaign_id')
-            ->distinct()
-            ->pluck('campaign_id');
-
-        return $ids->toArray();
+        return \DB::table('unique_campaigns_stacks')
+            ->pluck('campaign_id')
+            ->toArray();
     }
 
     public function getTotalSentAndClicksByCampaign($campaign_id)
