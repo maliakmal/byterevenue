@@ -54,7 +54,7 @@ class UpdateSentMessagesJob extends BaseJob implements ShouldQueue
         $content = Storage::disk('local')->get('update_sent_messages/' . $file->file_name);
         $csv = $this->csvToCollection($content);
         $message_slugs = $csv->pluck('UID')->toArray();
-
+\Log::debug('$message_slugs: ', ['val' => $message_slugs]);
         $file->update(['total_rows' => count($message_slugs)]);
 
         $number_of_updated_rows = BroadcastLog::query()

@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Http\Controllers\Api\IndicatorsApiController;
+use App\Jobs\UpdateSentMessagesJob;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
 use App\Models\Transaction;
+use App\Models\UpdateSentMessage;
 use App\Models\User;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
@@ -38,6 +40,6 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        broadcast(new \App\Events\Admin\AdminDashboardEvent(true));
+        UpdateSentMessagesJob::dispatch(4);
     }
 }
