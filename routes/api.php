@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
 use App\Http\Controllers\Api\IndicatorsApiController;
+use App\Http\Controllers\Api\UserApiController;
 use App\Http\Middleware\CheckAdminRole;
 use App\Http\Middleware\CheckExternalApiToken;
 
@@ -73,6 +74,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Route::post('blacklist-numbers/upload', [BlackListNumberApiController::class, 'updateBlackListNumber']);
 
     Route::get('tokens/{id}', [AccountsApiController::class, 'showTokens']);
+
+    Route::put('user/edit', [UserApiController::class, 'update']);
+    Route::post('user/password', [UserApiController::class, 'password']);
 });
 
 /// GROUP ROUTES FOR EXTERNAL API (WEBHOOKS)
