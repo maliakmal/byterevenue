@@ -12,6 +12,14 @@ abstract class BaseJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    const QUEUE_KEYS = [
+        'default',
+        'CSV_generate_processing',
+        'campaign_contact_processing',
+        'import_recipient_list_processing',
+        'update_sent_messages_processing',
+    ];
+
     public function tags()
     {
         if (property_exists($this, 'telemetry')) {

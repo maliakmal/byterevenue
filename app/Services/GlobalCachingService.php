@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Jobs\GlobalQueueWarmCacheJob;
-use App\Jobs\UniqueCampaignsIdsWarmCacheJob;
-use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
 
 class GlobalCachingService
 {
@@ -14,7 +12,6 @@ class GlobalCachingService
     const DEFAULT_CACHE_TTL = 60 * 60; // 1 hours
     const GLOBAL_CACHE_KEYS = [
         'global_queue',
-        'unique_campaigns_ids',
     ];
 
     // GETTERS
@@ -30,17 +27,6 @@ class GlobalCachingService
         $value = cache()->get(self::CACHE_PREFIX . 'total_not_downloaded_in_queue');
 
         return $value ?: 0;
-    }
-
-    public function getUniqueCampaignsIds($cacheable = true): array
-    {
-        if ($cacheable) {
-            $value = cache()->get(self::CACHE_PREFIX . 'unique_campaigns_ids');
-        } else {
-            $value = app(BroadcastLogRepository::class)->getUniqueCampaignsIds();
-        }
-
-        return $value ?: [];
     }
 
     // PROCESSING
@@ -68,9 +54,7 @@ class GlobalCachingService
             GlobalQueueWarmCacheJob::dispatch();
         });
 
-        $this->runCurrentProcessing('unique_campaigns_ids', function () {
-            UniqueCampaignsIdsWarmCacheJob::dispatch();
-        });
+        //
     }
 
     private function runCurrentProcessing(string $key, callable $callback): void

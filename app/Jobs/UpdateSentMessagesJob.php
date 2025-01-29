@@ -10,6 +10,12 @@ use App\Trait\CSVReader;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Update sent messages status in db from CSV file receiving in messages/update-by-file/sent point
+ *
+ * Class UpdateSentMessagesJob
+ * @package App\Jobs
+ */
 class UpdateSentMessagesJob extends BaseJob implements ShouldQueue
 {
     public $timeout = 600; // 10 minutes
@@ -73,5 +79,7 @@ class UpdateSentMessagesJob extends BaseJob implements ShouldQueue
             'status' => UpdateSentMessage::STATUS_COMPLETED,
             'processed_rows' => $number_of_updated_rows,
         ]);
+
+        UpdateCampaignsFromDbJob::dispatch();
     }
 }

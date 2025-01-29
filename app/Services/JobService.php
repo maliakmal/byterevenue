@@ -294,8 +294,7 @@ class JobService
             return ['error' => 'No messages ready for CSV generation.'];
         }
 
-        // $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
-        $campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
+        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
 
         $campaign_ids = array_diff($campaign_ids, $stackedCampaigns);
 
@@ -795,8 +794,8 @@ class JobService
     public function campaigns(array $data)
     {
         // get all campaigns which have messages ready to be sent
-        // $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
-        $uniq_campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
+        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+
         $user_id = $data['filter_client'] ?? null;
 
         $campaigns = isset($user_id)

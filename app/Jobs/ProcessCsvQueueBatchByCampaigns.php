@@ -162,10 +162,10 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update(['is_ready' => 1]);
-                $this->cache_service->setWarmingCacheRequest(['global_queue', 'unique_campaigns_ids']);
                 \DB::table('export_campaigns_stacks')
                     ->whereIn('campaign_id', $this->batch_file->campaign_ids)
                     ->delete();
+                UniqueCampaignsIdsUpdateJob::dispatch();
             }
         }
     }

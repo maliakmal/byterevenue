@@ -19,10 +19,14 @@ class CampaignObserver
      */
     public function updated(Campaign $campaign): void
     {
-        // then updated to processing status
-        if ($campaign->isDirty('status') && $campaign->status === Campaign::STATUS_PROCESSING) {
-            // set warming cache request
-            app()->make('App\Services\GlobalCachingService')->setWarmingCacheRequest('unique_campaigns_ids');
+        if ($campaign->isDirty('status')) {
+            if ($campaign->status === Campaign::STATUS_PROCESSING) {
+                \DB::table('unique_campaigns_stacks')->insertOrIgnore([
+                    'campaign_id' => $campaign->id
+                ]);
+            } elseif (in_array($campaign->status, [Campaign::STATUS_DONE, Campaign::STATUS_ERROR])) {
+                \DB::table('unique_campaigns_stacks')->where('campaign_id', $campaign->id)->delete();
+            }
         }
     }
 
