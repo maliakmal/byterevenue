@@ -19,7 +19,7 @@ class UserApiController extends ApiController
 
         $user->update($validated);
 
-        return $this->responseSuccess('User updated successfully', $user);
+        return $this->responseSuccess($user, 'User updated successfully');
     }
 
     public function password(Request $request)
@@ -39,6 +39,6 @@ class UserApiController extends ApiController
             'password' => Hash::make($validated['password']),
         ]);
 
-        return $this->responseSuccess('Password updated successfully');
+        return $this->responseSuccess(message: 'Password updated successfully');
     }
 }
