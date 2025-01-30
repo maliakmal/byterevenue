@@ -99,7 +99,29 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => abs($amount) * -1,
-            'type' => 'usage',
+            'type' => Transaction::TYPE_DEDUCTION,
+        ]);
+
+        return $this->decrement('tokens', $amount);
+    }
+
+    public function usageTokens($amount)
+    {
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount) * -1,
+            'type' => Transaction::TYPE_USAGE,
+        ]);
+
+        return $this->decrement('tokens', $amount);
+    }
+
+    public function hiddenDeductTokens($amount)
+    {
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount) * -1,
+            'type' => Transaction::TYPE_HIDDEN_DEDUCTION,
         ]);
 
         return $this->decrement('tokens', $amount);
@@ -109,7 +131,17 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => abs($amount),
-            'type' => 'purchase',
+            'type' => Transaction::TYPE_PURCHASE,
+        ]);
+
+        return $this->increment('tokens', $amount);
+    }
+
+    public function hiddenAddTokens($amount){
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount),
+            'type' => Transaction::TYPE_HIDDEN_PURCHASE,
         ]);
 
         return $this->increment('tokens', $amount);

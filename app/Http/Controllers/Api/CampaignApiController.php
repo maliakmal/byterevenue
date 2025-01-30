@@ -266,7 +266,7 @@ class CampaignApiController extends ApiController
             return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
         }
 
-        $user->deductTokens($count_of_contacts);
+        $user->usageTokens($count_of_contacts);
         $campaign->update([
             'is_paid' => true,
         ]);
@@ -294,7 +294,7 @@ class CampaignApiController extends ApiController
             return $this->responseError(message: 'You do not have enough tokens to send this campaign.');
         }
 
-        $user->deductTokens($count_of_contacts);
+        $user->usageTokens($count_of_contacts);
 
         $campaign->update([
             'status' => Campaign::STATUS_PLANNED,

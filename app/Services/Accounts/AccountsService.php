@@ -110,6 +110,22 @@ class AccountsService
     }
 
     /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function hiddenCahngeTokensInAccount(User $user, int $amount)
+    {
+        if ($amount < 0) {
+            $user->hiddenDeductTokens(abs($amount));
+        } elseif ($amount > 0) {
+            $user->hiddenAddTokens(abs($amount));
+        }
+
+        return ['message' => 'Tokens updated successfully.'];
+    }
+
+    /**
      * @param int|null $userId
      * @param array $filter
      *
