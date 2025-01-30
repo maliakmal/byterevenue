@@ -155,9 +155,9 @@ class JobsApiController extends ApiController
 
     public function downloadFile($id)
     {
-        $ownerFile = BatchFile::where('user_id', auth()->id())->where('id', intval($id))->first();
+        $ownerFile = BatchFile::find(intval($id));
 
-        if (!auth()->user()->isAdmin() && !$ownerFile) {
+        if (!auth()->user()->isAdmin()) {
             return $this->responseError(message: 'You do not have permission to access this resource', status: 403);
         }
 
@@ -176,9 +176,9 @@ class JobsApiController extends ApiController
 
     public function uploadFile($id)
     {
-        $ownerFile = BatchFile::where('user_id', auth()->id())->where('id', intval($id))->first();
+        $ownerFile = BatchFile::find(intval($id));
 
-        if (!auth()->user()->isAdmin() && !$ownerFile) {
+        if (!auth()->user()->isAdmin()) {
             return $this->responseError(message: 'You do not have permission to access this resource', status: 403);
         }
 

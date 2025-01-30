@@ -119,11 +119,11 @@ class JobsController extends Controller
      */
     public function downloadFile($id)
     {
-        if (auth()->user()->isAdmin()) {
-            $file = BatchFile::find($id);
-        } else {
-            $file = BatchFile::where('user_id', auth()->id())->where('id', intval($id))->first();
+        if (!auth()->user()->isAdmin()) {
+            return back()->with('error', 'You are not allowed to download files');
         }
+
+        $file = BatchFile::find($id);
 
         if (!$file) {
             return back()->with('error', 'File not found');
