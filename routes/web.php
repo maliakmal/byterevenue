@@ -57,7 +57,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::post('jobs/generateCsvByCampaigns', [JobsController::class, 'generateCsvByCampaigns'])->name('jobs.generateCsvByCampaigns');
         Route::post('jobs/regenerate', [JobsController::class, 'regenerateUnsent'])->name('jobs.regenerate');
         Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
-        Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
+        Route::get('download/{id}', [JobsController::class, 'downloadFile'])->name('download.file');
 
         Route::post('accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
         Route::resource('url_shorteners', UrlShortenerController::class);
