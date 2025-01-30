@@ -96,6 +96,8 @@ class BatchFileDownloadService
             Http::acceptJson()
                 ->attach('campaign_file', $file, "{$batch->id}.csv")
                 ->post(self::UPLOAD_URL);
+
+            \Log::info('BatchFile #'. $batch->id .' successfully uploaded to outbound resource');
         } catch (\Exception $e) {
             \Log::error($e->getMessage());
             return [

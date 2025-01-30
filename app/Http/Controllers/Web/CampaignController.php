@@ -76,7 +76,7 @@ class CampaignController extends Controller
             return redirect()->route('campaigns.index')->withErrors(['error' => 'You do not have enough tokens to send this campaign.']);
         }
 
-        $user->deductTokens($count_of_contacts);
+        $user->usageTokens($count_of_contacts);
 
         [$campaign, $errors] = $this->campaignService->store($request->validated());
 

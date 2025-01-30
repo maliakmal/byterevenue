@@ -75,6 +75,7 @@ class AccountsApiController extends ApiController
         $request->validate([
             'user_id' => 'required|integer',
             'amount'  => 'required|integer',
+            'hidden'  => 'sometimes|nullable|boolean',
         ]);
 
         $account = User::find(intval($request->user_id));
@@ -83,7 +84,11 @@ class AccountsApiController extends ApiController
             return $this->responseError(message: 'Account not found');
         }
 
-        $response = $this->accountsService->cahngeTokensInAccount($account, intval($request->amount));
+        if ($request->hidden) {
+            $response = $this->accountsService->hiddenCahngeTokensInAccount($account, intval($request->amount));
+        } else {
+            $response = $this->accountsService->cahngeTokensInAccount($account, intval($request->amount));
+        }
 
         return $this->responseSuccess($response);
     }
