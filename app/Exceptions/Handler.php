@@ -15,7 +15,7 @@ class Handler
      */
     public function handle(Request $request, Throwable $exception)
     {
-        if (app()->hasDebugModeEnabled()) {
+        if (app()->hasDebugModeEnabled() && $request->wantsJson()) {
 
             switch ($exception) {
                 case $exception instanceof \Illuminate\Validation\ValidationException:
@@ -67,7 +67,5 @@ class Handler
                     ], 500);
             }
         }
-
-        throw $exception;
     }
 }
