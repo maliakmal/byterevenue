@@ -9,8 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class BatchFileDownloadService
 {
-    const UPLOAD_URL = 'http://172.16.1.109:8000/vm-api/send-campaign';
-//    const UPLOAD_URL = 'https://webhook.site/48e8d317-7560-407e-932c-4fc07d16e693';
+    private $uploadUrl;
+
+    public function __construct() {
+        //$testUrl = 'https://webhook.site/48e8d317-7560-407e-932c-4fc07d16e693';
+        $uploadUrl = config('app.upload_url');
+    }
 
     public function streamingNewBatchFile(BatchFile $batch)
     {
@@ -95,7 +99,7 @@ class BatchFileDownloadService
         try {
             Http::acceptJson()
                 ->attach('campaign_file', $file, "{$batch->id}.csv")
-                ->post(self::UPLOAD_URL);
+                ->post($this->uploadUrl);
 
             \Log::info('BatchFile #'. $batch->id .' successfully uploaded to outbound resource');
         } catch (\Exception $e) {
