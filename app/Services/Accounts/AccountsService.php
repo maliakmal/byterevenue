@@ -109,6 +109,13 @@ class AccountsService
         return ['message' => 'Tokens updated successfully.'];
     }
 
+    public function usageTokensFromAccount(User $user, int $amount)
+    {
+        $user->usageTokens(abs($amount));
+
+        return ['message' => 'Tokens updated successfully.'];
+    }
+
     /**
      * @param Request $request
      *

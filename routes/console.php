@@ -31,3 +31,5 @@ Schedule::job(new \App\Jobs\UniqueCampaignsIdsUpdateJob())->everyFiveMinutes()->
 Schedule::command('sync:recipients-lists')->everyTwoMinutes()->withoutOverlapping();
 
 Schedule::command('app:processing-planned-campaigns-command')->everyMinute()->withoutOverlapping();
+
+Schedule::command('sanctum:prune-expired --hours=24')->daily()->at('04:00');
