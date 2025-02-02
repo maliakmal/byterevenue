@@ -13,7 +13,7 @@ class BatchFileDownloadService
 
     public function __construct() {
         //$testUrl = 'https://webhook.site/48e8d317-7560-407e-932c-4fc07d16e693';
-        $uploadUrl = config('app.upload_url');
+        $this->uploadUrl = config('app.upload_url');
     }
 
     public function streamingNewBatchFile(BatchFile $batch)
