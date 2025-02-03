@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'ByteRevenue'),
 
     /*
     |--------------------------------------------------------------------------
@@ -143,4 +143,6 @@ return [
     ],
 
     'front_base_url' => env('FRONT_BASE_URL', 'http://localhost:8000'),
+
+    'upload_url' => env('UPLOAD_URL', 'http://localhost'),
 ];
