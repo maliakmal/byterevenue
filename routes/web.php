@@ -88,4 +88,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
         return view('socket-test');
     });
+
+    // clear cache
+    Route::get('clear-cache', function () {
+        \Artisan::call('optimize:clear');
+        return redirect()->back();
+    });
 });

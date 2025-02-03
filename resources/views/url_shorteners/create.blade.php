@@ -63,10 +63,10 @@
             @csrf
             <div class="mb-4 mt-4">
               <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
-              <input type="text" id="name" name="name" value="{{ old('name') }}" class="shadow appearance-none border rounded w-full p-4 text-2xl border-2 border-gray-300 rounded-lg text-gray-700 leading-tight focus:outline-none focus:shadow-outline"required>
+              <input type="text" id="name" name="endpoints[]" value="" class="shadow appearance-none border rounded w-full p-4 text-2xl border-2 border-gray-300 rounded-lg text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
             </div>
             <div class="mb-4 mt-4">
-              <input type="hidden" id="endpoint" name="endpoint" value="dummy" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"required>
+              <input type="hidden" id="endpoint" name="endpoint" value="dummy" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
             </div>
             <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-50">Create Short Domains</button>
           </form>

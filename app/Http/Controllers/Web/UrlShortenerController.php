@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckAdminRole;
 use App\Models\UrlShortener;
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
@@ -17,6 +18,7 @@ class UrlShortenerController extends Controller
      */
     public function __construct(UrlShortenerService $urlShortenerService)
     {
+        $this->middleware(['auth', CheckAdminRole::class]);
         $this->urlShortenerService = $urlShortenerService;
     }
 
@@ -62,38 +64,18 @@ class UrlShortenerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:url_shorteners,name',
-            'endpoint' => 'required|string|max:2048',
+            'endpoints' => 'required|array',
+            'endpoints.*' => 'required|string|max:180|unique:url_shorteners,name',
         ]);
 
-        $inputs = $request->all();
+        // create new short domain records
+        $response = $this->urlShortenerService->create($request->endpoints);
 
-        $request = new RegisterShortDomainRequest($inputs['name'],null, null, null,
-            null, true, true, true, false);
-
-        try {
-            $rawResponse = KeitaroCaller::call($request);
-
-            if ($rawResponse['error'] ?? null){
-                return redirect()->route('url_shorteners.index')->with('error', $rawResponse['error']);
-            }
-
-            $response = $rawResponse[0];
-            $inputs['is_registered'] = true;
-            $inputs['is_propagated'] = false;
-
-            $inputs['asset_id'] = $response['id'];
-            $inputs['response'] = json_encode($response);
-        } catch (RequestException $exception){
-            return redirect()->route('url_shorteners.index')->with('error', $exception->getMessage());
-        } catch (\Exception $exception){
-            report($exception);
-            return redirect()->route('url_shorteners.index')->with('error', 'Error Sync URL Shortener');
+        if (isset($response['error'])) {
+            return redirect()->route('url_shorteners.index')->with('success', $response['error']);
         }
 
-        UrlShortener::create($inputs);
-
-        return redirect()->route('url_shorteners.index')->with('success', 'URL Shortener created successfully.');
+        return redirect()->route('url_shorteners.index')->with('success', $response['message']);
     }
 
     public function edit(UrlShortener $urlShortener)

@@ -2,11 +2,14 @@
 
 namespace App\Services\UrlShortener;
 
+use App\Jobs\RegisterShortDomainJob;
+use App\Models\CampaignShortUrl;
 use App\Models\UrlShortener;
 use App\Services\Keitaro\KeitaroCaller;
 use App\Services\Keitaro\Requests\Domains\RegisterShortDomainRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UrlShortenerService
 {
@@ -29,69 +32,56 @@ class UrlShortenerService
         return $urlShorteners;
     }
 
-    public function create(Request $request)
+    public function create(array $domainUrls)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:url_shorteners,name',
-            'endpoint' => 'required|string|max:255',
-        ]);
+        foreach ($domainUrls as $endpoint) {
+            $data = [
+                'name' => $endpoint,
+                'endpoint' => 'dummy',
+                'is_registered' => false,
+                'is_propagated' => false,
+            ];
 
-        $data = $request->all();
-        $request = new RegisterShortDomainRequest(
-            name: $data['name'],
-            ssl_redirect: true,
-            is_ssl: true,
-            cloudflare_proxy: true,
-            allow_indexing: false
-        );
-
-        try {
-            $rawResponse = KeitaroCaller::call($request);
-
-            if (isset($rawResponse['error'])) {
-                return ['error' => $rawResponse['error']];
-            }
-
-            $response = $rawResponse[0];
-            $data['is_registered'] = true;
-            $data['is_propagated'] = false;
-
-            $data['asset_id'] = $response['id'];
-            $data['response'] = json_encode($response);
-        } catch (RequestException $exception) {
-            return ['error' => $exception->getMessage()];
-        } catch (\Exception $exception) {
-            report($exception);
-            return ['error' => 'Error Sync URL Shortener'];
+            UrlShortener::create($data);
         }
 
-        UrlShortener::create($data);
+        dispatch(new RegisterShortDomainJob());
 
-        return ['message' => 'URL Shortener created successfully.'];
+        return ['message' => 'URL Shortener put in queue for registration.'];
     }
 
     public function update($id, Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'endpoint' => ['required', 'string', 'max:2048'],
-        ]);
+        return ['error' => 'URL Shortener update is not allowed.'];
 
-        if ($validator->fails()) {
-            return ['errors' => $validator->errors()];
-        }
-
-        $data = $validator->validated();
-
-        UrlShortener::whereId($id)->update($data);
-
-        return ['message' => 'URL Shortener updated successfully.'];
+//        $validator = Validator::make($request->all(), [
+//            'name' => ['required', 'string', 'max:255'],
+//            'endpoint' => ['required', 'string', 'max:2048'],
+//        ]);
+//
+//        if ($validator->fails()) {
+//            return ['errors' => $validator->errors()];
+//        }
+//
+//        $data = $validator->validated();
+//
+//        UrlShortener::whereId($id)->update($data);
+//
+//        return ['message' => 'URL Shortener updated successfully.'];
     }
 
     public function delete($id)
     {
-        UrlShortener::whereId($id)->delete();
+        $biddingRecords = CampaignShortUrl::where('url_shortener_id', $id)->first();
 
-        return ['message' => 'URL Shortener deleted successfully.'];
+        if ($biddingRecords) {
+            return ['error' => 'URL Shortener cannot be deleted because it is being used in a campaign.'];
+        }
+
+        if (UrlShortener::destroy($id)) {
+            return ['message' => 'URL Shortener deleted successfully.'];
+        }
+
+        return ['error' => 'URL Shortener not found.'];
     }
 }

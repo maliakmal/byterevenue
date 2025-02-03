@@ -313,6 +313,7 @@ class QueueIndicatorsService
 
         $byWeekRaw = \DB::table('transactions')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as balance'))
+            ->whereNotIn('type', [Transaction::TYPE_HIDDEN_PURCHASE, Transaction::TYPE_HIDDEN_DEDUCTION])
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
             ->groupBy('date')
