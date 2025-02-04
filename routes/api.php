@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\BatchFileApiController;
 use App\Http\Controllers\Api\IndicatorsApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Api\NotifyApiController;
+use Illuminate\Broadcasting\BroadcastController;
 use App\Http\Middleware\CheckAdminRole;
 use App\Http\Middleware\CheckExternalApiToken;
 
@@ -35,6 +36,7 @@ Route::get('user', function (Request $request) {
 
 /// GROUP ROUTES FOR CUSTOMERS
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::any('broadcasting/auth', [BroadcastController::class, 'authenticate']);
 
     /// ### CUSTOMER INDICATORS BLOCK ###
     /// RECIPIENT LISTS INDICATORS
