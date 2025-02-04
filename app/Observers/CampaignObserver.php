@@ -27,6 +27,15 @@ class CampaignObserver
             } elseif (in_array($campaign->status, [Campaign::STATUS_DONE, Campaign::STATUS_ERROR])) {
                 \DB::table('unique_campaigns_stacks')->where('campaign_id', $campaign->id)->delete();
             }
+
+            $status = Campaign::nameByValue($campaign->status);
+
+            notification(
+                $campaign->user,
+                "Campaign #$campaign->id status has been updated to $status",
+                ['campaign_id' => $campaign->id, 'status' => $campaign->status],
+                true,
+            );
         }
     }
 

@@ -20,7 +20,8 @@ class PrivateEvent implements ShouldBroadcast
      */
     public function __construct(
         public string $message,
-        public User $user
+        public User $user,
+        public array $data = [],
     ) {}
 
     /**
@@ -39,7 +40,8 @@ class PrivateEvent implements ShouldBroadcast
     {
         return array(
             'message' => $this->message,
-            'user' => $this->user->email,
+            'user' => $this->user->id,
+            'data' => $this->data,
         );
     }
 

@@ -30,3 +30,21 @@ if (! function_exists('_dd')) {
         throw new \Exception(json_encode($data, JSON_PRETTY_PRINT));
     }
 }
+
+if (! function_exists('notification')) {
+    function notification(\App\Models\User $user, string $message = '', array $data = [], bool $bcc = false)
+    {
+        broadcast(new \App\Events\PrivateEvent(
+            $message,
+            $user,
+            $data,
+        ));
+
+//        if ($bcc) {
+//            broadcast(new \App\Events\Admin\AdminDashboardEvent(true));
+//            Notify::createWithAdmin($user, $message, $data);
+//        } else {
+//            Notify::create($user, $message, $data);
+//        }
+    }
+}

@@ -13,29 +13,50 @@ class Campaign extends Model
 
     protected $guarded = [];
 
-    const STATUS_TEMPLATE = -1; // tmp status for save
-    const STATUS_DRAFT = 0; // created but not run process
-    const STATUS_PROCESSING = 1; // in process (generating logs)
-    const STATUS_DONE = 2; // completed generated (via csv)
-    const STATUS_COMPLETED = 5; // completed (getting all reports for messages)
-    const STATUS_PLANNED = 6; // !between 0 and 1 statuses! - paid and pending (waiting for schedule time of start)
-    const STATUS_ERROR = 7; // has error in delay processing
-    const STATUS_EXPIRED = 9; // expired
-    const STATUS_ARCHIVED = 10; // all messages moved to archive
+    const STATUS_TEMPLATE   = -1; // tmp status for save
+    const STATUS_DRAFT      = 0;  // created but not run process
+    const STATUS_PROCESSING = 1;  // in process (generating logs)
+    const STATUS_DONE       = 2;  // completed generated (via csv)
+    const STATUS_COMPLETED  = 5;  // completed (getting all reports for messages)
+    const STATUS_PLANNED    = 6;  // !between 0 and 1 statuses! - paid and pending (waiting for schedule time of start)
+    const STATUS_ERROR      = 7;  // has error in delay processing
+    const STATUS_EXPIRED    = 9;  // expired
+    const STATUS_ARCHIVED   = 10; // all messages moved to archive
 
-    const STATUSES = [
-        self::STATUS_TEMPLATE,
-        self::STATUS_DRAFT,
-        self::STATUS_PROCESSING,
-        self::STATUS_DONE,
-        self::STATUS_COMPLETED,
-        self::STATUS_PLANNED,
-        self::STATUS_ERROR,
-        self::STATUS_EXPIRED,
-        self::STATUS_ARCHIVED
-    ];
+    public static function statuses(): array
+    {
+        return [
+            (string)self::STATUS_TEMPLATE   => 'Template',
+            (string)self::STATUS_DRAFT      => 'Draft',
+            (string)self::STATUS_PROCESSING => 'Processing',
+            (string)self::STATUS_DONE       => 'Done',
+            (string)self::STATUS_COMPLETED  => 'Completed',
+            (string)self::STATUS_PLANNED    => 'Planned',
+            (string)self::STATUS_ERROR      => 'Error',
+            (string)self::STATUS_EXPIRED    => 'Expired',
+            (string)self::STATUS_ARCHIVED   => 'Archived',
+        ];
+    }
 
-    public function user(){
+    public static function nameByValue(int $value): ?string
+    {
+        return self::statuses()[(string)$value] ?? null;
+    }
+
+    public static function valueByName(string $name): ?int
+    {
+        $statuses = array_flip(self::statuses());
+
+        return $statuses[$name] ?? null;
+    }
+
+    public static function isValidStatus(int $value): bool
+    {
+        return isset(self::statuses()[$value]);
+    }
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
@@ -58,8 +79,7 @@ class Campaign extends Model
 
     public function getUniqueFolder()
     {
-
-        if($this->code == ''){
+        if ($this->code == ''){
             $this->generateUniqueFolder();
             $this->save();
         }

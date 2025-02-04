@@ -44,12 +44,9 @@ class tmpTest extends Command
      */
     public function handle()
     {
-        $service = app(BatchFileDownloadService::class);
-
-        $batch = BatchFile::find(47);
-
-        $result = $service->uploadFileToResource($batch);
-
-        dd($result);
+        $campaign = Campaign::find(1);
+        User::find(2)->deductTokens(9);
+        $campaign->update(['status' => 2 === $campaign->status ? 3 : 2]);
+        dd('ok');
     }
 }
