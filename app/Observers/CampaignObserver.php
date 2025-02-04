@@ -33,8 +33,11 @@ class CampaignObserver
             notification(
                 $campaign->user,
                 "Campaign #$campaign->id status has been updated to $status",
-                ['campaign_id' => $campaign->id, 'status' => $campaign->status],
-                true,
+                [
+                    'campaign_id' => $campaign->id,
+                    'status' => $campaign->status,
+                    'link' => route('campaigns.show', $campaign->id),
+                ],
             );
         }
     }

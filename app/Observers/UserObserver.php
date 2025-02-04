@@ -21,7 +21,10 @@ class UserObserver
     public function updated(User $user): void
     {
         if ($user->isDirty('tokens')) {
-            notification($user, 'Your tokens have been updated', ['tokens' => $user->tokens]);
+            notification($user, 'Your tokens have been updated', [
+                'tokens' => $user->tokens,
+                'link' => '/token-management',
+            ]);
         }
     }
 

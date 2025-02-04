@@ -32,7 +32,7 @@ if (! function_exists('_dd')) {
 }
 
 if (! function_exists('notification')) {
-    function notification(\App\Models\User $user, string $message = '', array $data = [], bool $bcc = false)
+    function notification(\App\Models\User $user, string $message = '', array $data = [])
     {
         broadcast(new \App\Events\PrivateEvent(
             $message,
@@ -40,11 +40,12 @@ if (! function_exists('notification')) {
             $data,
         ));
 
-//        if ($bcc) {
-//            broadcast(new \App\Events\Admin\AdminDashboardEvent(true));
-//            Notify::createWithAdmin($user, $message, $data);
-//        } else {
-//            Notify::create($user, $message, $data);
-//        }
+        \App\Models\Notify::create([
+            'user_id' => $user->id,
+            'title'   => $message,
+            'content' => $data['text'] ?? null,
+            'type'    => $data['type'] ?? 'info',
+            'link'    => $data['link'] ?? null,
+        ]);
     }
 }

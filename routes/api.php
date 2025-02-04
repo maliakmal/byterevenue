@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
 use App\Http\Controllers\Api\IndicatorsApiController;
 use App\Http\Controllers\Api\UserApiController;
+use App\Http\Controllers\Api\NotifyApiController;
 use App\Http\Middleware\CheckAdminRole;
 use App\Http\Middleware\CheckExternalApiToken;
 
@@ -128,4 +129,6 @@ Route::middleware(['auth:sanctum', CheckAdminRole::class])->group(function () {
 
     Route::post('campaigns/ignore', [CampaignApiController::class, 'markAsIgnoreFromQueue']);
     Route::post('campaigns/unignore', [CampaignApiController::class, 'markAsNotIgnoreFromQueue']);
+
+    Route::apiResource('notification', NotifyApiController::class);
 });
