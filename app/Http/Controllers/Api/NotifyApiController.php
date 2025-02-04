@@ -15,7 +15,9 @@ class NotifyApiController extends ApiController
     {
         $user = auth()->user();
 
-        $notifications = $user->notifications()->paginate($request->get('per_page', 5));
+        $perPage = $request->per_page;
+
+        $notifications = $user->notifications()->paginate($request->get($perPage, 5));
 
         return $this->responseSuccess(data: $notifications);
     }

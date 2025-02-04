@@ -15,6 +15,10 @@ class PrivateEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    const CAMPAIGN_EVENT = 'campaign';
+    const USER_EVENT = 'user';
+    const DEFAULT_EVENT = 'notification';
+
     /**
      * Create a new event instance.
      */
@@ -22,6 +26,7 @@ class PrivateEvent implements ShouldBroadcast
         public string $message,
         public User $user,
         public array $data = [],
+        public string $event = self::DEFAULT_EVENT
     ) {}
 
     /**
@@ -47,6 +52,6 @@ class PrivateEvent implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'private.notification';
+        return 'private.' . $this->event;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Events\PrivateEvent;
 use App\Models\Campaign;
 
 class CampaignObserver
@@ -11,7 +12,16 @@ class CampaignObserver
      */
     public function created(Campaign $campaign): void
     {
-        //
+        notification(
+            $campaign->user,
+            "Campaign #$campaign->id has been created",
+            [
+                'campaign_id' => $campaign->id,
+                'status' => $campaign->status,
+                'link' => parse_url(route('campaigns.show', $campaign->id), PHP_URL_PATH),
+            ],
+            PrivateEvent::CAMPAIGN_EVENT,
+        );
     }
 
     /**
@@ -36,8 +46,9 @@ class CampaignObserver
                 [
                     'campaign_id' => $campaign->id,
                     'status' => $campaign->status,
-                    'link' => route('campaigns.show', $campaign->id),
+                    'link' => parse_url(route('campaigns.show', $campaign->id), PHP_URL_PATH),
                 ],
+                PrivateEvent::CAMPAIGN_EVENT,
             );
         }
     }
@@ -47,7 +58,16 @@ class CampaignObserver
      */
     public function deleted(Campaign $campaign): void
     {
-        //
+        notification(
+            $campaign->user,
+            "Campaign #$campaign->id has been deleted",
+            [
+                'campaign_id' => $campaign->id,
+                'status' => $campaign->status,
+                'link' => parse_url(route('campaigns.index'), PHP_URL_PATH),
+            ],
+            PrivateEvent::CAMPAIGN_EVENT,
+        );
     }
 
     /**

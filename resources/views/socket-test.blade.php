@@ -94,7 +94,33 @@
 
             let socketInfoBlock = document.getElementById('socket-info-block');
             let p = document.createElement('p');
-            p.innerHTML = e.message + ' : ' + JSON.stringify(e.data)
+            p.innerHTML = 'Thread .private.notification: ' + e.message + ' : ' + JSON.stringify(e.data)
+            socketInfoBlock.appendChild(p);
+        })
+        .error((error) => {
+            console.error('Error channel:', error);
+        });
+
+    window.Echo.private('App.Models.User.' + '{{ auth()->id() }}')
+        .listen('.private.campaign', (e) => {
+            console.log('Event catched:', e);
+
+            let socketInfoBlock = document.getElementById('socket-info-block');
+            let p = document.createElement('p');
+            p.innerHTML = 'Thread .private.campaign: ' + e.message + ' : ' + JSON.stringify(e.data)
+            socketInfoBlock.appendChild(p);
+        })
+        .error((error) => {
+            console.error('Error channel:', error);
+        });
+
+    window.Echo.private('App.Models.User.' + '{{ auth()->id() }}')
+        .listen('.private.user', (e) => {
+            console.log('Event catched:', e);
+
+            let socketInfoBlock = document.getElementById('socket-info-block');
+            let p = document.createElement('p');
+            p.innerHTML = 'Thread .private.user: ' + e.message + ' : ' + JSON.stringify(e.data)
             socketInfoBlock.appendChild(p);
         })
         .error((error) => {
