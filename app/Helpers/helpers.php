@@ -32,12 +32,13 @@ if (! function_exists('_dd')) {
 }
 
 if (! function_exists('notification')) {
-    function notification(\App\Models\User $user, string $message = '', array $data = [])
+    function notification(\App\Models\User $user, string $message = '', array $data = [], $event = null)
     {
         broadcast(new \App\Events\PrivateEvent(
             $message,
             $user,
             $data,
+            $event,
         ));
 
         \App\Models\Notify::create([
