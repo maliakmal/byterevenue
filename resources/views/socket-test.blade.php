@@ -54,13 +54,11 @@
                 </svg>
                 Byte Revenue
             </a>
+        </div>
 
-            <div class="flex w-1/2 justify-end content-center">
-
-
-
-            </div>
-
+        <div id="socket-info-block" style="background: black; color: white">
+            <p>Sockets info:</p>
+            <p></p>
         </div>
 
     </div>
@@ -93,6 +91,11 @@
     window.Echo.private('App.Models.User.' + '{{ auth()->id() }}')
         .listen('.private.notification', (e) => {
             console.log('Event catched:', e);
+
+            let socketInfoBlock = document.getElementById('socket-info-block');
+            let p = document.createElement('p');
+            p.innerHTML = e.message + ' : ' + JSON.stringify(e.data)
+            socketInfoBlock.appendChild(p);
         })
         .error((error) => {
             console.error('Error channel:', error);

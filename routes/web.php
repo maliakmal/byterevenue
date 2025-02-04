@@ -84,8 +84,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Socket test route
     Route::get('socket-test', function () {
-        broadcast(new \App\Events\PublicEvent('test_message'));
-        broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
+//        broadcast(new \App\Events\PublicEvent('test_message'));
+//        broadcast(new \App\Events\PrivateEvent('private_test_message', request()->user()));
         return view('socket-test');
     });
 

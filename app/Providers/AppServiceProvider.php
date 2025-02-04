@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\Setting;
 use App\Models\User;
 use App\Observers\CampaignObserver;
+use App\Observers\UserObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerConfigs();
+
         Response::macro('success', function ($message = '', $data = [], $code = 200, $headers = []) {
             return Response::make([
                 'success' => true,
@@ -58,7 +60,10 @@ class AppServiceProvider extends ServiceProvider
                 . $user->getEmailForPasswordReset();
         });
 
+
+        // ### OBSERVERS ###
         Campaign::observe(CampaignObserver::class);
+        User::observe(UserObserver::class);
     }
 
     private function registerConfigs()
