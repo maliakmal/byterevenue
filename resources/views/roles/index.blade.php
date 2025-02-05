@@ -81,6 +81,9 @@
                             @endif
                         </td>
                         <td class="border border-gray-200 px-4 py-2">
+                        @if($role->name == 'admin')
+                        @else 
+
                         <form action="{{ route('roles.destroy', $role->id) }}" method="POST">
                     @csrf
                     @method('DELETE')
@@ -92,7 +95,8 @@
                         </span>
                       </button>
                 </form>
-                                </td>
+                @endif
+                </td>
                             </tr>
                             @empty
                             <tr>

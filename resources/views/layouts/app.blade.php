@@ -45,6 +45,7 @@
             .ignore-campaign .hide-on-ignore {
                 display: none !important;
             }
+            
     .ms-choice{
         height:45px;line-height:40px;
     }
