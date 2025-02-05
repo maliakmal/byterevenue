@@ -16,6 +16,7 @@
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.growl@1.3.5/stylesheets/jquery.growl.min.css">
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://unpkg.com/multiple-select@1.7.0/dist/multiple-select.min.css">
         <style type="text/css">
             .daterangepicker{
                 font-family:sans-serif;
@@ -44,7 +45,9 @@
             .ignore-campaign .hide-on-ignore {
                 display: none !important;
             }
-
+    .ms-choice{
+        height:45px;line-height:40px;
+    }
         </style>
 
         <!-- Scripts -->
@@ -115,6 +118,7 @@
     <!-- Include Chart.js -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script src="https://unpkg.com/multiple-select@1.7.0/dist/multiple-select.min.js"></script>
 
         @stack('other-scripts')
 

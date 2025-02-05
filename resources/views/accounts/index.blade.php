@@ -74,6 +74,7 @@
                                 <th class="px-4 py-2">Latest Campaign CTR</th>
                                 <th class="px-4 py-2">Email</th>
                                 <th class="px-4 py-2">Tokens</th>
+                                <th class="px-4 py-2">Roles</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -92,6 +93,18 @@
                                 </td>
                                 <td class="border border-gray-200 px-4 py-2">{{ $account->email }}</td>
                                 <td class="border border-gray-200 px-4 py-2">{{ Number::format($account->tokens) }}</td>
+                                <td>
+                                <form id="role-form" action="{{ route('accounts.assignRole', $account->id) }}" method="POST">
+                                    @csrf
+                                    <select name="role">
+                                        <option >Select Role</option>
+                                    @foreach($roles as $role)
+                                        <option {{ $account->hasRole($role->name) ? 'selected' : '' }} value="{{ $role->name }}" >{{ $role->name }}</option>
+                                    @endforeach
+                                    </select>
+                                </form>
+
+                                </td>
                             </tr>
                             @empty
                             <tr>
@@ -111,8 +124,8 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {
-        var selectElements = document.querySelectorAll('#filter-form select');
-        var form = document.getElementById('filter-form');
+        var selectElements = document.querySelectorAll('#role-form select');
+        var form = document.getElementById('role-form');
 
         selectElements.forEach(function (selectElement) {
             selectElement.addEventListener('change', function () {

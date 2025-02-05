@@ -60,6 +60,8 @@ class AuthApiController extends ApiController
             'password' => Hash::make($request->password),
         ]);
 
+        $user->syncRoles(['user']);
+
         $token = $user->createToken($user->name .'-AuthToken')->plainTextToken;
 
         Mail::to($user->email)->send(new UserRegistered($user));

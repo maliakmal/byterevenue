@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\AreasApiController;
 use App\Http\Controllers\Api\ShortDomainsApiController;
 use App\Http\Controllers\Api\BatchFileApiController;
 use App\Http\Controllers\Api\IndicatorsApiController;
+use App\Http\Controllers\Api\RoleApiController;
 use App\Http\Middleware\CheckAdminRole;
 
 // group auth routes for auth api
@@ -67,7 +68,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('campaigns', CampaignApiController::class);
 
     Route::apiResource('recipient_lists', RecipientsListApiController::class);
-
+    Route::post('roles', [RoleApiController::class, 'index']);
+    Route::post('roles/create', [RoleApiController::class, 'store']);
+    Route::post('roles/assign-permissions', [RoleApiController::class, 'assignPermissions']);
+    Route::post('roles/delete', [RoleApiController::class, 'destroy']);
+    
     // ???
     Route::post('broadcast_batches', [BroadcastBatchApiController::class, 'store']);
     Route::get('broadcast_batches/{id}', [BroadcastBatchApiController::class, 'show']);

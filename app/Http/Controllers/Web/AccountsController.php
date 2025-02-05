@@ -10,6 +10,7 @@ use App\Services\Accounts\AccountsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class AccountsController extends Controller
 {
@@ -82,8 +83,9 @@ class AccountsController extends Controller
             }
         }
         $accounts = $accounts->paginate($filter['count']);
+        $roles = Role::all();
 
-        return view('accounts.index', compact('accounts', 'filter'));
+        return view('accounts.index', compact('accounts', 'roles', 'filter'));
     }
 
     public function show($id)
@@ -127,6 +129,12 @@ class AccountsController extends Controller
         $transactions = $this->accountsService->getTransactions($account->id, $filter);
 
         return view('accounts.tokens', compact('account', 'filter', 'transactions'));
+    }
+
+    public function assignRole(Request $request, User $user)
+    {
+        $user->syncRoles([$request->role]);
+        return back()->with('success', 'User roles updated!');
     }
 
     /**

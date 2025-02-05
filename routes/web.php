@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\SettingController;
 use App\Http\Controllers\Web\BlackListNumberController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\BlackListWordController;
+use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\AreasController;
 use App\Http\Middleware\CheckAdminRole;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('jobs/campaigns', [JobsController::class, 'campaigns'])->name('jobs.campaigns');
         Route::get('download/{filename}', [JobsController::class, 'downloadFile'])->name('download.file');
 
+
+        Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+        Route::post('/roles/{role}/permissions', [RoleController::class, 'assignPermissions'])->name('roles.assignPermissions');
+        Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+    
+        // User management routes
+        Route::post('/accounts/{user}/roles', [AccountsController::class, 'assignRole'])->name('accounts.assignRole');
+    
         Route::post('accounts/store-tokens', [AccountsController::class, 'storeTokens'])->name('accounts.storeTokens');
         Route::resource('url_shorteners', UrlShortenerController::class);
 
