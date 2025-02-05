@@ -13,13 +13,50 @@ class Campaign extends Model
 
     protected $guarded = [];
 
-    const STATUS_TEMPLATE = -1; // tmp status for save
-    const STATUS_DRAFT = 0; // created but not run process
-    const STATUS_PROCESSING = 1; // in process (generating logs)
-    const STATUS_DONE = 2; // completed sending (via csv)
-    const STATUS_EXPIRED = 9; // expired
+    const STATUS_TEMPLATE   = -1; // tmp status for save
+    const STATUS_DRAFT      = 0;  // created but not run process
+    const STATUS_PROCESSING = 1;  // in process (generating logs)
+    const STATUS_DONE       = 2;  // completed generated (via csv)
+    const STATUS_COMPLETED  = 5;  // completed (getting all reports for messages)
+    const STATUS_PLANNED    = 6;  // !between 0 and 1 statuses! - paid and pending (waiting for schedule time of start)
+    const STATUS_ERROR      = 7;  // has error in delay processing
+    const STATUS_EXPIRED    = 9;  // expired
+    const STATUS_ARCHIVED   = 10; // all messages moved to archive
 
-    public function user(){
+    public static function statuses(): array
+    {
+        return [
+            (string)self::STATUS_TEMPLATE   => 'Template',
+            (string)self::STATUS_DRAFT      => 'Draft',
+            (string)self::STATUS_PROCESSING => 'Processing',
+            (string)self::STATUS_DONE       => 'Done',
+            (string)self::STATUS_COMPLETED  => 'Completed',
+            (string)self::STATUS_PLANNED    => 'Planned',
+            (string)self::STATUS_ERROR      => 'Error',
+            (string)self::STATUS_EXPIRED    => 'Expired',
+            (string)self::STATUS_ARCHIVED   => 'Archived',
+        ];
+    }
+
+    public static function nameByValue(int $value): ?string
+    {
+        return self::statuses()[(string)$value] ?? null;
+    }
+
+    public static function valueByName(string $name): ?int
+    {
+        $statuses = array_flip(self::statuses());
+
+        return $statuses[$name] ?? null;
+    }
+
+    public static function isValidStatus(int $value): bool
+    {
+        return isset(self::statuses()[$value]);
+    }
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
@@ -40,9 +77,9 @@ class Campaign extends Model
         return $short_url.'/'.($this->getUniqueFolder()).(count($params)>0?'?'.(http_build_query($params)):'');
     }
 
-    public function getUniqueFolder(){
-
-        if($this->code == ''){
+    public function getUniqueFolder()
+    {
+        if ($this->code == ''){
             $this->generateUniqueFolder();
             $this->save();
         }
@@ -50,17 +87,20 @@ class Campaign extends Model
         return $this->code;
     }
 
-    public function generateUniqueFolder(){
+    public function generateUniqueFolder()
+    {
         $base62 = new \Tuupola\Base62;
         $res = $base62->encode($this->id);
         $this->code = $res;
     }
 
-    public function client(){
+    public function client()
+    {
         return $this->belongsTo(Client::class);
     }
 
-    public function broadcast_batches(){
+    public function broadcast_batches()
+    {
         return $this->hasMany(BroadcastBatch::class);
     }
 
@@ -140,10 +180,4 @@ class Campaign extends Model
         return $this->hasMany(BroadcastLog::class, 'campaign_id', 'id')
             ->where('is_click', false);
     }
-
-//    rework this relationship to campaign_ids array in batch_files
-//    public function batchFiles()
-//    {
-//        return $this->belongsToMany(BatchFile::class, 'batch_file_campaign');
-//    }
 }

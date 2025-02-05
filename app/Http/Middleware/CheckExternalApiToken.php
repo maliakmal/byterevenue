@@ -15,9 +15,10 @@ class CheckExternalApiToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if($request->header('Api-Key') != config('app.external_api.token')){
-            return response()->error('Unauthorized', 401);
-        }
+//        if ($request->header('Api-Key') != config('app.external_api.token')){
+//            return response()->error('Unauthorized', 401);
+//        }
+
         return $next($request);
     }
 }

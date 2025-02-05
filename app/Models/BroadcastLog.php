@@ -23,7 +23,6 @@ class BroadcastLog extends Model
     protected $appends = ['is_blocked'];
 
     protected $casts = [
-        'keitaro_click_log' => 'json',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];

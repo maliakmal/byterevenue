@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'ByteRevenue'),
 
     /*
     |--------------------------------------------------------------------------
@@ -136,11 +136,13 @@ return [
     ],
     'csv' => [
         'disk' => env('CSV_DISK', 'space'),
-        'upload_max_size_allowed' => env('UPLOAD_MAX_SIZE_ALLOWED', 100000),
+        'upload_max_size_allowed' => env('UPLOAD_MAX_SIZE_ALLOWED', 1024 * 1024 * 100), // 100MB
     ],
     'one_plus_e' => [
         'host' => env('ONE_PLUS_E', 'http://172.16.0.101:8000'),
     ],
 
     'front_base_url' => env('FRONT_BASE_URL', 'http://localhost:8000'),
+
+    'upload_url' => env('UPLOAD_URL', 'http://localhost'),
 ];

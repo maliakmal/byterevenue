@@ -38,7 +38,7 @@ class CreateMissingKeitaroCampaigns extends Command
         $this->urlShortenerRepository = app()->make(UrlShortenerRepositoryInterface::class);
         $this->campaignShortUrlRepository = new CampaignShortUrlRepository(new CampaignShortUrl());
 
-        $campaign_service =  new CampaignService($this->campaignRepository);
+        $campaign_service = new CampaignService($this->campaignRepository);
         $incomplete = $this->campaignShortUrlRepository->getIncomplete();
 
         foreach($incomplete as $one){

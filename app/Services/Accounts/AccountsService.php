@@ -5,11 +5,9 @@ namespace App\Services\Accounts;
 use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Validator;
 use function PHPUnit\Framework\isNull;
 
 
@@ -26,6 +24,7 @@ class AccountsService
             'sort_order' => request('sort_order', 'desc'),
             'per_page' => request('per_page', 15),
         ];
+
         $status = intval($request->input('status',-1));
 
         $accounts = User::withCount([
@@ -105,6 +104,29 @@ class AccountsService
             $user->deductTokens(abs($amount));
         } elseif ($amount > 0) {
             $user->addTokens(abs($amount));
+        }
+
+        return ['message' => 'Tokens updated successfully.'];
+    }
+
+    public function usageTokensFromAccount(User $user, int $amount)
+    {
+        $user->usageTokens(abs($amount));
+
+        return ['message' => 'Tokens updated successfully.'];
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function hiddenCahngeTokensInAccount(User $user, int $amount)
+    {
+        if ($amount < 0) {
+            $user->hiddenDeductTokens(abs($amount));
+        } elseif ($amount > 0) {
+            $user->hiddenAddTokens(abs($amount));
         }
 
         return ['message' => 'Tokens updated successfully.'];

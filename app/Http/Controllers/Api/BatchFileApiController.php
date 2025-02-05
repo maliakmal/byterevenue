@@ -40,10 +40,10 @@ class BatchFileApiController extends ApiController
      */
     public function checkStatus(Request $request): JsonResponse
     {
-        $file_ids = isset($_POST['files']) ? $_POST['files'] : [];
-        $file_ids = is_array($file_ids) ? $file_ids : [];
+        $file_ids   = isset($_POST['files']) ? $_POST['files'] : [];
+        $file_ids   = is_array($file_ids) ? $file_ids : [];
         $file_ids[] = 0;
-        $files = [];
+        $files      = [];
 
         foreach (BatchFile::select()->whereIn('id', $file_ids)->where('is_ready', 1)->get() as $file) {
             $one = $file->toArray();
@@ -70,8 +70,13 @@ class BatchFileApiController extends ApiController
         $campaign_ids = $request->campaign_ids;
         $campaign_ids = is_array($campaign_ids) ? $campaign_ids : [];
 
-        $campaigns = Campaign::whereIn('id', $campaign_ids)->get();
-        $message   = null;
+        $campaigns = Campaign::whereIn('id', $campaign_ids)
+            ->when(!auth()->user()->isAdmin(), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->get();
+
+        $message = null;
 
         if (count($campaigns)) {
             $message = $campaigns[0]->message;

@@ -5,7 +5,6 @@ namespace App\Services\Keitaro;
 use App\Models\RequestLog;
 use App\Services\Keitaro\Requests\AbstractRequest;
 use Illuminate\Support\Facades\Http;
-use App\Models\Log;
 
 class KeitaroCaller
 {

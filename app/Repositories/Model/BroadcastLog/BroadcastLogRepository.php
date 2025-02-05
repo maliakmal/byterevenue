@@ -3,6 +3,7 @@
 namespace App\Repositories\Model\BroadcastLog;
 
 use App\Models\BroadcastLog;
+use App\Models\KeitaroClickLog;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Model\BaseRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -28,9 +29,23 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $this->model->whereIn('id', $ids)->update($fieldsToUpdate);
     }
 
-    public function updateBySlug($slug, $fieldsToUpdate)
+    public function updateBySlug($fieldsToUpdate, $slug)
     {
-        return $this->model->where('slug', '=', $slug)->update($fieldsToUpdate);
+        $model = $this->model->where('slug', $slug)->first();
+
+        if ($model) {
+            if (array_key_exists('keitaro_click_log', $fieldsToUpdate)) {
+                KeitaroClickLog::create([
+                    'campaign_id' => $model->campaign_id,
+                    'details' => $fieldsToUpdate['keitaro_click_log']
+                ]);
+                unset($fieldsToUpdate['keitaro_click_log']);
+            }
+
+            return $model->update($fieldsToUpdate);
+        }
+
+        return false;
     }
 
     /**
@@ -67,7 +82,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->get();
     }
 
@@ -75,7 +90,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->count();
     }
 
@@ -84,11 +99,46 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('mysql')
             ->table('broadcast_logs')
             ->whereIn('user_id', $userIds)
-            ->whereNull('batch')
+            ->where('is_sent', 0)
             ->count();
     }
 
     public function getUnsentCountByCampaignIds(array $campaignIds)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('is_sent', 0)
+            ->count();
+    }
+
+    //
+    public function getUngen()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->get();
+    }
+
+    public function getUngenCount()
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereNull('batch')
+            ->count();
+    }
+
+    public function getUngenCountByUserIds(array $userIds)
+    {
+        return \DB::connection('mysql')
+            ->table('broadcast_logs')
+            ->whereIn('user_id', $userIds)
+            ->whereNull('batch')
+            ->count();
+    }
+
+    public function getUngenCountByCampaignIds(array $campaignIds)
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
@@ -108,24 +158,11 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return $query->pluck('campaign_id')->toArray();
     }
 
-    public function getUniqueCampaignsIDs(?int $limit = null, ?array $ignored_campaigns = null): array
+    public function getUniqueCampaignsIDs(): array
     {
-        $subquery = \DB::table('broadcast_logs')
-            ->select('campaign_id')
-            ->whereNull('batch')
-            ->when(!!$limit, function ($query) use ($limit) {
-                return $query->take($limit);
-            })
-            ->when(!!$ignored_campaigns, function ($query) use ($ignored_campaigns) {
-                return $query->whereNotIn('campaign_id', $ignored_campaigns);
-            });
-
-        $ids = \DB::table(\DB::raw("({$subquery->toSql()}) as limited"))
-            ->select('campaign_id')
-            ->distinct()
-            ->pluck('campaign_id');
-
-        return $ids->toArray();
+        return \DB::table('unique_campaigns_stacks')
+            ->pluck('campaign_id')
+            ->toArray();
     }
 
     public function getTotalSentAndClicksByCampaign($campaign_id)
@@ -263,8 +300,8 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
         return \DB::connection('mysql')
             ->table('broadcast_logs')
 //            ->whereNotNull('sent_at')
-//            ->where('is_sent', 1)
-            ->whereNotNull('batch')
+            ->where('is_sent', 1)
+//            ->whereNotNull('batch')
             ->count();
     }
 
@@ -279,8 +316,7 @@ class BroadcastLogRepository extends BaseRepository implements BroadcastLogRepos
     {
         return \DB::connection('mysql')
             ->table('broadcast_logs')
-//            ->whereNotNull('sent_at')
-            ->whereNotNull('batch')
+            ->where('is_sent', 1)
             ->whereIn('campaign_id', $campaignIds)
             ->count();
     }

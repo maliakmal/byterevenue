@@ -36,6 +36,10 @@ class User extends Authenticatable
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'email_verified_at',
+        'two_factor_confirmed_at',
+        'is_blocked',
+        'show_introductory_screen',
     ];
 
     /**
@@ -99,7 +103,29 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => abs($amount) * -1,
-            'type' => 'usage',
+            'type' => Transaction::TYPE_DEDUCTION,
+        ]);
+
+        return $this->decrement('tokens', $amount);
+    }
+
+    public function usageTokens($amount)
+    {
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount) * -1,
+            'type' => Transaction::TYPE_USAGE,
+        ]);
+
+        return $this->decrement('tokens', $amount);
+    }
+
+    public function hiddenDeductTokens($amount)
+    {
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount) * -1,
+            'type' => Transaction::TYPE_HIDDEN_DEDUCTION,
         ]);
 
         return $this->decrement('tokens', $amount);
@@ -109,7 +135,17 @@ class User extends Authenticatable
         $this->transactions()->create([
             'user_id' => $this->id,
             'amount' => abs($amount),
-            'type' => 'purchase',
+            'type' => Transaction::TYPE_PURCHASE,
+        ]);
+
+        return $this->increment('tokens', $amount);
+    }
+
+    public function hiddenAddTokens($amount){
+        $this->transactions()->create([
+            'user_id' => $this->id,
+            'amount' => abs($amount),
+            'type' => Transaction::TYPE_HIDDEN_PURCHASE,
         ]);
 
         return $this->increment('tokens', $amount);
@@ -118,5 +154,10 @@ class User extends Authenticatable
     public function getHasRolesAttribute()
     {
         return $this->roles()->pluck('name');
+    }
+
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
     }
 }

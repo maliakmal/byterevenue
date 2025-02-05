@@ -14,16 +14,16 @@ class ContactService
      * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function getContacts(Request $request)
+    public function getContacts(array $data)
     {
-        $user       = auth()->user();
-        $perPage    = $request->input('per_page', 15);
-        $name       = $request->input('name');
-        $area_code  = $request->input('area_code', '');
-        $status     = intval($request->input('status',-1));
-        $phone      = $request->input('phone', '');
-        $sortBy     = $request->input('sort_by', 'id');
-        $sortOrder  = $request->input('sort_order', 'desc');
+        $user       = $data['user'];
+        $perPage    = $data['perPage'];
+        $name       = $data['name'];
+        $area_code  = $data['area_code'];
+        $status     = $data['status'];
+        $phone      = $data['phone'];
+        $sortBy     = $data['sortBy'];
+        $sortOrder  = $data['sortOrder'];
 
         $filter_phone = $area_code ?: '%';
         $filter_phone .= ($phone ?: '') . '%';
@@ -70,13 +70,21 @@ class ContactService
     {
         $sent = BroadcastLog::whereIn('contact_id', $ids)
             ->where('is_sent', true)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
-        $contact = Contact::with('recipientLists')->whereIn('id', $ids)->first();
+        $contact = Contact::with('recipientLists')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->whereIn('id', $ids)
+            ->first();
 
         $campaigns = intval($contact->recipientLists?->sum('campaigns_count'));
 
-        $recipientsLists = $contact->recipientLists->count();
+        $recipientsLists = intval($contact->recipientLists?->count());
 
         return [
             'sent' => $sent,

@@ -60,6 +60,7 @@ class RecipientListService
      */
     public function store(array $data, File $file, ?User $user = null)
     {
+        // TODO:: can() user start of campaign
         $user = auth()->user() ?? $user;
 
         if ($user->show_introductory_screen) {

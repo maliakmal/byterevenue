@@ -25,7 +25,7 @@ class BroadcastBatchService
             'subject' => $data['message_subject'],
             'body' => $data['message_body'],
             'target_url' => $data['message_target_url'],
-            "user_id" => auth()->id(),
+            'user_id' => auth()->id(),
             'campaign_id' => $campaign_id,
         ];
 

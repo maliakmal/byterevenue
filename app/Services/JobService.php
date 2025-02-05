@@ -272,18 +272,31 @@ class JobService
         $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
         // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
 
-        $totalRecords = BroadcastLog::query()
+        $stackedCampaigns = \DB::table('export_campaigns_stacks')->pluck('campaign_id')->toArray();
+
+        $countInStack = count($stackedCampaigns);
+
+        $totalRecords = \DB::table('broadcast_logs')
             ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereNotIn('campaign_id', $stackedCampaigns)
             ->whereNull('batch')
             ->count();
+
+        if ($totalRecords < $requestCount && $countInStack > 0) {
+            \Log::info('Returned not yet ready full scope of records with stacks count: ' . $countInStack, [
+                'stackedCampaigns' => $stackedCampaigns
+            ]);
+            return ['error' => 'Some campaigns are already is busy, please try again later.'];
+        }
 
         if (0 == $totalRecords) {
             \Log::info('GenerateService -> No messages ready for CSV generation. Exiting...');
             return ['error' => 'No messages ready for CSV generation.'];
         }
 
-        // $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs($requestCount, $ignored_campaigns);
-        $campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
+        $campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+
+        $campaign_ids = array_diff($campaign_ids, $stackedCampaigns);
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
@@ -329,8 +342,17 @@ class JobService
             'type' => 'fifo',
         ]);
 
-        // original foreign link to campaigns (remove after change to campaign_ids method for all)
-        // $batch_file->campaigns()->attach($campaign_ids);
+        // create stack for processing campaign ids
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         // start generating sequence of jobs
         for ($batch = 0; $batch < $numBatches; $batch++) {
@@ -384,8 +406,9 @@ class JobService
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
-        if (empty($campaign_ids))
+        if (empty($campaign_ids)) {
             return ['error' => 'No campaigns ready for CSV generation.'];
+        }
 
         $totalRecords = 0;
         $campaigns_array = [];
@@ -418,6 +441,18 @@ class JobService
             dispatch(new CreateCampaignsOnKeitaro($newCampaignsData));
         }
 
+        // check if campaign ids are already in the stack
+        $busy_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($busy_campaign_ids) > 0) {
+            return ['error' => 'Campaigns: ' .
+                implode(', ', $busy_campaign_ids) .
+                ' are already in the queue.'];
+        }
+
         // total count of available records
         $availableCount = $totalRecords > $requestCount ? $requestCount : $totalRecords;
         $batch_no = str_replace('.', '', microtime(true));
@@ -435,6 +470,18 @@ class JobService
             'campaign_ids' => $campaign_ids,
             'type' => 'campaign',
         ]);
+
+        // create stack for processing campaign ids (observer?)
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         arsort($campaigns_data);
         $part = ceil($availableCount / count($campaign_ids));
@@ -496,18 +543,26 @@ class JobService
         $campaign_short_urls = [];
         $campaign_short_urls_new = [];
 
-        $campaign_ids = Campaign::whereIn('user_id', $account_ids)->pluck('id')->toArray();
-
-        $ignored_campaigns = Campaign::select('id')->where('is_ignored_on_queue', true)->pluck('id')->toArray();
-        // TODO:: is_ignored_on_queue - is blacklisted campaign? mb separate table?
-
-        $allowedCompanyIds = array_values(array_diff($campaign_ids, $ignored_campaigns));
-        $campaign_ids = Campaign::whereIn('id', $allowedCompanyIds)->pluck('id')->toArray();
+        $campaign_ids = Campaign::whereIn('user_id', $account_ids)
+            ->where('is_ignored_on_queue', false)
+            ->pluck('id')
+            ->toArray();
 
         Log::info('GenerateService -> campaign ids in csv', $campaign_ids);
 
         if (empty($campaign_ids))
             return ['error' => 'No campaigns ready for CSV generation.'];
+
+        // check if campaign ids are already in the stack
+        $busy_campaign_ids = \DB::table('export_campaigns_stacks')
+            ->whereIn('campaign_id', $campaign_ids)
+            ->pluck('campaign_id')
+            ->toArray();
+
+        if (count($busy_campaign_ids) > 0) {
+            return ['error' => 'Some campaigns of this user are already in the queue.'];
+        }
+        // ###
 
         $totalRecords = 0;
         $campaigns_array = [];
@@ -557,6 +612,18 @@ class JobService
             'campaign_ids' => $campaign_ids,
             'type' => 'account',
         ]);
+
+        // create stack for processing campaign ids (observer?)
+        $stack = [];
+        foreach ($campaign_ids as $cmp_id) {
+            $stack[] = [
+                'campaign_id' => $cmp_id,
+                'created_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        \DB::table('export_campaigns_stacks')->insert($stack);
+        // ###
 
         arsort($campaigns_data);
         $part = ceil($availableCount / count($campaign_ids));
@@ -727,8 +794,8 @@ class JobService
     public function campaigns(array $data)
     {
         // get all campaigns which have messages ready to be sent
-        // $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
-        $uniq_campaign_ids = $this->globalCachingService->getUniqueCampaignsIds();
+        $uniq_campaign_ids = $this->broadcastLogRepository->getUniqueCampaignsIDs();
+
         $user_id = $data['filter_client'] ?? null;
 
         $campaigns = isset($user_id)

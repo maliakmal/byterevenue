@@ -6,6 +6,7 @@ use App\Enums\BroadcastLog\BroadcastLogStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CampaignsGetRequest;
 use App\Http\Requests\JobRegenerateRequest;
+use App\Models\BatchFile;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\BatchFileDownloadService;
@@ -114,12 +115,21 @@ class JobsController extends Controller
     }
 
     /**
-     * @param $filename
-     * @return StreamedResponse
+     * @param $id
      */
-    public function downloadFile($filename)
+    public function downloadFile($id)
     {
-        return $this->batchFileDownloadService->streamingNewBatchFile($filename);
+        if (!auth()->user()->isAdmin()) {
+            return back()->with('error', 'You are not allowed to download files');
+        }
+
+        $file = BatchFile::find($id);
+
+        if (!$file) {
+            return back()->with('error', 'File not found');
+        }
+
+        return $this->batchFileDownloadService->streamingNewBatchFile($file);
     }
 
     /**
@@ -143,7 +153,6 @@ class JobsController extends Controller
             !$this->broadcastLogRepository->updateByModel([
                 'sent_at' => Carbon::now(),
                 'is_sent' => true,
-                'status' => BroadcastLogStatus::SENT,
             ], $model)
         ) {
             return response()->error('update failed');

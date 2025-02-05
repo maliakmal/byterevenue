@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Middleware\CheckAdminRole;
 use App\Http\Requests\JobRegenerateRequest;
+use App\Models\BatchFile;
 use App\Repositories\Contract\BroadcastLog\BroadcastLogRepositoryInterface;
 use App\Repositories\Contract\CampaignShortUrl\CampaignShortUrlRepositoryInterface;
 use App\Services\BatchFileDownloadService;
@@ -28,7 +30,9 @@ class JobsApiController extends ApiController
         protected BroadcastLogRepositoryInterface $broadcastLogRepository,
         protected JobService $jobService,
         protected BatchFileDownloadService $batchFileDownloadService,
-    ) {}
+    ) {
+        $this->middleware(['auth:sanctum', CheckAdminRole::class]);
+    }
 
     /**
      * @param Request $request
@@ -149,9 +153,46 @@ class JobsApiController extends ApiController
         return $this->responseSuccess(message: $result['success']);
     }
 
-    public function downloadFile($filename)
+    public function downloadFile($id)
     {
-        return $this->batchFileDownloadService->streamingNewBatchFile($filename);
+        $ownerFile = BatchFile::find(intval($id));
+
+        if (!auth()->user()->isAdmin()) {
+            return $this->responseError(message: 'You do not have permission to access this resource', status: 403);
+        }
+
+        if (!$ownerFile) {
+            return $this->responseError(message: 'File not found', status: 404);
+        }
+
+        $result = $this->batchFileDownloadService->streamingNewBatchFile($ownerFile);
+
+        if (is_array($result) && $result['error'] ?? null) {
+            return $this->responseError(message: $result['error'], status: $result['code'] ?? 400);
+        }
+
+        return $result;
+    }
+
+    public function uploadFile($id)
+    {
+        $ownerFile = BatchFile::find(intval($id));
+
+        if (!auth()->user()->isAdmin()) {
+            return $this->responseError(message: 'You do not have permission to access this resource', status: 403);
+        }
+
+        if (!$ownerFile) {
+            return $this->responseError(message: 'File not found', status: 404);
+        }
+
+        $result = $this->batchFileDownloadService->uploadFileToResource($ownerFile);
+
+        if ($result['error'] ?? null) {
+            return $this->responseError(message: $result['error'], status: $result['code'] ?? 400);
+        }
+
+        return $this->responseSuccess(message: $result['success']);
     }
 
     /**

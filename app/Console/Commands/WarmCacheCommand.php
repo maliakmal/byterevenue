@@ -37,13 +37,7 @@ class WarmCacheCommand extends Command
             $cachingService->setWarmingCacheRequest('global_queue');
         }
 
-        if (
-            is_null(cache()->get(GlobalCachingService::CACHE_REQUEST_PREFIX . 'unique_campaigns_ids')) &&
-            is_null(cache()->get(GlobalCachingService::CACHE_PROCESSING_PREFIX . 'unique_campaigns_ids')) &&
-            is_null(cache()->get(GlobalCachingService::CACHE_PREFIX . 'unique_campaigns_ids'))
-        ) {
-            $cachingService->setWarmingCacheRequest('unique_campaigns_ids');
-        }
+        //
 
         $cachingService->warmCacheProcessing();
 

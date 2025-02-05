@@ -65,15 +65,12 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         $query = BroadcastLog::query()
             ->with(['campaign', 'message'])
             ->whereNotIn('campaign_id', $ignored_campaigns)
+            ->whereIn('campaign_id', $this->campaign_ids)
             ->whereNull('batch')
             ->where('is_downloaded_as_csv', 0)
             ->limit($this->batchSize);
 
         \Log::debug('campaign_ids: ', $this->campaign_ids);
-
-        if (!empty($this->campaign_ids)) {
-            $query->whereIn('campaign_id', $this->campaign_ids);
-        }
 
         $this->logs = $query->get();
 
@@ -165,7 +162,10 @@ class ProcessCsvQueueBatchByCampaigns extends BaseJob implements ShouldQueue
         } finally {
             if ($this->is_last == true) {
                 $this->batch_file->update(['is_ready' => 1]);
-                $this->cache_service->setWarmingCacheRequest(['global_queue', 'unique_campaigns_ids']);
+                \DB::table('export_campaigns_stacks')
+                    ->whereIn('campaign_id', $this->batch_file->campaign_ids)
+                    ->delete();
+                UniqueCampaignsIdsUpdateJob::dispatch();
             }
         }
     }

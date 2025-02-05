@@ -2,6 +2,7 @@
 
 namespace App\Services\Indicators;
 
+use App\Models\Campaign;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Repositories\Model\BroadcastLog\BroadcastLogRepository;
@@ -14,6 +15,17 @@ class QueueIndicatorsService
 
     public function getTotalQueueCount($userIds = [], $campaignIds = [])
     {
+        if (!empty($user_ids) && !auth()->user()->hasRole('admin')) {
+            $userIds = [auth()->id()];
+        }
+
+        if (!empty($campaignIds) && !auth()->user()->hasRole('admin')) {
+            $campaignIds = Campaign::where('user_id', auth()->id())
+                ->whereIn('id', $campaignIds)
+                ->pluck('id')
+                ->toArray();
+        }
+
         $totalSentQuery = \DB::table('broadcast_logs')
             ->whereNotNull('batch');
 
@@ -45,8 +57,13 @@ class QueueIndicatorsService
             ->where('has_errors', 0)
             ->where('is_ready', 1)
             ->where('type', '!=', 'regen')
-            ->groupBy('date')
-            ->get();
+            ->groupBy('date');
+
+        if (!auth()->user()->hasRole('admin')) {
+            $totalSentRaw->where('user_id', auth()->id());
+        }
+
+        $totalSentRaw = $totalSentRaw->get();
 
         foreach (now()->subDays(6)->daysUntil(now()) as $date) {
             $dataArray[$date->format('d-m-Y')] = (int)$totalSentRaw->where('date', $date->format('Y-m-d'))->first()?->count ?? 0;
@@ -58,9 +75,15 @@ class QueueIndicatorsService
     public function getTopFiveCampaigns()
     {
         // Get top 5 campaigns by total recipients
-        return \DB::table('campaigns')->orderByDesc('total_recipients')
-            ->limit(5)
-            ->pluck('total_recipients','title')
+        $campaigns = Campaign::orderByDesc('total_recipients')
+            ->limit(5);
+
+        if (!auth()->user()->hasRole('admin')) {
+            $campaigns->where('user_id', auth()->id());
+        }
+
+        return $campaigns
+            ->pluck('total_recipients', 'title')
             ->toArray();
     }
 
@@ -72,10 +95,13 @@ class QueueIndicatorsService
             ->select('users.*', \DB::raw('SUM(ABS(transactions.amount)) as total_amount'))
             ->groupBy('transactions.user_id')
             ->orderByDesc('total_amount')
-            ->limit(5)
-            ->pluck('total_amount','name');
+            ->limit(5);
 
-        return $topTransactionsUser;
+        if (!auth()->user()->hasRole('admin')) {
+            $topTransactionsUser->where('transactions.user_id', auth()->id());
+        }
+
+        return $topTransactionsUser->pluck('total_amount','name');
     }
 
     public function getTopFiveDomains()
@@ -85,21 +111,33 @@ class QueueIndicatorsService
             ->select('us.name', \DB::raw('COUNT(csu.url_shortener_id) as usage_count'))
             ->groupBy('us.name')
             ->orderByDesc('usage_count')
-            ->limit(5)
-            ->pluck('usage_count', 'name')
-            ->toArray();
+            ->limit(5);
 
-        return $topUrlShortenerUsage;
+        if (!auth()->user()->hasRole('admin')) {
+            $campaigns = Campaign::where('user_id', auth()->id())
+                ->pluck('id')
+                ->toArray();
+
+            $topUrlShortenerUsage->whereIn('csu.campaign_id', $campaigns);
+        }
+
+        return $topUrlShortenerUsage->pluck('usage_count', 'name')->toArray();
     }
 
     public function getImportStatusRecipientLists()
     {
         $imports = \DB::table('import_recipients_lists')
             ->where('is_failed', 0)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
         $failedImports = \DB::table('import_recipients_lists')
             ->where('is_failed', 1)
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->count();
 
         return [
@@ -113,6 +151,9 @@ class QueueIndicatorsService
     {
         $campaignsByWeekRaw = \DB::table('campaigns')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -126,10 +167,17 @@ class QueueIndicatorsService
 
     public function getTotalContactsIndicator()
     {
-        $total = \DB::table('contacts')->count();
+        $total = \DB::table('contacts')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
 
         $byWeekRaw = \DB::table('contacts')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -146,8 +194,17 @@ class QueueIndicatorsService
 
     public function getStatusUserListIndicator()
     {
-        $totalCount     = \DB::table('contacts')->count();
-        $blackListCount = \DB::table('black_list_numbers')->count();
+        $totalCount = \DB::table('contacts')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
+
+        $blackListCount = \DB::table('black_list_numbers')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
+            ->count();
 
         return [
             'total'         => $totalCount,
@@ -160,6 +217,9 @@ class QueueIndicatorsService
     {
         $byWeekRaw = \DB::table('url_shorteners')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -177,6 +237,9 @@ class QueueIndicatorsService
 
         $byWeekRaw = \DB::table('users')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(id) as count'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->get();
@@ -204,12 +267,18 @@ class QueueIndicatorsService
     {
         $total = (int)\DB::table('transactions')
             ->selectRaw('SUM(ABS(amount)) as total')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->where('type', 'usage')
             ->value('total');
 
         $byWeekRaw = \DB::table('transactions')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('SUM(ABS(amount)) as sum_amount'))
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                return $query->where('user_id', auth()->id());
+            })
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->where('type', 'usage')
@@ -244,6 +313,7 @@ class QueueIndicatorsService
 
         $byWeekRaw = \DB::table('transactions')
             ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('sum(amount) as balance'))
+            ->whereNotIn('type', [Transaction::TYPE_HIDDEN_PURCHASE, Transaction::TYPE_HIDDEN_DEDUCTION])
             ->where('created_at', '>=', now()->subDays(6))
             ->where('user_id', $id)
             ->groupBy('date')

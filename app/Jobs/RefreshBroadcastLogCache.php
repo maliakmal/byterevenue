@@ -171,6 +171,8 @@ class RefreshBroadcastLogCache extends BaseJob implements ShouldQueue
         \Log::debug('time of caching: '. sprintf('%.6f sec.',microtime(true) - $start));
 
         Cache::forget(BroadcastLog::CACHE_STATUS_KEY);
+
+        broadcast(new \App\Events\Admin\AdminDashboardEvent(true));
     }
 
     public function failed(\Exception $exception)

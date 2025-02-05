@@ -5,8 +5,6 @@ namespace App\Services\Campaign;
 use App\Jobs\FinishLoopContactGeneration;
 use App\Models\BroadcastLog;
 use App\Models\Campaign;
-use App\Models\Message;
-use App\Models\Transaction;
 use App\Models\User;
 use App\Repositories\Model\Campaign\CampaignRepository;
 use App\Services\Keitaro\KeitaroCaller;
@@ -20,9 +18,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hidehalo\Nanoid\Client;
-use Hidehalo\Nanoid\GeneratorInterface;
 use App\Jobs\ProcessCampaign;
-
 
 class CampaignService
 {
@@ -175,14 +171,18 @@ class CampaignService
             $contacts = [];
             $logs = BroadcastLog::where('campaign_id', $campaign->id);
 
+            if (!auth()->user()->isAdmin()) {
+                $logs = $logs->where('user_id', auth()->id());
+            }
+
             if (isset($filters['is_blocked'])) {
                 $logs = $logs->withIsBlocked()->having('is_blocked', $filters['is_blocked']);
             }
-            if (isset($filters['status']) && $filters['status'] === 'Sent') {
-                $logs = $logs->whereNotNull('batch');
-            } elseif (isset($filters['status']) && $filters['status'] === 'Unsent') {
-                $logs = $logs->whereNull('batch');
+
+            if (isset($filters['status'])) {
+                $logs = $logs->where('is_sent', $filters['status']);
             }
+
             if (isset($filters['is_clicked'])) {
                 $logs = $logs->where('is_click', $filters['is_clicked']);
             }
@@ -238,8 +238,6 @@ class CampaignService
      */
     public function markAsProcessed(int $id)
     {
-        // create message logs against each contact and generate the message acordingly
-
         $campaign = Campaign::with(['user', 'message'])->withCount([
             'recipient_list as recipient_list_contacts_count' => function ($query) {
                 $query->selectRaw('COUNT(DISTINCT contact_recipient_list.contact_id)')
@@ -247,12 +245,8 @@ class CampaignService
             }
         ])->findOrFail($id);
 
-        $user   = $campaign->user;
-        $amount = $campaign->recipient_list_contacts_count;
-
-        if ($user->tokens < $amount) {
-            return [false, 'You do not have enough tokens to process this campaign.'];
-        }
+        $campaign->markAsProcessed();
+        $user = $campaign->user;
 
         try {
             $recipientList  = $campaign->recipient_list;
@@ -268,8 +262,6 @@ class CampaignService
             }
 
             dispatch(new FinishLoopContactGeneration($campaign));
-
-            $campaign->markAsProcessed(); // need add and set status in process (generated)
 
             return [true, 'Job is being processed.'];
         } catch (\Exception $e) {
